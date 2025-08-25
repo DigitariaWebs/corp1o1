@@ -1,0 +1,1275 @@
+{
+  "navigation": {
+    "back": "Back to Learning Paths",
+    "logo": "Corp1o1",
+    "tagline": "The Skills Era",
+    "status": "AI System Active",
+    "learning": "Learning",
+    "home": "Home",
+    "technology": "Technology",
+    "stories": "Stories",
+    "impact": "Impact",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "skills": "Skills",
+    "certificates": "Certificates",
+    "assessments": "Assessments",
+    "portfolio": "Portfolio",
+    "analytics": "Analytics",
+    "marketplace": "Marketplace",
+    "learn": "Learn",
+    "more": "More",
+    "profile": "Profile",
+    "settings": "Settings",
+    "subscription": "Subscription",
+    "verification": "Verification",
+    "support": "Support",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Sign Up",
+    "notifications": "Notifications",
+    "voice_listening": "Active listening...",
+    "voice_commands": "Say \"Navigate to...\" or \"Start assessment\""
+  },
+  "hero": {
+    "title": "THE SKILLS ERA",
+    "subtitle1": "No more dusty diplomas.",
+    "subtitle2": "No more unfair barriers.",
+    "subtitle3": "The future recognizes talent.",
+    "cta_demo": "Discover the Demo",
+    "cta_beta": "Join the Beta",
+    "feature1_title": "Revolutionary AI",
+    "feature1_desc": "99.7% accuracy in human skills analysis",
+    "feature2_title": "Global Recognition",
+    "feature2_desc": "Accepted by 10,000+ companies globally",
+    "feature3_title": "Secure Blockchain",
+    "feature3_desc": "Verifiable and tamper-proof certificates"
+  },
+  "stats": {
+    "hours_learned": "Hours Learned",
+    "certificates": "Certificates",
+    "skills_acquired": "Skills Acquired",
+    "day_streak": "Day Streak",
+    "title": "The Revolution in Numbers",
+    "subtitle": "Discover the transformative impact of our platform on human talent recognition",
+    "hidden_talents": "of talents remain invisible",
+    "skills_analyzed": "skills analyzed",
+    "ai_accuracy": "AI accuracy",
+    "partner_companies": "partner companies"
+  },
+  "technology": {
+    "title": "Revolutionary Technology",
+    "subtitle": "Discover the innovations transforming human skills recognition",
+    "ai_title": "Multi-Domain AI",
+    "ai_desc": "Advanced analysis of human talents with artificial intelligence",
+    "ai_features": [
+      "Behavioral analysis",
+      "Creative and social assessment",
+      "Voice and gesture recognition"
+    ],
+    "blockchain_title": "Secure Blockchain",
+    "blockchain_desc": "Verifiable and tamper-proof certificates on blockchain",
+    "blockchain_features": [
+      "Universal NFT certificates",
+      "Instant verification",
+      "Maximum security"
+    ],
+    "realtime_title": "Real-Time",
+    "realtime_desc": "Instant assessments with immediate feedback",
+    "realtime_features": [
+      "Adaptive live feedback",
+      "Dynamic adaptation",
+      "Instant results"
+    ],
+    "global_title": "Global Recognition",
+    "global_desc": "International acceptance across all industries",
+    "global_features": [
+      "10K+ companies",
+      "Universal standards",
+      "Multi-sector"
+    ],
+    "multidomains_title": "Multi-Sector",
+    "multidomains_desc": "Complete assessment across all human domains",
+    "multidomains_features": [
+      "Social & Emotional",
+      "Creative & Artistic",
+      "Physical & Manual",
+      "Business & Service"
+    ],
+    "dynamic_title": "Living Certification",
+    "dynamic_desc": "Evolving certificates that grow with you",
+    "dynamic_features": [
+      "Continuous evolution",
+      "Auto-update",
+      "Visible progression"
+    ]
+  },
+  "stories": {
+    "title": "Success Stories",
+    "subtitle": "Discover how our platform transforms lives by recognizing all human talents",
+    "amira_title": "Creative Chef",
+    "amira_story": "Without formal culinary training, Amira developed exceptional talent in fusion cuisine. Our AI analyzed her creations and recognized her culinary genius.",
+    "amira_skills": "Thanks to the platform, Amira strengthened her skills and developed her career.",
+    "amira_achievement": "Certified Expert Creative Chef",
+    "amira_before": "Rejected by traditional restaurants",
+    "amira_after": "Executive chef in a starred restaurant",
+    "lucas_title": "Inspiring Social Educator",
+    "lucas_story": "Former worker, Lucas discovered his gift for teaching and supporting young people in difficulty. His emotional intelligence was recognized by our system.",
+    "lucas_skills": [
+      "Emotional Intelligence",
+      "Adaptive Pedagogy",
+      "Empathetic Communication"
+    ],
+    "lucas_achievement": "Certified Expert Social Educator",
+    "lucas_before": "Limited by lack of educational degree",
+    "lucas_after": "Director of an integration center",
+    "fatou_title": "Innovative Visual Artist",
+    "fatou_story": "Self-taught in digital art, Fatou revolutionized urban art with her immersive creations. Her creative portfolio speaks for itself.",
+    "fatou_skills": ["Digital Art", "Creative Vision", "Artistic Innovation"],
+    "fatou_achievement": "Certified Visual Artist",
+    "fatou_before": "Unknown street artist",
+    "fatou_after": "International exhibitions and prestigious commissions",
+    "before": "Before:",
+    "after": "After:"
+  },
+  "impact": {
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "title": "Social Impact",
+    "subtitle": "1% of our revenue funds the future of young talents worldwide",
+    "youth_program": "1% For Children's Future",
+    "target_2024": "2024 Target",
+    "funds_raised": "Funds Raised",
+    "progress": "of target achieved",
+    "youth_helped": "Youth Helped",
+    "countries_reached": "Countries Reached",
+    "free_training_title": "Free Training",
+    "free_training_desc": "Free access to assessments and certifications for youth aged 0-18, eliminating financial barriers to talent recognition.",
+    "global_impact_title": "Global Impact",
+    "global_impact_desc": "Mentorship programs and scholarships in developing countries, creating opportunities for hidden talents worldwide.",
+    "transparency_title": "Total Transparency",
+    "transparency_desc": "Real-time tracking of fund usage with public reports and beneficiary testimonials for maximum transparency."
+  },
+  "learning_path": {
+    "back_to_learning": "Back to Learning",
+    "title": "Communication Mastery",
+    "category": "Communication & Leadership",
+    "difficulty_advanced": "Advanced",
+    "rating": "4.8",
+    "students": "1247",
+    "completion_rate": "65%",
+    "completed": "Develop your interpersonal communication and leadership skills",
+    "total_duration": "6 weeks",
+    "modules_completed": "5/8",
+    "estimated_completion": "2024-04-15",
+    "continue_learning": "Continue Learning",
+    "ai_insights": "AI Insights",
+    "overview": "Overview",
+    "modules": "8",
+    "progress": "Progress",
+    "resources": "Resources",
+    "learning_objectives": "Learning Objectives",
+    "learning_objectives_list": [
+      "Communicate with clarity and empathy",
+      "Manage conflicts constructively",
+      "Master the art of ethical persuasion",
+      "Develop communicational leadership"
+    ],
+    "instructor_info": "Dr. Marie Dubois",
+    "expert_in": "Expert in Communication & Leadership",
+    "skills_covered": [
+      "Communication",
+      "Leadership",
+      "Negotiation",
+      "Presentation"
+    ],
+    "next_recommendation": "Module 6: Presentation and Public Speaking",
+    "ai_suggestion": "AI Suggestion"
+  },
+  "skills": {
+    "title": "Skills Management",
+    "subtitle": "Track your progress, discover new opportunities and develop all your talents",
+    "mastered_skills": "Mastered Skills",
+    "average_level": "Average Level",
+    "active_paths": "Active Paths",
+    "learning_hours": "Learning Hours",
+    "my_skills": "My Skills",
+    "learning_paths": "Learning Paths",
+    "ai_recommendations": "AI Recommendations",
+    "all_categories": "All",
+    "communication": "Communication & Social",
+    "leadership": "Leadership & Management",
+    "creativity": "Creativity & Arts",
+    "design": "Design & Aesthetics",
+    "strategy": "Strategy & Analysis",
+    "emotional_intelligence": "Emotional Intelligence",
+    "physical_skills": "Physical Skills",
+    "service_skills": "Service & Care",
+    "business_skills": "Business & Entrepreneurship",
+    "technical_skills": "Technical Skills",
+    "level": "Level",
+    "ai_confidence": "AI Confidence",
+    "last_assessment": "Last assessment",
+    "next_assessment": "Next",
+    "related_skills": "Related skills",
+    "new_assessment": "New Assessment",
+    "high_demand": "High demand",
+    "medium_demand": "Moderate demand",
+    "low_demand": "Low demand"
+  },
+  "certificates": {
+    "title": "Certificate Management",
+    "subtitle": "Your evolving and blockchain-verifiable certifications",
+    "certificates_obtained": "Certificates Obtained",
+    "nfts_collected": "NFTs Collected",
+    "average_level": "Average Level",
+    "verifications": "Verifications",
+    "certificate_gallery": "Certificate Gallery",
+    "download": "Download",
+    "share": "Share",
+    "qr_code": "QR Code",
+    "verify": "Verify",
+    "domain": "Domain",
+    "issue_date": "Issue Date",
+    "ai_confidence": "AI Confidence",
+    "validated_skills": "Validated Skills",
+    "blockchain_verified": "Blockchain Verified",
+    "network": "Network",
+    "token_id": "Token ID",
+    "scan_qr": "Scan this QR code to verify certificate authenticity"
+  },
+  "assessments": {
+    "title": "Interactive AI Assessment",
+    "subtitle": "Adaptive assessment across all domains",
+    "estimated_time": "Estimated time",
+    "ai_confidence": "AI Confidence",
+    "progression": "Progression",
+    "step_of": "Step {{current}} of {{total}}",
+    "skills_analysis": "Skills analysis in progress...",
+    "completed": "completed",
+    "question": "Question",
+    "react_development": "Interpersonal Communication",
+    "question_title": "Assessment {{step}}",
+    "question_content": "Assessment situation adapted to your domain",
+    "question_description": "Describe your approach to this complex situation in your area of expertise.",
+    "recording_in_progress": "Recording in progress...",
+    "click_to_start": "Click to start",
+    "time_label": "Time",
+    "realtime_transcription": "Real-time transcription",
+    "transcription_sample": "I think the best approach would be to...",
+    "restart": "Restart",
+    "next_question": "Next Question",
+    "realtime_analysis": "Real-Time AI Analysis",
+    "global_confidence": "Global Confidence",
+    "feedback": {
+      "terminology_correct": "Appropriate terminology",
+      "examples_provided": "Concrete examples provided",
+      "improvement_possible": "Further development possible"
+    },
+    "detected_skills": "Detected Skills",
+    "levels": {
+      "expert": "Expert",
+      "advanced": "Advanced",
+      "intermediate": "Intermediate",
+      "beginner": "Beginner"
+    },
+    "skills": {
+      "react_hooks": "Empathetic Communication",
+      "performance_optimization": "Conflict Management",
+      "state_management": "Natural Leadership"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Track your progress and discover all your hidden talents",
+    "new_assessment": "New Assessment",
+    "upload_portfolio": "Upload Portfolio",
+    "voice_assessment": "Voice Assessment",
+    "view_certificates": "View Certificates",
+    "skill_domains": "Skill Domains",
+    "recent_achievements": "Recent Achievements",
+    "pending_assessments": "Pending Assessments",
+    "global_progress": "Global Progress",
+    "profile_completed": "Profile Completed",
+    "skills_assessed": "Skills Assessed",
+    "certificates_obtained": "Certificates Obtained",
+    "portfolio_analyzed": "Portfolio Analyzed",
+    "view_details": "View Details",
+    "start_assessment": "Start Assessment",
+    "development": "Communication & Social",
+    "design": "Creativity & Arts",
+    "communication": "Service & Care",
+    "management": "Leadership & Management",
+    "expert_title": "Expert in {{skill}}",
+    "portfolio_analyzed_title": "Portfolio Analyzed",
+    "skills_evaluated_title": "Skills Evaluated",
+    "certification": "Certification",
+    "evaluation": "Evaluation",
+    "assessment": "Assessment",
+    "high_priority": "high",
+    "medium_priority": "medium",
+    "low_priority": "low"
+  },
+  "portfolio": {
+    "integration_hub": "Portfolio Integration Hub",
+    "connect_platforms": "Connect your platforms for comprehensive AI analysis of all your talents",
+    "detected_skills": "Detected skills",
+    "ai_confidence": "AI Confidence",
+    "detailed_analysis": "Detailed Analysis",
+    "last_analysis": "Last analysis",
+    "last_analysis_2h": "2 hours ago",
+    "analyzing": "In progress...",
+    "connecting": "Connecting...",
+    "just_now": "Just now",
+    "not_connected": "Not connected",
+    "connect": "Connect",
+    "refresh": "Refresh",
+    "view_portfolio": "View Portfolio",
+    "ai_analysis": "AI Analysis",
+    "ai_analysis_text": "Versatile professional with remarkable interpersonal expertise. Creative and empathetic approach. Excellent adaptability.",
+    "code_quality": "Execution Quality",
+    "technical_complexity": "Challenge Complexity",
+    "innovation": "Innovation",
+    "collaboration": "Collaboration",
+    "projects": "Projects",
+    "followers": "Followers",
+    "privacy_controls": "Privacy Controls",
+    "privacy_description": "Finely manage which data is analyzed and shared with our AI.",
+    "privacy_settings": {
+      "source_analysis": "Creation analysis",
+      "source_analysis_desc": "Allow detailed analysis of your achievements for skills assessment",
+      "commit_history": "Activity history",
+      "commit_history_desc": "Analyze the history of your contributions to assess consistency",
+      "collaboration_data": "Collaborative data",
+      "collaboration_data_desc": "Include interactions with other professionals",
+      "private_projects": "Private projects",
+      "private_projects_desc": "Also analyze private achievements"
+    },
+    "project_descriptions": {
+      "ecommerce": "Multichannel customer service project with empathetic approach",
+      "ai_chat": "Real-time training and support",
+      "data_viz": "Creative presentation of complex data"
+    },
+    "updated_2_days": "2 days ago",
+    "updated_1_week": "1 week ago",
+    "updated_2_weeks": "2 weeks ago",
+    "direct_upload": "Direct Portfolio Upload",
+    "drag_drop": "Drag and drop your files here",
+    "supported_formats": "Supports: PDF, images, videos, audio, presentation documents, artistic creations",
+    "select_files": "Select Files"
+  },
+  "notifications": {
+    "title": "Notification Center",
+    "unread_count": "{{count}} unread notification",
+    "all_read": "All notifications are read",
+    "mark_all_read": "Mark all as read",
+    "clear_all": "Clear all",
+    "no_notifications": "No notifications",
+    "up_to_date": "You're up to date!",
+    "tabs": {
+      "all": "All",
+      "unread": "Unread ({{count}})",
+      "assessments": "Assessments",
+      "certificates": "Certificates",
+      "achievements": "Achievements",
+      "system": "System",
+      "discover": "Discover",
+      "continue_learning": "Continue Learning",
+      "categories": "Categories",
+      "my_progress": "My Progress"
+    },
+    "types": {
+      "user_registration": "New Premium user: {{name}}",
+      "certificate_issued": "Certificate {{title}} issued for {{user}}",
+      "system_alert": "Usage spike detected - Auto-scaling activated",
+      "ai_update": "AI model updated - Accuracy improved by {{improvement}}%",
+      "assessment_available": "New assessment available",
+      "portfolio_analyzed": "Portfolio analyzed successfully",
+      "achievement_unlocked": "New level reached!",
+      "follower_new": "{{name}} is now following your progress",
+      "maintenance": "Scheduled system maintenance"
+    },
+    "priority": {
+      "high": "high",
+      "medium": "medium",
+      "low": "low"
+    },
+    "actions": {
+      "view": "View",
+      "mark_read": "Mark as read",
+      "delete": "Delete"
+    }
+  },
+  "subscription": {
+    "title": "Subscription Management",
+    "subtitle": "Manage your subscription and track your social impact",
+    "current_plan": "Current Plan",
+    "active": "Active",
+    "renewal": "Renewal: {{date}}",
+    "plans_pricing": "Plans & Pricing",
+    "billing": "Billing",
+    "social_impact": "Social Impact",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save_percent": "-{{percent}}%",
+    "tiers": {
+      "basic": {
+        "name": "Basic",
+        "description": "Perfect to start your certification journey",
+        "features": [
+          "5 assessments per month",
+          "Standard certificates",
+          "Basic portfolio analysis",
+          "Email support",
+          "Mobile access"
+        ],
+        "limitations": ["No voice assessments", "No NFTs", "Limited support"]
+      },
+      "premium": {
+        "name": "Premium + NFT",
+        "description": "Complete experience with NFTs and blockchain",
+        "features": [
+          "Unlimited assessments across all domains",
+          "Blockchain NFT certificates",
+          "Advanced multi-criteria AI analysis",
+          "Voice and gesture assessments",
+          "Priority support",
+          "API access",
+          "Evolving certificates",
+          "Blockchain verification"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "description": "Complete solution for organizations",
+        "features": [
+          "Everything in Premium",
+          "Multi-sector team management",
+          "Complete admin dashboard",
+          "Custom integrations",
+          "Dedicated support",
+          "On-site training",
+          "Advanced reports",
+          "White-labeling",
+          "Guaranteed SLA"
+        ]
+      }
+    },
+    "upgrade_to": "Upgrade to {{plan}}",
+    "current": "Current Plan",
+    "popular": "POPULAR",
+    "nft_included": "NFT Included",
+    "payment_method": "Payment Method",
+    "add_payment": "Add Payment Method",
+    "billing_history": "Billing History",
+    "paid": "Paid",
+    "personal_impact": "Your Personal Impact",
+    "total_contribution": "Total contribution to youth fund",
+    "youth_helped_indirectly": "Youth helped indirectly",
+    "contribution_months": "Contribution months",
+    "monthly_impact": "Monthly impact",
+    "thank_you_impact": "🌟 Thank you for your impact!",
+    "contribution_message": "Your subscription directly contributes to education and training of young talents worldwide.",
+    "global_impact": "Global Impact",
+    "total_fund": "Total fund collected",
+    "transparent_impact": "🌍 Transparent Impact",
+    "transparency_message": "Track in real-time how your contributions transform lives around the world."
+  },
+  "auth": {
+    "join_revolution": "Join the Revolution",
+    "choose_method": "Choose your preferred registration method",
+    "banking_registration": "Banking Registration",
+    "recommended": "RECOMMENDED",
+    "banking_description": "Secure identity verification via your bank",
+    "instant_verification": "Instant verification",
+    "banking_security": "Banking security",
+    "immediate_access": "Full immediate access",
+    "email_registration": "Email Registration",
+    "email_description": "Traditional method with email and phone",
+    "manual_verification": "Manual verification",
+    "activation_delay": "Activation delay",
+    "accessible_all": "Accessible to all",
+    "data_protection": "Your data is protected by bank-level encryption",
+    "secure_banking_connection": "Secure Banking Connection",
+    "connect_bank": "Connect your bank account for instant verification",
+    "select_bank": "Select your bank",
+    "choose_bank": "Choose a bank...",
+    "bank_id": "Bank ID",
+    "bank_password": "Password",
+    "security_guaranteed": "Security Guaranteed",
+    "security_message": "256-bit SSL encrypted connection. We never store your banking credentials.",
+    "verify_identity": "Verify Identity",
+    "email_signup": "Email Registration",
+    "create_account": "Create your account with your email address",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email Address",
+    "phone": "Phone",
+    "password": "Password",
+    "confirm_password": "Confirm",
+    "birth_date": "Date of Birth",
+    "youth_benefits": "Youth Benefits Activated!",
+    "youth_message": "Free access to assessments and certifications until age 18.",
+    "create_account_btn": "Create Account"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "clear": "Clear",
+    "select_all": "Select all",
+    "deselect_all": "Deselect all",
+    "show_more": "Show more",
+    "show_less": "Show less",
+    "read_more": "Read more",
+    "read_less": "Read less",
+    "date": "Date: {{date}}"
+  },
+  "admin": {
+    "dashboard_title": "Admin Dashboard",
+    "platform_overview": "Corp1o1 platform overview",
+    "metrics": {
+      "total_users": "Total Users",
+      "active_users": "Active Users",
+      "revenue": "Revenue (€)",
+      "ai_accuracy": "AI Accuracy"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "users": "Users",
+      "enterprises": "Enterprises",
+      "system": "System",
+      "analytics": "Analytics"
+    },
+    "recent_activity": "Recent Activity",
+    "system_status": "System Status",
+    "enterprise_clients": "Enterprise Clients",
+    "system_alerts": "System Alerts",
+    "performance_metrics": "Performance Metrics",
+    "resolve": "Resolve",
+    "time": {
+      "minutes_ago": "{{count}} {{count, plural, one {minute} other {minutes}}} ago",
+      "hours_ago": "{{count}} {{count, plural, one {hour} other {hours}}} ago"
+    },
+    "activities": {
+      "new_premium_user": "New Premium user: {{name}}",
+      "certificate_issued": "Certificate {{type}} issued for {{name}}",
+      "usage_spike": "Usage spike detected - Auto-scaling activated",
+      "ai_model_updated": "AI model updated - Accuracy improved by 0.3%"
+    },
+    "system": {
+      "uptime": "Uptime",
+      "ai_accuracy": "AI Accuracy",
+      "assessments_today": "Assessments today",
+      "certificates_issued": "Certificates issued"
+    },
+    "enterprise": {
+      "users_count": "{{count}} users",
+      "active": "Active",
+      "trial": "Trial",
+      "monthly_revenue": "€{{amount}}/month"
+    },
+    "alerts": {
+      "high_cpu_usage": "High CPU usage on EU-West server",
+      "scheduled_maintenance": "Scheduled maintenance planned tomorrow at 02:00 UTC",
+      "backup_completed": "Daily backup completed successfully"
+    },
+    "performance": {
+      "api_response": "API Response Time",
+      "cpu_usage": "CPU Usage",
+      "memory_usage": "Memory Usage",
+      "storage_available": "Storage Available",
+      "target": "Target"
+    }
+  },
+  "registration": {
+    "user_type": {
+      "individual": "Individual",
+      "enterprise": "Enterprise",
+      "admin": "Administrator"
+    },
+    "join_revolution": "Join the Revolution",
+    "choose_method": "Choose your preferred registration method",
+    "recommended": "RECOMMENDED",
+    "security_notice": "Your data is protected by bank-level encryption",
+    "banking": {
+      "title": "Banking Registration",
+      "description": "Secure identity verification via your bank",
+      "secure_connection": "Secure Banking Connection",
+      "connect_bank": "Connect your bank account for instant verification",
+      "select_bank": "Select your bank",
+      "choose_bank": "Choose a bank...",
+      "other_bank": "Other bank",
+      "bank_id": "Bank ID",
+      "your_id": "Your ID",
+      "password": "Password",
+      "your_password": "Your password",
+      "security_guaranteed": "Security Guaranteed",
+      "security_details": "256-bit SSL encrypted connection. We never store your banking credentials.",
+      "verify_identity": "Verify Identity",
+      "features": {
+        "instant_verification": "Instant verification",
+        "bank_security": "Banking security",
+        "immediate_access": "Full immediate access"
+      }
+    },
+    "email": {
+      "title": "Email Registration",
+      "description": "Traditional method with email and phone",
+      "create_account": "Create your account with your email address",
+      "first_name": "First Name",
+      "your_first_name": "Your first name",
+      "last_name": "Last Name",
+      "your_last_name": "Your last name",
+      "email_address": "Email Address",
+      "email_placeholder": "your@email.com",
+      "phone": "Phone",
+      "phone_placeholder": "+33 6 12 34 56 78",
+      "password": "Password",
+      "secure_password": "Secure password",
+      "confirm_password": "Confirm",
+      "confirm_password_placeholder": "Confirm password",
+      "birth_date": "Date of Birth",
+      "create_account_button": "Create Account",
+      "features": {
+        "manual_verification": "Manual verification",
+        "activation_delay": "Activation delay",
+        "accessible_all": "Accessible to all"
+      }
+    },
+    "youth": {
+      "benefits_activated": "Youth Benefits Activated!",
+      "free_access": "Free access to assessments and certifications until age 18."
+    }
+  },
+  "demo": {
+    "skill_selection": {
+      "title": "Skills Selection",
+      "description": "Choose the skills you want to assess in this interactive demo.",
+      "select_skills": "Select your skills",
+      "selected_skills": "Selected Skills"
+    },
+    "ai_analysis": {
+      "title": "AI Analysis",
+      "description": "Here's a detailed analysis of your emotional intelligence, generated by artificial intelligence from your responses.",
+      "insights": "AI Insights",
+      "strength_1": "Excellent self-awareness and emotion recognition",
+      "strength_2": "Demonstrated ability to manage stress in complex situations",
+      "improvement_1": "Strengthen active listening in professional interactions",
+      "recommendations": "Personalized Recommendations",
+      "rec_1_title": "Improve emotional regulation",
+      "rec_1_desc": "Practice mindfulness techniques to better manage your emotions in stressful environments.",
+      "rec_2_title": "Develop empathy in professional settings",
+      "rec_2_desc": "Work on understanding others' emotions to strengthen interpersonal relationships.",
+      "rec_3_title": "Improve non-verbal communication",
+      "rec_3_desc": "Learn to recognize and adjust your body language for more effective communication."
+    },
+    "priority": {
+      "high": "High priority",
+      "medium": "Medium priority",
+      "low": "Low priority"
+    },
+    "assessment": {
+      "title": "Demo Assessment",
+      "description": "Participate in a simulated assessment to discover how our system works.",
+      "ai_evaluation": "AI Evaluation",
+      "analyzing": "Analyzing...",
+      "start": "Start",
+      "processing": "Processing..."
+    },
+    "title": "Corp1o1 Interactive Demo",
+    "step_counter": "Step {{current}} of {{total}}",
+    "ai_confidence": "AI Confidence: {{confidence}}%",
+    "realtime_simulation": "Real-Time Simulation",
+    "ai_active": "AI Active",
+    "progress": "Progress",
+    "skills": {
+      "communication": "Communication",
+      "creativity": "Creativity",
+      "leadership": "Leadership",
+      "emotional_intelligence": "Emotional intelligence"
+    },
+    "subtitle": "Take action with an interactive demonstration",
+    "welcome": {
+      "title": "Welcome to the interactive experience",
+      "description": "Test the platform as if you were a user."
+    },
+    "features": {
+      "ai_assessment": "AI Assessment",
+      "ai_assessment_desc": "Intelligent analysis of your skills based on your responses.",
+      "real_time_analysis": "Real-time analysis",
+      "real_time_analysis_desc": "Get instant feedback during assessment.",
+      "instant_certification": "Instant certification",
+      "instant_certification_desc": "Receive certification immediately after completing the assessment."
+    },
+    "steps": {
+      "welcome": {
+        "title": "Welcome to the demo",
+        "description": "Discover how our assessment works step by step."
+      },
+      "skill_selection": {
+        "title": "Skills selection",
+        "description": "Choose the skills you want to assess."
+      },
+      "assessment": {
+        "title": "Assessment",
+        "description": "Answer questions to measure your skill level."
+      },
+      "ai_analysis": {
+        "title": "AI Analysis",
+        "description": "Our artificial intelligence analyzes your responses in real-time."
+      },
+      "results": {
+        "title": "Results",
+        "description": "View your results instantly with personalized recommendations."
+      },
+      "portfolio_analysis": {
+        "title": "Portfolio Analysis",
+        "description": "Our AI analyzes your creations and achievements",
+        "simulation": "Creative portfolio analysis... Detecting social, creative and technical skills..."
+      },
+      "voice_evaluation": {
+        "title": "Behavioral Assessment",
+        "description": "Assessment of your relational skills",
+        "simulation": "Interactive recording... Analyzing empathy, communication, leadership..."
+      },
+      "ai_generation": {
+        "title": "AI Generation",
+        "description": "Creating your personalized certificate",
+        "simulation": "Compiling data... Generating blockchain certificate..."
+      },
+      "final_certification": {
+        "title": "Final Certification",
+        "description": "Your verified certificate ready to share",
+        "simulation": "Expert Communication Certificate generated with 94% AI confidence"
+      }
+    },
+    "results": {
+      "title": "Assessment Results",
+      "description": "Here's a summary of your performance and recommended next steps.",
+      "skill_assessment_complete": "Skill assessment complete",
+      "skill_level": "Skill level",
+      "above_average": "Above average",
+      "certificate_earned": "Certificate earned",
+      "blockchain_verified": "Blockchain verified certificate",
+      "growth_potential": "Growth potential identified",
+      "personalized_path": "Personalized path recommended",
+      "start_your_journey": "Start your journey",
+      "javascript_expert": "Emotional Intelligence detected (95% confidence)",
+      "react_advanced": "Advanced Communication confirmed (92% confidence)",
+      "clean_code": "Methodical Approach validated (88% confidence)",
+      "clarity_excellent": "Expression clarity: Excellent",
+      "technical_expertise": "Relational expertise: Confirmed",
+      "presentation_confidence": "Presentation confidence: High",
+      "certificate_generated": "Certificate Generated!",
+      "expert_react_developer": "Communication Expert",
+      "confidence_verified": "AI Confidence: 94% • Blockchain Verified"
+    },
+    "controls": {
+      "reset": "Reset",
+      "previous": "Previous",
+      "pause": "Pause",
+      "start": "Start",
+      "next": "Next",
+      "restart": "Restart"
+    },
+    "cta": {
+      "ready_to_start": "Ready to start your journey?",
+      "join_thousands": "Join thousands of users who have already revolutionized their career with Corp1o1",
+      "join_beta": "Join Beta Now"
+    }
+  },
+  "pricing": {
+    "title": "Unlock Your Potential",
+    "subtitle": "Choose the plan that matches your ambitions and join the skills revolution",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save_17_percent": "-17%",
+    "popular": "POPULAR",
+    "nft_included": "NFT Included",
+    "get_started": "Get Started",
+    "contact_us": "Contact Us",
+    "bank_level_encryption": "Bank-level encryption",
+    "companies_trust": "10,000+ companies",
+    "ai_precision": "99.7% AI precision",
+    "features_included": "Features included:",
+    "limitations": "Limitations:",
+    "per_month": "/month",
+    "per_year": "/year"
+  },
+  "how_it_works": {
+    "title": "How It Works",
+    "subtitle": "4 simple steps to revolutionize your career and get your real skills recognized",
+    "cta_title": "Ready to Revolutionize Your Career?",
+    "cta_subtitle": "Join thousands of talents who have already transformed their professional future with Corp1o1",
+    "start_now": "Start Now",
+    "steps": {
+      "connect": {
+        "title": "Connect",
+        "description": "Link your GitHub, Behance projects, videos, creations",
+        "detail": "Easily import your existing portfolios or upload your projects directly. Our AI analyzes all types of creations."
+      },
+      "analyze": {
+        "title": "Analyze",
+        "description": "Our AI evaluates your real skills in depth",
+        "detail": "Multi-dimensional analysis of your code, creativity, technical approach and soft skills with 99.7% accuracy."
+      },
+      "certify": {
+        "title": "Certify",
+        "description": "Receive a dynamic and recognized certificate",
+        "detail": "Evolving NFT certificates on blockchain, recognized by 10,000+ global companies, impossible to forge."
+      },
+      "evolve": {
+        "title": "Evolve",
+        "description": "Access a network of professional opportunities",
+        "detail": "Exclusive marketplace for jobs, missions and collaborations. Your reputation grows with your skills."
+      }
+    }
+  },
+  "footer": {
+    "company_description": "Revolutionizing talent recognition worldwide. No more dusty diplomas, time for real skills assessment.",
+    "paris_france": "Paris, France",
+    "email": "hello@corp1o1.com",
+    "phone": "+33 1 23 45 67 89",
+    "impact_title": "1% For Children's Future",
+    "impact_description": "1% of all our revenue funds education for young talents worldwide",
+    "impact_goal": "€350,000+",
+    "impact_goal_description": "First year target",
+    "all_rights_reserved": "© 2024 Corp1o1. All rights reserved.",
+    "open_source_coming": "Open-source project coming",
+    "all_systems_operational": "All systems operational",
+    "sections": {
+      "product": {
+        "title": "Product",
+        "features": "Features",
+        "pricing": "Pricing",
+        "api": "API",
+        "documentation": "Documentation",
+        "interactive_demo": "Interactive Demo"
+      },
+      "company": {
+        "title": "Company",
+        "about": "About",
+        "careers": "Careers",
+        "partners": "Partners",
+        "press": "Press",
+        "investors": "Investors"
+      },
+      "support": {
+        "title": "Support",
+        "help_center": "Help Center",
+        "contact": "Contact",
+        "status": "Status",
+        "community": "Community",
+        "security": "Security"
+      },
+      "legal": {
+        "title": "Legal",
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "cookies": "Cookies",
+        "accessibility": "Accessibility",
+        "compliance": "Compliance"
+      }
+    },
+    "social": {
+      "discord": "Discord",
+      "github": "GitHub",
+      "twitter": "Twitter"
+    }
+  },
+  "landing": {
+    "nav": {
+      "home": "Home",
+      "technology": "Technology",
+      "how_it_works": "How it works",
+      "pricing": "Pricing",
+      "impact": "Impact",
+      "demo": "Demo",
+      "login": "Login",
+      "join_beta": "Join Beta"
+    }
+  },
+  "login": {
+    "welcome_back": "Welcome back",
+    "user_type": {
+      "individual": "Individual",
+      "enterprise": "Enterprise",
+      "admin": "Administrator"
+    },
+    "banking_login": "Banking login",
+    "email_login": "Email login",
+    "banking": {
+      "secure_login": "Secure login",
+      "connect_bank_account": "Connect your bank account",
+      "select_bank": "Select your bank",
+      "choose_bank": "Choose a bank",
+      "other_bank": "Other bank",
+      "bank_id": "Bank ID",
+      "your_id": "Your ID",
+      "password": "Password",
+      "your_password": "Your password",
+      "security_guaranteed": "Security guaranteed",
+      "security_details": "Your data is protected and secure.",
+      "secure_login_button": "Secure login"
+    },
+    "email": {
+      "login_with_email": "Login with email",
+      "enter_credentials": "Enter your credentials",
+      "email_address": "Email address",
+      "email_placeholder": "example@domain.com",
+      "password": "Password",
+      "password_placeholder": "Enter your password",
+      "login_button": "Login"
+    },
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot password?",
+    "no_account": "Don't have an account?",
+    "sign_up": "Create account"
+  },
+  "phrases": {
+    "revolutionize_your_career": "Revolutionize your career",
+    "unlock_your_potential": "Unlock your potential",
+    "join_thousands": "Join thousands",
+    "transform_professional_future": "transformed their professional future",
+    "ready_to_start": "Ready to start",
+    "simple_steps": "simple steps",
+    "real_skills_recognition": "get your real skills recognized",
+    "exclusive_marketplace": "Exclusive marketplace",
+    "reputation_grows": "Your reputation grows",
+    "impossible_to_falsify": "impossible to forge",
+    "multi_dimensional_analysis": "Multi-dimensional analysis",
+    "soft_skills": "soft skills",
+    "all_types_creations": "all types of creations",
+    "easily_import": "Easily import",
+    "existing_portfolios": "existing portfolios",
+    "upload_directly": "upload your projects directly"
+  },
+  "enterprise": {
+    "dashboard_title": "Enterprise Dashboard",
+    "manage_team_skills": "Manage team skills",
+    "add_employee": "Add Employee",
+    "export_report": "Export Report",
+    "metrics": {
+      "total_employees": "Total Employees",
+      "active_learners": "Active Learners",
+      "certificates_earned": "Certificates Earned",
+      "avg_skill_level": "Average Skill Level"
+    },
+    "tabs": {
+      "overview": "Overview",
+      "employees": "Employees",
+      "departments": "Departments",
+      "learning_paths": "Learning Paths",
+      "analytics": "Analytics"
+    },
+    "department_performance": "Department Performance",
+    "employees": "employees",
+    "average_progress": "Average Progress",
+    "recent_activity": "Recent Activity",
+    "activity": {
+      "certificate_earned": "Certificate earned",
+      "hours_ago": "hours ago",
+      "assessment_completed": "Assessment completed",
+      "learning_path_started": "Learning path started",
+      "milestone_reached": "Milestone reached"
+    }
+  },
+  "assessment": {
+    "title": "Assessment",
+    "react_development": "React Development",
+    "estimated_time": "Estimated time",
+    "ai_confidence": "AI Confidence",
+    "progress": "Progress",
+    "step_counter": "Step",
+    "analyzing_skills": "Skills analysis in progress...",
+    "progress_completed": "Progress completed",
+    "question_title": "Question title",
+    "question_content": "Question content",
+    "question_description": "Question description",
+    "click_to_start": "Click to start",
+    "time_label": "0:00",
+    "restart": "Restart",
+    "next_question": "Next question",
+    "realtime_analysis": "Real-time analysis",
+    "global_confidence": "Global confidence",
+    "feedback": {
+      "terminology_correct": "Correct terminology",
+      "examples_provided": "Examples provided",
+      "improvement_possible": "Improvements possible"
+    },
+    "detected_skills": "Detected skills",
+    "skills": {
+      "react_hooks": "React Hooks",
+      "performance_optimization": "Performance Optimization",
+      "state_management": "State Management"
+    },
+    "levels": {
+      "expert": "Expert",
+      "advanced": "Advanced",
+      "intermediate": "Intermediate"
+    }
+  },
+  "loading": {
+    "analyzing_path": "Analyzing learning path with AI...",
+    "personalizing_content": "Personalizing content for you...",
+    "generating_insights": "Generating AI insights...",
+    "discovering_paths": "Discovering learning paths..."
+  },
+  "error": {
+    "path_not_found": "Learning path not found",
+    "ai_error": "AI system temporarily unavailable",
+    "network_error": "Connection error. Please try again."
+  },
+  "ai_status": {
+    "active": "AI Active",
+    "inactive": "AI Offline",
+    "learning": "AI Learning",
+    "adapting": "Adapting..."
+  },
+  "adaptive_mode": {
+    "title": "Adaptive Mode",
+    "enabled": "AI adapts content to your learning style",
+    "disabled": "Standard learning mode",
+    "toggle": "Enable/disable adaptive learning"
+  },
+  "ai_assistant": {
+    "title": "AI Assistant",
+    "name": "ARIA",
+    "online": "Online",
+    "offline": "Offline",
+    "welcome_message": "Hi! I'm ARIA, your AI learning companion. I'm here to help you master this path. How can I assist you today?",
+    "message_placeholder": "Ask me questions about your learning...",
+    "use_openai": "Use OpenAI for enhanced responses",
+    "openai_key_placeholder": "Enter your OpenAI API key",
+    "need_help": "I need help",
+    "motivation": "Motivate me",
+    "quick_help": "I need help understanding this concept",
+    "quick_motivation": "I could use some motivation to continue",
+    "progress_excellent": "Your progress is excellent! You're ahead of 87% of learners at this stage.",
+    "progress_good": "Excellent work! Your learning pace is optimal for retention.",
+    "keep_going": "You're doing well! Keep up this momentum.",
+    "difficulty_help": "I understand this is challenging. Let me break this down into smaller, manageable steps.",
+    "break_down_concept": "Let me explain this concept differently with practical examples.",
+    "additional_resources": "I can recommend additional resources that match your learning style.",
+    "motivation_boost": "Remember why you started - you're developing valuable skills that will serve you throughout life!",
+    "highlight_achievement": "Look how far you've come! You've already completed {{modules}} modules.",
+    "next_milestone": "You're just {{distance}} away from your next major milestone!",
+    "module_specific_help": "I see you're working on {{moduleName}}. What specific aspect would you like help with?",
+    "general_help": "I'm here to support your learning journey. How can I help?",
+    "adaptive_content_suggestion": "Based on your visual learning style, I've added more diagrams and infographics to this module.",
+    "adaptive_timing_suggestion": "Your concentration peak is at {{time}}. Consider scheduling your learning sessions then for better retention.",
+    "adaptive_method_suggestion": "I notice you learn better through practice. I've included more interactive exercises."
+  },
+  "ai_insights": {
+    "title": "AI Insights",
+    "adaptations_applied": "Adaptations Applied",
+    "learning_efficiency": "Learning Efficiency",
+    "prediction_accuracy": "Prediction Accuracy",
+    "generate_recommendation": "Generate Recommendation",
+    "personalization_score": "Personalization Score",
+    "next_suggestion": "Next AI Suggestion"
+  },
+  "learning_profile": {
+    "title": "Learning Profile",
+    "style": "Learning Style",
+    "pace": "Preferred Pace",
+    "optimal_session": "Optimal Session",
+    "focus_time": "Focus Duration",
+    "best_hours": "Best Learning Hours",
+    "weak_areas": "Areas to Improve",
+    "strong_areas": "Strengths"
+  },
+  "learning_style": {
+    "visual": "Visual",
+    "auditory": "Auditory",
+    "kinesthetic": "Hands-on",
+    "reading": "Reading/Writing"
+  },
+  "learning_pace": {
+    "slow": "Thoughtful",
+    "medium": "Balanced",
+    "fast": "Accelerated"
+  },
+  "tabs": {
+    "discover": "Discover",
+    "continue_learning": "Continue Learning",
+    "categories": "Categories",
+    "my_progress": "My Learning Progress",
+
+    "overview": "Overview",
+    "modules": "Modules",
+    "analytics": "Analytics",
+    "resources": "Resources"
+  },
+  "ai_recommendations": {
+    "title": "AI Recommendations",
+    "confidence": "Confidence",
+    "to_implement": "to implement",
+    "high_impact": "High Impact",
+    "medium_impact": "Medium Impact",
+    "low_impact": "Low Impact"
+  },
+  "module": {
+    "progress": "Progress",
+    "engagement": "engagement",
+    "ai_adaptations": "AI Adaptations",
+    "review": "Review",
+    "start": "Start Learning",
+    "continue": "Continue",
+    "time_spent": "Time Spent",
+    "last_accessed": "Last Accessed"
+  },
+  "difficulty": {
+    "beginner": "Beginner",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "expert": "Expert"
+  },
+  "analytics": {
+    "learning_progress": "Learning Progress",
+    "time_invested": "Time Invested",
+    "avg_engagement": "Average Engagement",
+    "focus_trend": "Focus Trend",
+    "ai_performance": "AI Performance",
+    "prediction_accuracy": "Prediction Accuracy",
+    "adaptation_success": "Adaptation Success Rate",
+    "efficiency_gain": "Efficiency Gain",
+    "sessions_completed": "Sessions Completed",
+    "average_session_time": "Average Session Time",
+    "retention_rate": "Retention Rate"
+  },
+  "resources": {
+    "supplementary_reading": "Supplementary Reading",
+    "reading_description": "Additional materials selected by AI based on your learning progress",
+    "download": "Download",
+    "video_tutorials": "Video Tutorials",
+    "interactive_exercises": "Interactive Exercises",
+    "practice_scenarios": "Practice Scenarios"
+  },
+  "learning_hub": {
+    "title": "Learning Hub",
+    "subtitle": "Discover AI-powered learning paths designed to unlock your potential and accelerate your growth",
+    "search_placeholder": "Search paths, skills or topics...",
+    "featured_paths": "Featured Paths",
+    "all_paths": "All Learning Paths",
+    "continue_where_left_off": "Continue Where You Left Off",
+    "explore_categories": "Explore Categories",
+    "my_progress": "My Learning Progress",
+    "skills_you_will_learn": "Skills you will learn",
+    "showing_results": "Showing {{count}} results of {{total}}",
+    "no_ongoing_paths": "No ongoing learning paths",
+    "start_first_path": "Start your first learning path to begin your journey",
+    "categories": {
+      "communication": "Communication & Leadership",
+      "communication_desc": "Master interpersonal and leadership skills",
+      "leadership": "Leadership & Management",
+      "leadership_desc": "Develop team management and strategic thinking skills",
+      "technical": "Technical Skills",
+      "technical_desc": "Build your expertise in technology and digital tools",
+      "creative": "Creative & Design",
+      "creative_desc": "Unlock your creative potential and design thinking",
+      "business": "Business & Strategy",
+      "business_desc": "Learn business fundamentals and strategic planning",
+      "personal": "Personal Development",
+      "personal_desc": "Grow personally and develop emotional intelligence"
+    }
+  },
+  "learning_paths": {
+    "advanced_communication": {
+      "title": "Advanced Communication",
+      "description": "Master advanced communication techniques and leadership skills"
+    },
+    "progress": "Learning Progress",
+    "students": "students",
+    "completed": "Completed",
+    "remaining": "Remaining",
+    "focus_score": "Focus Score",
+    "objectives": "Learning Objectives",
+    "advanced_communication_desc": "Develop your interpersonal communication and leadership skills",
+    "leadership_essentials": {
+      "title": "Leadership Essentials",
+      "description": "Build fundamental leadership skills for modern teams and organizations"
+    },
+    "emotional_intelligence": {
+      "title": "Emotional Intelligence",
+      "description": "Develop emotional awareness and social skills for better relationships"
+    },
+    "digital_transformation": {
+      "title": "Digital Transformation",
+      "description": "Lead digital change and technology adoption in your organization"
+    },
+    "creative_problem_solving": {
+      "title": "Creative Problem Solving",
+      "description": "Learn innovative approaches to tackle complex challenges"
+    },
+    "business_strategy": {
+      "title": "Business Strategy",
+      "description": "Master strategic planning and competitive analysis techniques"
+    }
+  },
+  "filters": {
+    "all_categories": "All Categories",
+    "all_difficulties": "All Levels"
+  },
+  "sort": {
+    "recommended": "Recommended",
+    "rating": "Highest Rated",
+    "popularity": "Most Popular",
+    "newest": "Newest",
+    "duration": "Shortest Duration"
+  },
+  "badges": {
+    "new": "NEW",
+    "trending": "TRENDING"
+  },
+  "actions": {
+    "continue": "Continue",
+    "start_learning": "Start Learning",
+    "start": "Start",
+    "explore_paths": "Explore Learning Paths"
+  },
+  "progress": {
+    "completed": "Completed",
+    "complete": "Complete",
+    "modules_completed": "{{completed}}/{{total}} modules completed",
+    "overview": "Progress Overview",
+    "paths_started": "Paths Started",
+    "paths_completed": "Paths Completed",
+    "completion_rate": "Completion Rate",
+    "skills": "Skills",
+    "certificates": "Certificates",
+    "day_streak": "Day Streak",
+    "learning_analytics": "Learning Analytics",
+    "total_time_learning": "Total learning time",
+    "avg_session_rating": "Average session rating",
+    "hours_per_week": "Avg/week",
+    "hours_per_path": "Avg/path"
+  },
+  "more": "more",
+  "modules": "modules",
+  "paths": "paths",
+  "content": "content",
+  "time_remaining": "Time remaining"
+}

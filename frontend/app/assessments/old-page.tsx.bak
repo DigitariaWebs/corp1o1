@@ -1,0 +1,528 @@
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { 
+  Brain, 
+  TrendingUp,
+  Award,
+  Target,
+  Star,
+  CheckCircle
+} from 'lucide-react';
+import { MainNavigation } from "@/components/navigation/main-navigation";
+import { AssessmentList } from "@/components/assessments/assessment-list";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
+
+interface Assessment {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  difficulty: string;
+  questionCount: number;
+  estimatedDuration: number;
+  passingScore: number;
+  priority?: string;
+  reasoning?: string;
+  isPersonalized?: boolean;
+  userProgress?: {
+    attempts: number;
+    bestScore: number;
+    hasPassed: boolean;
+    canRetake: boolean;
+  };
+  analytics?: {
+    averageScore: number;
+    passRate: number;
+    totalAttempts: number;
+  };
+}
+
+export default function AssessmentsPage() {
+  const router = useRouter();
+  const { user, getToken } = useAuth();
+  const [initialAssessments, setInitialAssessments] = useState<Assessment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [personalizedData, setPersonalizedData] = useState<any>(null);
+  
+  // Load personalization from localStorage or fetch from backend
+  React.useEffect(() => {
+    const loadPersonalization = async () => {
+      // First check localStorage
+      const savedPersonalization = localStorage.getItem('userPersonalization');
+      if (savedPersonalization) {
+        try {
+          const parsed = JSON.parse(savedPersonalization);
+          setPersonalizedData(parsed);
+          console.log("📊 [ASSESSMENTS] Loaded personalization from localStorage:", parsed);
+          console.log("📊 [ASSESSMENTS] assessmentPlan:", parsed?.assessmentPlan);
+        } catch (error) {
+          console.error("Error parsing saved personalization:", error);
+        }
+      } else if (user && !user?.personalization) {
+        // If no localStorage but user exists, try fetching from backend
+        console.log("🔄 [ASSESSMENTS] No localStorage, fetching from backend...");
+        try {
+          const token = await getToken();
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${apiUrl}/api/personalization`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            console.log("✅ [ASSESSMENTS] Fetched personalization from backend:", result);
+            if (result.data?.personalization) {
+              setPersonalizedData(result.data.personalization);
+              localStorage.setItem('userPersonalization', JSON.stringify(result.data.personalization));
+            }
+          } else {
+            console.log("❌ [ASSESSMENTS] No personalization found on backend");
+          }
+        } catch (error) {
+          console.error("Error fetching personalization:", error);
+        }
+      }
+    };
+    
+    if (user) {
+      loadPersonalization();
+    }
+  }, [user, getToken]);
+  
+  // Check if user has personalized assessment plan
+  const userPersonalization = personalizedData || user?.personalization;
+  console.log("🎯 [ASSESSMENTS] userPersonalization:", userPersonalization);
+  console.log("🎯 [ASSESSMENTS] assessmentPlan:", userPersonalization?.assessmentPlan);
+  console.log("🎯 [ASSESSMENTS] assessmentSequence:", userPersonalization?.assessmentPlan?.assessmentSequence);
+  const hasPersonalization = userPersonalization?.assessmentPlan?.assessmentSequence;
+
+  // Mock user for navigation
+  const mockUser = {
+    name: user?.name || "Student",
+    avatar: user?.avatar || "/placeholder.svg?height=40&width=40",
+    subscription: "premium" as const,
+    notifications: 3,
+  };
+
+  // Fetch assessments from API
+  useEffect(() => {
+    const fetchAssessments = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const token = await getToken();
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        };
+
+        const response = await fetch('/api/assessments', { headers });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setAssessments(data.data.assessments || []);
+        } else if (response.status === 404) {
+          // No assessments available yet, use personalized if available
+          if (personalizedAssessments.length > 0) {
+            setAssessments(personalizedAssessments);
+          } else {
+            setAssessments([]);
+          }
+        } else {
+          throw new Error('Failed to fetch assessments');
+        }
+      } catch (error) {
+        console.error('Failed to fetch assessments:', error);
+        
+        let errorMessage = 'Failed to load assessments';
+        if (error instanceof Error) {
+          if (error.message.includes('401')) {
+            errorMessage = 'Authentication error. Please sign in again.';
+          } else if (error.message.includes('403')) {
+            errorMessage = 'Access denied. Please check your permissions.';
+          } else if (error.message.includes('500')) {
+            errorMessage = 'Server error. Please try again in a few moments.';
+          } else {
+            errorMessage = error.message;
+          }
+        }
+        
+        setError(errorMessage);
+        // Use personalized assessments if available
+        if (personalizedAssessments.length > 0) {
+          setAssessments(personalizedAssessments);
+        } else {
+          setAssessments([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAssessments();
+  }, [getToken]);
+
+  // Helper functions for personalized assessments
+  const getCategoryFromTitle = (title: string) => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes('programming') || lowerTitle.includes('web') || lowerTitle.includes('code')) {
+      return 'Programming';
+    } else if (lowerTitle.includes('leadership') || lowerTitle.includes('management')) {
+      return 'Leadership';
+    } else if (lowerTitle.includes('data') || lowerTitle.includes('analytics')) {
+      return 'Analytics';
+    } else if (lowerTitle.includes('communication')) {
+      return 'Communication';
+    }
+    return 'General';
+  };
+  
+  const getDifficultyLevel = (difficulty: string) => {
+    switch (difficulty?.toLowerCase()) {
+      case 'beginner': return 'beginner';
+      case 'intermediate': return 'intermediate';
+      case 'advanced': return 'advanced';
+      case 'expert': return 'expert';
+      default: return 'intermediate';
+    }
+  };
+  
+  const getEstimatedMinutes = (timeString: string) => {
+    const match = timeString?.match(/\d+/);
+    return match ? parseInt(match[0]) : 30;
+  };
+
+  // Transform personalized assessments to display format
+  const personalizedAssessments: Assessment[] = hasPersonalization && userPersonalization.assessmentPlan?.assessmentSequence
+    ? userPersonalization.assessmentPlan.assessmentSequence.map((assessment: any, index: number) => ({
+        id: `personalized-${index}`,
+        title: assessment.title,
+        description: assessment.description,
+        type: 'personalized',
+        category: getCategoryFromTitle(assessment.title),
+        difficulty: getDifficultyLevel(assessment.difficulty),
+        questionCount: 20,
+        estimatedDuration: getEstimatedMinutes(assessment.estimatedTime),
+        passingScore: 70,
+        priority: assessment.priority,
+        reasoning: assessment.reasoning,
+        isPersonalized: true,
+        userProgress: {
+          attempts: 0,
+          bestScore: 0,
+          hasPassed: false,
+          canRetake: true
+        },
+        analytics: {
+          averageScore: 0,
+          passRate: 0,
+          totalAttempts: 0
+        }
+      }))
+    : [];
+
+  // Filter and sort assessments
+  const filteredAssessments = assessments
+    .filter(assessment => {
+      const matchesSearch = assessment.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          assessment.description.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || assessment.category === selectedCategory;
+      const matchesDifficulty = selectedDifficulty === 'all' || assessment.difficulty === selectedDifficulty;
+      
+      return matchesSearch && matchesCategory && matchesDifficulty;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'difficulty':
+          const difficultyOrder = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 };
+          return (difficultyOrder[a.difficulty as keyof typeof difficultyOrder] || 0) - 
+                 (difficultyOrder[b.difficulty as keyof typeof difficultyOrder] || 0);
+        case 'duration':
+          return a.estimatedDuration - b.estimatedDuration;
+        case 'popularity':
+          return (b.analytics?.totalAttempts || 0) - (a.analytics?.totalAttempts || 0);
+        default:
+          return a.title.localeCompare(b.title);
+      }
+    });
+
+  const categories = ['all', ...Array.from(new Set(assessments.map(a => a.category)))];
+  const difficulties = ['all', 'beginner', 'intermediate', 'advanced', 'expert'];
+
+  const handleStartAssessment = (assessmentId: string) => {
+    router.push(`/assessments/${assessmentId}`);
+  };
+
+  const userStats = {
+    totalTaken: assessments.filter(a => a.userProgress?.attempts && a.userProgress.attempts > 0).length,
+    totalPassed: assessments.filter(a => a.userProgress?.hasPassed).length,
+    averageScore: assessments
+      .filter(a => a.userProgress?.bestScore && a.userProgress.bestScore > 0)
+      .reduce((sum, a) => sum + (a.userProgress?.bestScore || 0), 0) / 
+      Math.max(1, assessments.filter(a => a.userProgress?.bestScore && a.userProgress.bestScore > 0).length),
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+        <MainNavigation user={mockUser} />
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <Brain className="h-8 w-8 text-cyan-400 animate-spin mr-3" />
+            <span className="text-white text-lg">Loading assessments...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && assessments.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+        <MainNavigation user={mockUser} />
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center py-16">
+            <div className="bg-red-500/20 border-red-500/30 border rounded-lg p-12 max-w-4xl mx-auto">
+              <Target className="h-20 w-20 text-red-400 mx-auto mb-6" />
+              <h1 className="text-3xl font-bold text-red-300 mb-4">Error Loading Assessments</h1>
+              <p className="text-lg text-red-400 mb-8">{error}</p>
+              <div className="space-y-4">
+                <Button onClick={() => window.location.reload()} className="bg-red-500 hover:bg-red-600 px-8 py-3">
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Try Again
+                </Button>
+                <p className="text-sm text-gray-400 mt-4">
+                  Using demo data for now. Check your connection and try again.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+      <MainNavigation user={mockUser} />
+      
+      <div className="container mx-auto px-6 py-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <h1 className="text-4xl font-bold text-white">Skills Assessments</h1>
+            {hasPersonalization && (
+              <Badge className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-400/30">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI Personalized
+              </Badge>
+            )}
+          </div>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            {hasPersonalization 
+              ? "Your personalized assessment plan based on your goals and experience"
+              : "Evaluate and validate your skills with AI-powered assessments designed to measure real competency."}
+          </p>
+        </motion.div>
+
+        {/* User Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        >
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+            <div className="flex items-center">
+              <Target className="h-8 w-8 text-cyan-400 mr-3" />
+              <div>
+                <p className="text-gray-400 text-sm">Assessments Taken</p>
+                <p className="text-white text-2xl font-bold">{userStats.totalTaken}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+            <div className="flex items-center">
+              <Award className="h-8 w-8 text-green-400 mr-3" />
+              <div>
+                <p className="text-gray-400 text-sm">Passed</p>
+                <p className="text-white text-2xl font-bold">{userStats.totalPassed}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+            <div className="flex items-center">
+              <Star className="h-8 w-8 text-yellow-400 mr-3" />
+              <div>
+                <p className="text-gray-400 text-sm">Average Score</p>
+                <p className="text-white text-2xl font-bold">
+                  {userStats.averageScore > 0 ? Math.round(userStats.averageScore) : 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+            <div className="flex items-center">
+              <TrendingUp className="h-8 w-8 text-purple-400 mr-3" />
+              <div>
+                <p className="text-gray-400 text-sm">Success Rate</p>
+                <p className="text-white text-2xl font-bold">
+                  {userStats.totalTaken > 0 ? Math.round((userStats.totalPassed / userStats.totalTaken) * 100) : 0}%
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Filters and Search */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6 mb-8"
+        >
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search assessments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-slate-700 border-slate-600 text-white"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white min-w-[150px]"
+            >
+              {categories.map(category => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'All Categories' : category}
+                </option>
+              ))}
+            </select>
+
+            {/* Difficulty Filter */}
+            <select
+              value={selectedDifficulty}
+              onChange={(e) => setSelectedDifficulty(e.target.value)}
+              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white min-w-[150px]"
+            >
+              {difficulties.map(difficulty => (
+                <option key={difficulty} value={difficulty}>
+                  {difficulty === 'all' ? 'All Levels' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                </option>
+              ))}
+            </select>
+
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white min-w-[150px]"
+            >
+              <option value="title">Sort by Title</option>
+              <option value="difficulty">Sort by Difficulty</option>
+              <option value="duration">Sort by Duration</option>
+              <option value="popularity">Sort by Popularity</option>
+            </select>
+
+            {/* View Mode */}
+            <div className="flex border border-slate-600 rounded-lg overflow-hidden">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="rounded-none"
+              >
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="rounded-none"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Results count */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-6"
+        >
+          <p className="text-gray-400">
+            Showing {filteredAssessments.length} of {assessments.length} assessments
+          </p>
+        </motion.div>
+
+        {/* Assessment Grid/List */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className={`grid gap-6 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+              : 'grid-cols-1'
+          }`}
+        >
+          {filteredAssessments.map((assessment, index) => (
+            <motion.div
+              key={assessment.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * index }}
+            >
+              <AssessmentCard
+                assessment={assessment}
+                onStart={handleStartAssessment}
+                className={viewMode === 'list' ? 'flex-row' : ''}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {filteredAssessments.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12"
+          >
+            <Target className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-white mb-2">No assessments found</h3>
+            <p className="text-gray-400">
+              Try adjusting your search criteria or filters to find assessments.
+            </p>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+}

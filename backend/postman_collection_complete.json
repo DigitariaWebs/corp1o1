@@ -1,0 +1,2008 @@
+{
+  "info": {
+    "_postman_id": "sokol-learning-platform",
+    "name": "Sokol Learning Platform - Complete API",
+    "description": "Comprehensive API collection for Sokol Learning Platform - AI-Powered Adaptive Learning Backend\n\n## 🚀 Features Covered\n- **Phase 1**: Core Infrastructure & User Management\n- **Phase 2**: Learning Paths & Content Management  \n- **Phase 3**: AI Integration & Dynamic Prompts\n- **Phase 4**: Assessments & Certificates\n- **Phase 5**: Advanced Analytics & Adaptive Intelligence\n\n## 🔧 Setup Instructions\n1. Import this collection\n2. Import the environment file\n3. Update environment variables (base_url, openai_key)\n4. Run the \"Auth - Login\" request to get access token\n5. Token will be automatically set for subsequent requests\n\n## 📚 Documentation\nFull API documentation available at: http://localhost:3000/api/docs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "sokol-learning"
+  },
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{test_user_email}}\",\n    \"password\": \"{{test_user_password}}\",\n    \"name\": \"Test User\",\n    \"learningProfile\": {\n        \"learningStyle\": \"visual\",\n        \"aiPersonality\": \"ARIA\",\n        \"goals\": [\"Communication & Leadership\", \"Technical Skills\"],\n        \"interests\": [\"Leadership\", \"Technology\", \"Innovation\"],\n        \"pace\": \"moderate\",\n        \"preferredSessionLength\": 30,\n        \"timezone\": \"UTC\",\n        \"language\": \"en\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('success', true);",
+                  "    pm.expect(jsonData.data).to.have.property('token');",
+                  "    ",
+                  "    // Set token for subsequent requests",
+                  "    pm.environment.set('access_token', jsonData.data.token);",
+                  "    pm.environment.set('user_id', jsonData.data.user._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"demo@sokol-learning.com\",\n    \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('user');",
+                  "    pm.expect(jsonData.data.user).to.have.property('email');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Name\",\n    \"learningProfile\": {\n        \"goals\": [\"Data & Analytics\", \"Business Strategy\"]\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update Learning Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"learningStyle\": \"kinesthetic\",\n    \"aiPersonality\": \"COACH\",\n    \"pace\": \"fast\",\n    \"preferredSessionLength\": 45,\n    \"goals\": [\"Innovation & Creativity\", \"Personal Development\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/learning-profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "learning-profile"]
+            }
+          }
+        },
+        {
+          "name": "Get User Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 Learning Paths",
+      "item": [
+        {
+          "name": "Get All Learning Paths",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has learning paths\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('learningPaths');",
+                  "    ",
+                  "    if (jsonData.data.learningPaths.length > 0) {",
+                  "        pm.environment.set('learning_path_id', jsonData.data.learningPaths[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learning-paths?category=Communication & Leadership&difficulty=intermediate&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learning-paths"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Communication & Leadership"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "intermediate"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Learning Path Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learning-paths/{{learning_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learning-paths", "{{learning_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Enroll in Learning Path",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"motivation\": \"Improve leadership skills for career growth\",\n    \"expectedOutcome\": \"Better team management capabilities\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/learning-paths/{{learning_path_id}}/enroll",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "learning-paths",
+                "{{learning_path_id}}",
+                "enroll"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Enrolled Paths",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learning-paths/enrolled",
+              "host": ["{{base_url}}"],
+              "path": ["api", "learning-paths", "enrolled"]
+            }
+          }
+        },
+        {
+          "name": "Get Path Modules",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has modules\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('modules');",
+                  "    ",
+                  "    if (jsonData.data.modules.length > 0) {",
+                  "        pm.environment.set('module_id', jsonData.data.modules[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/learning-paths/{{learning_path_id}}/modules",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "learning-paths",
+                "{{learning_path_id}}",
+                "modules"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📖 Learning Modules",
+      "item": [
+        {
+          "name": "Get Modules by Path",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/modules/path/{{learning_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "path", "{{learning_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Module Content",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Start Learning Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"deviceType\": \"desktop\",\n    \"browser\": \"Chrome\",\n    \"screenSize\": \"1920x1080\",\n    \"learningGoal\": \"Complete module and understand key concepts\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}/start-session",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}", "start-session"]
+            }
+          }
+        },
+        {
+          "name": "Update Module Progress",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"progressPercentage\": 75,\n    \"timeSpent\": 25,\n    \"engagementScore\": 85,\n    \"currentSection\": \"Applications and Examples\",\n    \"interactionCount\": 15,\n    \"strugglingAreas\": [\"Complex concepts\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}", "progress"]
+            }
+          }
+        },
+        {
+          "name": "Complete Module",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"finalScore\": 88,\n    \"timeSpent\": 45,\n    \"satisfaction\": 4,\n    \"feedback\": \"Great module with clear explanations and practical examples\",\n    \"keyTakeaways\": [\"Leadership styles\", \"Communication techniques\", \"Team dynamics\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Get Module Assessment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}/assessment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}", "assessment"]
+            }
+          }
+        },
+        {
+          "name": "Submit Module Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"answers\": [\n        {\n            \"questionId\": \"q1\",\n            \"answer\": \"Option A\"\n        },\n        {\n            \"questionId\": \"q2\",\n            \"answer\": \"True\"\n        },\n        {\n            \"questionId\": \"q3\",\n            \"answer\": \"Democratic leadership style focuses on collaboration and team input\"\n        }\n    ],\n    \"timeSpent\": 600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/modules/{{module_id}}/assessment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "modules", "{{module_id}}", "assessment"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Progress Tracking",
+      "item": [
+        {
+          "name": "Get Progress Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "overview"]
+            }
+          }
+        },
+        {
+          "name": "Get Path Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/{{learning_path_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "{{learning_path_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Learning Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/progress/sessions?limit=10&timeRange=7d",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "sessions"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "timeRange",
+                  "value": "7d"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Record Session Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"moduleId\": \"{{module_id}}\",\n    \"sessionDuration\": 1800,\n    \"engagementScore\": 82,\n    \"interactionCount\": 25,\n    \"completedActivities\": [\"video\", \"reading\", \"quiz\"],\n    \"bookmarks\": [\n        {\n            \"section\": \"Key Leadership Principles\",\n            \"timestamp\": 450,\n            \"note\": \"Important concept to remember\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/progress/session-data",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "session-data"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🤖 AI Assistant",
+      "item": [
+        {
+          "name": "Chat with AI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has AI message\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('response');",
+                  "    pm.expect(jsonData.data.response).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"Can you explain the key differences between transformational and transactional leadership styles?\",\n    \"context\": {\n        \"currentModule\": \"{{module_id}}\",\n        \"learningGoal\": \"Understanding leadership styles\",\n        \"strugglingWith\": [\"Practical applications\"]\n    },\n    \"personality\": \"ARIA\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "chat"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Context",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/ai/context/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "context", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Switch AI Personality",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"personality\": \"COACH\",\n    \"reason\": \"Looking for more motivational and goal-oriented guidance\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/personality",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "personality"]
+            }
+          }
+        },
+        {
+          "name": "Provide AI Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"sessionId\": \"session_123\",\n    \"rating\": 4,\n    \"feedback\": \"Helpful explanation but could use more real-world examples\",\n    \"categories\": {\n        \"helpfulness\": 4,\n        \"accuracy\": 5,\n        \"clarity\": 4,\n        \"relevance\": 4\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ai/feedback",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "feedback"]
+            }
+          }
+        },
+        {
+          "name": "Get AI Sessions History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/ai/sessions/{{user_id}}?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ai", "sessions", "{{user_id}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📝 Assessments",
+      "item": [
+        {
+          "name": "Get Available Assessments",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has assessments\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('assessments');",
+                  "    ",
+                  "    if (jsonData.data.assessments.length > 0) {",
+                  "        pm.environment.set('assessment_id', jsonData.data.assessments[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/available?category=Communication & Leadership&type=module_completion&difficulty=intermediate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "available"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Communication & Leadership"
+                },
+                {
+                  "key": "type",
+                  "value": "module_completion"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "intermediate"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Assessment Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/{{assessment_id}}/details",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "{{assessment_id}}", "details"]
+            }
+          }
+        },
+        {
+          "name": "Start Assessment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has session ID\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('sessionId');",
+                  "    pm.environment.set('assessment_session_id', jsonData.data.sessionId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"deviceType\": \"desktop\",\n    \"browser\": \"Chrome\",\n    \"screenSize\": \"1920x1080\",\n    \"timezone\": \"UTC\",\n    \"environment\": {\n        \"proctored\": false,\n        \"allowedResources\": [\"notes\"],\n        \"restrictions\": []\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessments/{{assessment_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "{{assessment_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Submit Assessment Answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"questionId\": \"q1\",\n    \"answer\": \"Option A\",\n    \"timeSpent\": 45,\n    \"confidence\": 4,\n    \"flagged\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessments/sessions/{{assessment_session_id}}/submit-answer",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "assessments",
+                "sessions",
+                "{{assessment_session_id}}",
+                "submit-answer"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"feedback\": \"Assessment was well-structured and covered key concepts effectively\",\n    \"difficulty\": \"appropriate\",\n    \"timeManagement\": \"adequate\",\n    \"technicalIssues\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/assessments/sessions/{{assessment_session_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "assessments",
+                "sessions",
+                "{{assessment_session_id}}",
+                "complete"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Assessment Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/sessions/{{assessment_session_id}}/results",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "assessments",
+                "sessions",
+                "{{assessment_session_id}}",
+                "results"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Assessment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/history?timeRange=30d&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "history"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏆 Certificates",
+      "item": [
+        {
+          "name": "Get User Certificates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/certificates?type=completion&category=Communication & Leadership&status=issued&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "completion"
+                },
+                {
+                  "key": "category",
+                  "value": "Communication & Leadership"
+                },
+                {
+                  "key": "status",
+                  "value": "issued"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Check Certificate Eligibility",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has eligibility data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('eligible');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/eligible/assessment/{{assessment_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "certificates",
+                "eligible",
+                "assessment",
+                "{{assessment_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Certificate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has certificate data\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('certificate');",
+                  "    pm.expect(jsonData.data.certificate).to.have.property('verificationCode');",
+                  "    pm.environment.set('verification_code', jsonData.data.certificate.verificationCode);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"templateId\": \"standard\",\n    \"customization\": {\n        \"colors\": {\n            \"primary\": \"#2563eb\",\n            \"secondary\": \"#1e40af\"\n        },\n        \"logo\": \"https://example.com/logo.png\",\n        \"signature\": \"Digital Signature\"\n    },\n    \"issuer\": {\n        \"name\": \"Sokol Learning Platform\",\n        \"credentials\": \"Accredited Learning Provider\",\n        \"signature\": \"Digitally Signed\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/certificates/generate/assessment/{{assessment_id}}",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "certificates",
+                "generate",
+                "assessment",
+                "{{assessment_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verify Certificate (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/verify/{{verification_code}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "verify", "{{verification_code}}"]
+            }
+          }
+        },
+        {
+          "name": "Download Certificate",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/{{verification_code}}/download?format=pdf",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "certificates",
+                "{{verification_code}}",
+                "download"
+              ],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "pdf"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Certificate Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/analytics?timeRange=6m",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "analytics"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "6m"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Advanced Analytics",
+      "item": [
+        {
+          "name": "Get Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/dashboard?timeRange=month&widgets=progress_overview,engagement_metrics,recent_achievements,performance_trends",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "dashboard"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "month"
+                },
+                {
+                  "key": "widgets",
+                  "value": "progress_overview,engagement_metrics,recent_achievements,performance_trends"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Performance Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/performance?timeRange=30d&pathId={{learning_path_id}}&includeAIAnalysis=true&metrics=completion_rate,average_score,engagement_level",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "performance"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "pathId",
+                  "value": "{{learning_path_id}}"
+                },
+                {
+                  "key": "includeAIAnalysis",
+                  "value": "true"
+                },
+                {
+                  "key": "metrics",
+                  "value": "completion_rate,average_score,engagement_level"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Learning Patterns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/patterns?timeRange=30d&patternTypes=optimal_timing,engagement_patterns,learning_velocity&minConfidence=70",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "patterns"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "patternTypes",
+                  "value": "optimal_timing,engagement_patterns,learning_velocity"
+                },
+                {
+                  "key": "minConfidence",
+                  "value": "70"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get AI Predictions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/predictions?predictionTypes=completion_likelihood,time_to_completion,risk_assessment&horizon=1month&includeRecommendations=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "predictions"],
+              "query": [
+                {
+                  "key": "predictionTypes",
+                  "value": "completion_likelihood,time_to_completion,risk_assessment"
+                },
+                {
+                  "key": "horizon",
+                  "value": "1month"
+                },
+                {
+                  "key": "includeRecommendations",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Personalized Insights",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/insights?timeRange=30d&category=all&format=detailed",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "insights"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "category",
+                  "value": "all"
+                },
+                {
+                  "key": "format",
+                  "value": "detailed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Engagement Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/engagement?timeRange=30d&granularity=day&includeComparison=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "engagement"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "granularity",
+                  "value": "day"
+                },
+                {
+                  "key": "includeComparison",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Skills Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/skills?timeRange=90d&category=Communication & Leadership",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "skills"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "90d"
+                },
+                {
+                  "key": "category",
+                  "value": "Communication & Leadership"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get AI Effectiveness Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/ai-effectiveness?timeRange=30d&includeComparison=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "ai-effectiveness"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "includeComparison",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Analytics Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"reportType\": \"comprehensive\",\n    \"timeRange\": \"90d\",\n    \"format\": \"pdf\",\n    \"includeCharts\": true,\n    \"includeTables\": true,\n    \"includeInsights\": true,\n    \"customSections\": [\n        \"Performance Trends\",\n        \"Learning Patterns\",\n        \"AI Effectiveness\",\n        \"Skill Development\"\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/analytics/reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "reports"]
+            }
+          }
+        },
+        {
+          "name": "Export Analytics Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"timeRange\": \"30d\",\n    \"dataTypes\": [\"learning_sessions\", \"progress_data\", \"ai_interactions\"],\n    \"format\": \"json\",\n    \"includePersonalData\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/analytics/export",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "export"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 Smart Recommendations",
+      "item": [
+        {
+          "name": "Get Recommendations",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has recommendations\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data).to.have.property('recommendations');",
+                  "    ",
+                  "    if (jsonData.data.recommendations.length > 0) {",
+                  "        pm.environment.set('recommendation_id', jsonData.data.recommendations[0]._id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations?type=all&category=all&status=pending&priority=high&limit=10&sortBy=relevance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "all"
+                },
+                {
+                  "key": "category",
+                  "value": "all"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                },
+                {
+                  "key": "priority",
+                  "value": "high"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "relevance"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Next Steps",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/next-steps?limit=3&category=Communication & Leadership",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "next-steps"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3"
+                },
+                {
+                  "key": "category",
+                  "value": "Communication & Leadership"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Personalized Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"context\": {\n        \"currentModule\": \"{{module_id}}\",\n        \"currentPath\": \"{{learning_path_id}}\",\n        \"category\": \"Communication & Leadership\",\n        \"strugglingAreas\": [\"Public speaking\", \"Team management\"],\n        \"interests\": [\"Leadership\", \"Communication\", \"Team building\"],\n        \"timeAvailable\": 60,\n        \"preferredDifficulty\": \"intermediate\"\n    },\n    \"maxRecommendations\": 5,\n    \"includeScheduling\": true,\n    \"prioritizeWeakAreas\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/generate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "generate"]
+            }
+          }
+        },
+        {
+          "name": "Get Content Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/content/{{module_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "content", "{{module_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Timing Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/timing",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "timing"]
+            }
+          }
+        },
+        {
+          "name": "Get Skill Recommendations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/skills?targetSkill=Leadership&currentLevel=intermediate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "skills"],
+              "query": [
+                {
+                  "key": "targetSkill",
+                  "value": "Leadership"
+                },
+                {
+                  "key": "currentLevel",
+                  "value": "intermediate"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Respond to Recommendation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"response\": \"accepted\",\n    \"feedback\": {\n        \"helpfulness\": 5,\n        \"relevance\": 4,\n        \"timing\": 4,\n        \"comment\": \"Great recommendation! This aligns perfectly with my learning goals.\"\n    },\n    \"reason\": \"This recommendation matches my current learning objectives and fits my schedule.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/{{recommendation_id}}/respond",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "recommendations",
+                "{{recommendation_id}}",
+                "respond"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark as Viewed",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/{{recommendation_id}}/viewed",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "recommendations",
+                "{{recommendation_id}}",
+                "viewed"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Provide Detailed Feedback",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"helpfulness\": 4,\n    \"relevance\": 5,\n    \"timing\": 3,\n    \"comment\": \"Very relevant recommendation, but the timing could be better as I'm currently focused on completing my current path.\",\n    \"wouldRecommendToOthers\": true,\n    \"improvementSuggestions\": \"Consider user's current workload when timing recommendations\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/{{recommendation_id}}/feedback",
+              "host": ["{{base_url}}"],
+              "path": [
+                "api",
+                "recommendations",
+                "{{recommendation_id}}",
+                "feedback"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recommendation History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/history/user?timeRange=30d&status=all&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "history", "user"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "status",
+                  "value": "all"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Recommendation Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/stats/user?timeRange=30d&includeComparison=true&groupBy=type",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "stats", "user"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "30d"
+                },
+                {
+                  "key": "includeComparison",
+                  "value": "true"
+                },
+                {
+                  "key": "groupBy",
+                  "value": "type"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔧 System & Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "API Root Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "Analytics Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "health"]
+            }
+          }
+        },
+        {
+          "name": "Recommendations Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/recommendations/health/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recommendations", "health", "check"]
+            }
+          }
+        },
+        {
+          "name": "Assessments Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/assessments/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "assessments", "health"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set timestamp for requests that need it",
+          "if (pm.request.body && pm.request.body.raw) {",
+          "  try {",
+          "    let body = JSON.parse(pm.request.body.raw);",
+          "    if (body.timestamp === undefined && pm.request.name.includes('Session')) {",
+          "      body.timestamp = new Date().toISOString();",
+          "      pm.request.body.raw = JSON.stringify(body);",
+          "    }",
+          "  } catch(e) {",
+          "    // Not JSON body, skip",
+          "  }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global tests for all requests",
+          "pm.test('Response should be JSON', function () {",
+          "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "",
+          "// Check for rate limiting",
+          "pm.test('Request not rate limited', function () {",
+          "    pm.expect(pm.response.code).to.not.equal(429);",
+          "});",
+          "",
+          "// Log response time for performance monitoring",
+          "const responseTime = pm.response.responseTime;",
+          "console.log(`Response time: ${responseTime}ms`);",
+          "",
+          "if (responseTime > 2000) {",
+          "    console.warn(`Slow response detected: ${responseTime}ms`);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "test_user_email",
+      "value": "testuser@sokol-learning.com",
+      "type": "string"
+    },
+    {
+      "key": "test_user_password",
+      "value": "testpassword123",
+      "type": "string"
+    }
+  ]
+}

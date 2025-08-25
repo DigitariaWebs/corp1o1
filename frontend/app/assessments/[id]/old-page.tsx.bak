@@ -1,0 +1,676 @@
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Brain, 
+  Clock, 
+  Target,
+  CheckCircle,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Play,
+  Pause,
+  RotateCcw,
+  Send,
+  Shield,
+  Zap,
+  Award,
+  TrendingUp,
+  Eye,
+  Activity
+} from 'lucide-react';
+import { MainNavigation } from "@/components/navigation/main-navigation";
+import QuestionInterface from "@/components/assessments/question-interface";
+import ProgressTracker from "@/components/assessments/progress-tracker";
+import ResultsDashboard from "@/components/assessments/results-dashboard";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/auth-context";
+
+interface Assessment {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  category: string;
+  difficulty: string;
+  questionCount: number;
+  estimatedDuration: number;
+  passingScore: number;
+  timeConstraints: {
+    hasTimeLimit: boolean;
+    totalTimeMinutes: number;
+    warningTimeMinutes: number;
+  };
+  aiFeatures: {
+    adaptiveQuestioning: boolean;
+    intelligentScoring: boolean;
+    personalizedFeedback: boolean;
+  };
+}
+
+interface Question {
+  questionId: string;
+  type: 'multiple_choice' | 'essay' | 'coding_challenge' | 'ai_evaluation';
+  question: string;
+  options?: Array<{ id: string; text: string; }>;
+  points: number;
+  estimatedTimeMinutes: number;
+}
+
+interface AssessmentSession {
+  sessionId: string;
+  assessmentId: string;
+  status: 'setup' | 'in_progress' | 'paused' | 'completed' | 'expired';
+  startTime: string;
+  progress: {
+    currentQuestionIndex: number;
+    totalQuestions: number;
+    completionPercentage: number;
+  };
+  timeRemaining: number;
+}
+
+interface AssessmentResults {
+  finalScore: number;
+  passed: boolean;
+  grade: string;
+  totalTimeSpent: number;
+  scoreByDifficulty: Record<string, number>;
+  strengths: string[];
+  weaknesses: string[];
+  aiInsights: {
+    overallAssessment: string;
+    nextSteps: string[];
+    estimatedImprovementTime: number;
+  };
+}
+
+type AssessmentPhase = 'loading' | 'setup' | 'assessment' | 'results' | 'error';
+
+export default function IndividualAssessmentPage() {
+  const router = useRouter();
+  const params = useParams();
+  const { user, getToken } = useAuth();
+  const assessmentId = params.id as string;
+
+  const [phase, setPhase] = useState<AssessmentPhase>('loading');
+  const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const [session, setSession] = useState<AssessmentSession | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [results, setResults] = useState<AssessmentResults | null>(null);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Mock user for navigation
+  const mockUser = {
+    name: user?.name || "Student",
+    avatar: user?.avatar || "/placeholder.svg?height=40&width=40",
+    subscription: "premium" as const,
+    notifications: 3,
+  };
+
+  // Fetch assessment details
+  useEffect(() => {
+    const fetchAssessment = async () => {
+      try {
+        const token = await getToken();
+        const headers = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        };
+
+        const response = await fetch(`/api/assessments/${assessmentId}`, { headers });
+        if (response.ok) {
+          const data = await response.json();
+          setAssessment(data.data.assessment);
+          setPhase('setup');
+        } else {
+          // Fallback to mock data
+          setAssessment(mockAssessmentData);
+          setPhase('setup');
+        }
+      } catch (error) {
+        console.error('Failed to fetch assessment:', error);
+        setAssessment(mockAssessmentData);
+        setPhase('setup');
+      }
+    };
+
+    if (assessmentId) {
+      fetchAssessment();
+    }
+  }, [assessmentId, getToken]);
+
+  // Mock assessment data for fallback
+  const mockAssessmentData: Assessment = {
+    id: assessmentId,
+    title: 'JavaScript Fundamentals',
+    description: 'Test your core JavaScript knowledge including variables, functions, arrays, and objects.',
+    type: 'skill_check',
+    category: 'Programming',
+    difficulty: 'beginner',
+    questionCount: 15,
+    estimatedDuration: 30,
+    passingScore: 70,
+    timeConstraints: {
+      hasTimeLimit: true,
+      totalTimeMinutes: 30,
+      warningTimeMinutes: 5
+    },
+    aiFeatures: {
+      adaptiveQuestioning: true,
+      intelligentScoring: true,
+      personalizedFeedback: true
+    }
+  };
+
+  // Mock questions for fallback
+  const mockQuestions: Question[] = [
+    {
+      questionId: 'q1',
+      type: 'multiple_choice',
+      question: 'What is the correct way to declare a variable in JavaScript?',
+      options: [
+        { id: 'a', text: 'var myVariable;' },
+        { id: 'b', text: 'variable myVariable;' },
+        { id: 'c', text: 'v myVariable;' },
+        { id: 'd', text: 'declare myVariable;' }
+      ],
+      points: 10,
+      estimatedTimeMinutes: 2
+    },
+    {
+      questionId: 'q2',
+      type: 'multiple_choice',
+      question: 'Which method is used to add an element to the end of an array?',
+      options: [
+        { id: 'a', text: 'push()' },
+        { id: 'b', text: 'pop()' },
+        { id: 'c', text: 'shift()' },
+        { id: 'd', text: 'unshift()' }
+      ],
+      points: 10,
+      estimatedTimeMinutes: 2
+    },
+    {
+      questionId: 'q3',
+      type: 'essay',
+      question: 'Explain the difference between == and === operators in JavaScript. Provide examples.',
+      points: 20,
+      estimatedTimeMinutes: 5
+    }
+  ];
+
+  // Timer effect
+  useEffect(() => {
+    if (phase === 'assessment' && session && timeRemaining > 0) {
+      const timer = setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 1) {
+            handleTimeExpired();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [phase, session, timeRemaining]);
+
+  // Auto-save effect
+  useEffect(() => {
+    if (phase === 'assessment' && session && Object.keys(answers).length > 0) {
+      const autoSaveTimer = setTimeout(() => {
+        autoSaveProgress();
+      }, 10000); // Auto-save every 10 seconds
+
+      return () => clearTimeout(autoSaveTimer);
+    }
+  }, [answers, phase, session]);
+
+  const handleStartAssessment = async () => {
+    try {
+      setPhase('loading');
+      
+      const token = await getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      const response = await fetch(`/api/assessments/${assessmentId}/start`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          deviceType: 'desktop',
+          browser: navigator.userAgent,
+          screenSize: `${window.screen.width}x${window.screen.height}`,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          environment: {
+            proctored: false,
+            allowedResources: ['documentation'],
+            restrictions: []
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSession(data.data.session);
+        setQuestions(data.data.questions || mockQuestions);
+        setTimeRemaining(data.data.timeRemaining || assessment!.timeConstraints.totalTimeMinutes * 60);
+        setPhase('assessment');
+      } else {
+        // Fallback to mock data
+        const mockSession: AssessmentSession = {
+          sessionId: 'mock-session-id',
+          assessmentId: assessmentId,
+          status: 'in_progress',
+          startTime: new Date().toISOString(),
+          progress: {
+            currentQuestionIndex: 0,
+            totalQuestions: mockQuestions.length,
+            completionPercentage: 0
+          },
+          timeRemaining: assessment!.timeConstraints.totalTimeMinutes * 60
+        };
+        setSession(mockSession);
+        setQuestions(mockQuestions);
+        setTimeRemaining(assessment!.timeConstraints.totalTimeMinutes * 60);
+        setPhase('assessment');
+      }
+    } catch (error) {
+      console.error('Failed to start assessment:', error);
+      setError('Failed to start assessment. Please try again.');
+      setPhase('error');
+    }
+  };
+
+  const handleAnswerChange = (questionId: string, answer: any) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: answer
+    }));
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const autoSaveProgress = async () => {
+    if (!session) return;
+    
+    setIsAutoSaving(true);
+    try {
+      const token = await getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      await fetch(`/api/assessments/sessions/${session.sessionId}/answer`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          questionId: questions[currentQuestionIndex]?.questionId,
+          answer: answers[questions[currentQuestionIndex]?.questionId],
+          timeSpent: 30, // Calculate actual time spent
+          isAutoSave: true
+        }),
+      });
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  };
+
+  const handleSubmitAssessment = async () => {
+    if (!session) return;
+
+    try {
+      setPhase('loading');
+      
+      const token = await getToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      const response = await fetch(`/api/assessments/${assessmentId}/submit`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          sessionId: session.sessionId,
+          answers: answers
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data.data.finalResults.results);
+        setPhase('results');
+      } else {
+        // Fallback to mock results
+        const mockResults: AssessmentResults = {
+          finalScore: 78,
+          passed: true,
+          grade: 'B+',
+          totalTimeSpent: 1200,
+          scoreByDifficulty: {
+            beginner: 85,
+            intermediate: 75,
+            advanced: 70
+          },
+          strengths: ['Strong fundamentals', 'Good problem-solving'],
+          weaknesses: ['Advanced concepts need work'],
+          aiInsights: {
+            overallAssessment: 'Solid foundation with room for improvement',
+            nextSteps: ['Study advanced JavaScript patterns', 'Practice async programming'],
+            estimatedImprovementTime: 20
+          }
+        };
+        setResults(mockResults);
+        setPhase('results');
+      }
+    } catch (error) {
+      console.error('Failed to submit assessment:', error);
+      setError('Failed to submit assessment. Please try again.');
+      setPhase('error');
+    }
+  };
+
+  const handleTimeExpired = () => {
+    // Auto-submit when time expires
+    handleSubmitAssessment();
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty.toLowerCase()) {
+      case 'beginner': return 'from-green-500 to-green-600';
+      case 'intermediate': return 'from-yellow-500 to-orange-600';
+      case 'advanced': return 'from-orange-500 to-red-600';
+      case 'expert': return 'from-red-500 to-purple-600';
+      default: return 'from-cyan-500 to-blue-600';
+    }
+  };
+
+  if (phase === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+        <MainNavigation user={mockUser} />
+        <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center justify-center h-64">
+            <Brain className="h-8 w-8 text-cyan-400 animate-spin mr-3" />
+            <span className="text-white text-lg">Loading assessment...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'error') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+        <MainNavigation user={mockUser} />
+        <div className="container mx-auto px-6 py-8">
+          <div className="text-center">
+            <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-white mb-2">Assessment Error</h2>
+            <p className="text-gray-300 mb-6">{error}</p>
+            <Button onClick={() => router.push('/assessments')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Assessments
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
+      <MainNavigation user={mockUser} />
+      
+      <div className="container mx-auto px-6 py-8">
+        <AnimatePresence mode="wait">
+          {phase === 'setup' && assessment && (
+            <motion.div
+              key="setup"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-8"
+            >
+              {/* Back button */}
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/assessments')}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Assessments
+              </Button>
+
+              {/* Header */}
+              <div className="text-center">
+                <div className={`w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-r ${getDifficultyColor(assessment.difficulty)} flex items-center justify-center`}>
+                  <Target className="h-10 w-10 text-white" />
+                </div>
+                <h1 className="text-4xl font-bold text-white mb-4">{assessment.title}</h1>
+                <p className="text-xl text-gray-300 max-w-3xl mx-auto">{assessment.description}</p>
+              </div>
+
+              {/* Assessment details */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+                  <h3 className="text-white font-semibold text-lg mb-4">Assessment Details</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Category</span>
+                      <Badge>{assessment.category}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Difficulty</span>
+                      <Badge variant={assessment.difficulty === 'expert' ? 'destructive' : 'default'}>
+                        {assessment.difficulty}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Questions</span>
+                      <span className="text-white">{assessment.questionCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Duration</span>
+                      <span className="text-white">{assessment.estimatedDuration} minutes</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Passing Score</span>
+                      <span className="text-white">{assessment.passingScore}%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+                  <h3 className="text-white font-semibold text-lg mb-4 flex items-center">
+                    <Brain className="h-5 w-5 mr-2 text-purple-400" />
+                    AI Features
+                  </h3>
+                  <div className="space-y-3">
+                    {assessment.aiFeatures.adaptiveQuestioning && (
+                      <div className="flex items-center">
+                        <Zap className="h-4 w-4 text-cyan-400 mr-2" />
+                        <span className="text-gray-300">Adaptive questioning based on performance</span>
+                      </div>
+                    )}
+                    {assessment.aiFeatures.intelligentScoring && (
+                      <div className="flex items-center">
+                        <Target className="h-4 w-4 text-green-400 mr-2" />
+                        <span className="text-gray-300">AI-powered intelligent scoring</span>
+                      </div>
+                    )}
+                    {assessment.aiFeatures.personalizedFeedback && (
+                      <div className="flex items-center">
+                        <TrendingUp className="h-4 w-4 text-purple-400 mr-2" />
+                        <span className="text-gray-300">Personalized feedback and recommendations</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30 rounded-lg p-6">
+                <h3 className="text-white font-semibold text-lg mb-4 flex items-center">
+                  <Shield className="h-5 w-5 mr-2 text-amber-400" />
+                  Assessment Instructions
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckCircle className="h-4 w-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                      Read each question carefully before answering
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="h-4 w-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                      You can navigate between questions freely
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="h-4 w-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                      Your progress is automatically saved
+                    </li>
+                  </ul>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <Clock className="h-4 w-4 text-amber-400 mr-2 mt-0.5 flex-shrink-0" />
+                      Complete within the time limit
+                    </li>
+                    <li className="flex items-start">
+                      <Eye className="h-4 w-4 text-cyan-400 mr-2 mt-0.5 flex-shrink-0" />
+                      AI monitoring for performance insights
+                    </li>
+                    <li className="flex items-start">
+                      <Award className="h-4 w-4 text-purple-400 mr-2 mt-0.5 flex-shrink-0" />
+                      Receive detailed feedback upon completion
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Start button */}
+              <div className="text-center">
+                <Button 
+                  onClick={handleStartAssessment}
+                  size="lg"
+                  className="px-8 py-4 text-lg"
+                >
+                  <Play className="h-5 w-5 mr-2" />
+                  Start Assessment
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === 'assessment' && session && assessment && (
+            <motion.div
+              key="assessment"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              {/* Progress header */}
+              <ProgressTracker
+                currentQuestion={currentQuestionIndex + 1}
+                totalQuestions={questions.length}
+                timeRemaining={timeRemaining}
+                hasTimeLimit={assessment.timeConstraints.hasTimeLimit}
+                warningTime={assessment.timeConstraints.warningTimeMinutes * 60}
+                isAutoSaving={isAutoSaving}
+              />
+
+              {/* Question interface */}
+              <QuestionInterface
+                question={questions[currentQuestionIndex]}
+                answer={answers[questions[currentQuestionIndex]?.questionId]}
+                onAnswerChange={(answer) => handleAnswerChange(questions[currentQuestionIndex].questionId, answer)}
+                questionNumber={currentQuestionIndex + 1}
+                totalQuestions={questions.length}
+              />
+
+              {/* Navigation */}
+              <div className="flex justify-between items-center">
+                <Button
+                  variant="outline"
+                  onClick={handlePreviousQuestion}
+                  disabled={currentQuestionIndex === 0}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+
+                <div className="flex space-x-4">
+                  {currentQuestionIndex === questions.length - 1 ? (
+                    <Button
+                      onClick={handleSubmitAssessment}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Assessment
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleNextQuestion}
+                      disabled={currentQuestionIndex === questions.length - 1}
+                    >
+                      Next
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {phase === 'results' && results && assessment && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <ResultsDashboard
+                results={results}
+                assessment={assessment}
+                onRetakeAssessment={() => setPhase('setup')}
+                onBackToAssessments={() => router.push('/assessments')}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
