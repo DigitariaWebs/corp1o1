@@ -12,15 +12,18 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Rebuild the source code only when needed
 FROM base AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files first
 COPY package*.json ./
 # Install ALL dependencies (including devDependencies) for build
-RUN npm ci
+RUN npm ci && npm cache clean --force
 
 # Copy the rest of the application
 COPY . .
+# Add .dockerignore optimization
+COPY .dockerignore* ./
 
 # Accept build arguments for environment variables
 ARG NEXT_PUBLIC_API_URL
