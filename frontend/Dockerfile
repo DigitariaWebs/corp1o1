@@ -13,7 +13,13 @@ RUN npm ci --only=production && npm cache clean --force
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files first
+COPY package*.json ./
+# Install ALL dependencies (including devDependencies) for build
+RUN npm ci
+
+# Copy the rest of the application
 COPY . .
 
 # Accept build arguments for environment variables
