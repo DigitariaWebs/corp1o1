@@ -1,113 +1,73 @@
-# Use Node.js 18 Alpine for smaller image size
-FROM node:18-alpine
+# Production-optimized Dockerfile for AWS App Runner
+FROM node:18-alpine AS builder
 
-# Set working directory
+# Install build dependencies
+RUN apk add --no-cache python3 make g++ curl
+
 WORKDIR /app
-
-# Install system dependencies for native modules
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    musl-dev \
-    giflib-dev \
-    pixman-dev \
-    pangomm-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    curl
-
-# Create app user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S sokol -u 1001
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy application code
+# Copy source code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p uploads logs
-
-# Set proper permissions
-RUN chown -R sokol:nodejs /app
-RUN chmod -R 755 /app
-
-# Switch to non-root user
-USER sokol
-
-# Expose port
-EXPOSE 3000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:3000/health || exit 1
-
-# Start the application
-CMD ["npm", "start"]
-
-# Multi-stage build for production optimization
+# Production stage
 FROM node:18-alpine AS production
 
-# Install system dependencies
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    cairo-dev \
-    jpeg-dev \
-    pango-dev \
-    musl-dev \
-    giflib-dev \
-    pixman-dev \
-    pangomm-dev \
-    libjpeg-turbo-dev \
-    freetype-dev
+# Install runtime dependencies only
+RUN apk add --no-cache curl tini
 
-# Set working directory
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
 WORKDIR /app
-
-# Create app user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S sokol -u 1001
 
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install production dependencies only
+RUN npm ci --only=production && \
+    npm cache clean --force
 
-# Copy application code (excluding dev files)
-COPY --chown=sokol:nodejs ./config ./config
-COPY --chown=sokol:nodejs ./controllers ./controllers
-COPY --chown=sokol:nodejs ./middleware ./middleware
-COPY --chown=sokol:nodejs ./models ./models
-COPY --chown=sokol:nodejs ./routes ./routes
-COPY --chown=sokol:nodejs ./services ./services
-COPY --chown=sokol:nodejs ./utils ./utils
-COPY --chown=sokol:nodejs ./jobs ./jobs
-COPY --chown=sokol:nodejs ./seeders ./seeders
-COPY --chown=sokol:nodejs server.js ./
+# Copy application code from builder
+COPY --from=builder --chown=nodejs:nodejs /app/config ./config
+COPY --from=builder --chown=nodejs:nodejs /app/controllers ./controllers
+COPY --from=builder --chown=nodejs:nodejs /app/middleware ./middleware
+COPY --from=builder --chown=nodejs:nodejs /app/models ./models
+COPY --from=builder --chown=nodejs:nodejs /app/routes ./routes
+COPY --from=builder --chown=nodejs:nodejs /app/services ./services
+COPY --from=builder --chown=nodejs:nodejs /app/utils ./utils
+COPY --from=builder --chown=nodejs:nodejs /app/jobs ./jobs
+COPY --from=builder --chown=nodejs:nodejs /app/seeders ./seeders
+COPY --from=builder --chown=nodejs:nodejs /app/scripts ./scripts
+COPY --from=builder --chown=nodejs:nodejs /app/server.js ./
 
-# Create necessary directories
-RUN mkdir -p uploads logs && chown -R sokol:nodejs uploads logs
+# Create necessary directories with proper permissions
+RUN mkdir -p uploads logs tmp && \
+    chown -R nodejs:nodejs uploads logs tmp
 
-# Switch to non-root user
-USER sokol
+# Set environment
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOST=0.0.0.0
+
+# Use non-root user
+USER nodejs
 
 # Expose port
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+# Health check with proper timeout for AWS
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
-# Start the application
+# Use tini for proper signal handling
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start application
 CMD ["node", "server.js"]
