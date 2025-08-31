@@ -142,6 +142,58 @@ EOF
         rm trust-policy.json
     fi
     
+    # Create instance role for App Runner to access Secrets Manager
+    INSTANCE_ROLE_NAME="AppRunnerInstanceRole"
+    if ! aws iam get-role --role-name $INSTANCE_ROLE_NAME &>/dev/null; then
+        echo "Creating IAM instance role for App Runner..."
+        
+        # Create trust policy for instance role
+        cat > instance-trust-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "tasks.apprunner.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+        
+        # Create instance role
+        aws iam create-role --role-name $INSTANCE_ROLE_NAME --assume-role-policy-document file://instance-trust-policy.json
+        
+        # Create policy for Secrets Manager access
+        cat > secrets-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:DescribeSecret"
+      ],
+      "Resource": [
+        "arn:aws:secretsmanager:$AWS_REGION:$AWS_ACCOUNT_ID:secret:corp1o1/*"
+      ]
+    }
+  ]
+}
+EOF
+        
+        # Create and attach the policy
+        aws iam put-role-policy --role-name $INSTANCE_ROLE_NAME --policy-name SecretsManagerAccess --policy-document file://secrets-policy.json
+        
+        rm instance-trust-policy.json secrets-policy.json
+        
+        # Wait for role to be available
+        sleep 10
+    fi
+    
     # Create App Runner configuration
     cat > apprunner-config.json <<EOF
 {
@@ -181,7 +233,8 @@ EOF
     },
     "InstanceConfiguration": {
         "Cpu": "0.5 vCPU",
-        "Memory": "1 GB"
+        "Memory": "1 GB",
+        "InstanceRoleArn": "arn:aws:iam::$AWS_ACCOUNT_ID:role/$INSTANCE_ROLE_NAME"
     }
 }
 EOF
