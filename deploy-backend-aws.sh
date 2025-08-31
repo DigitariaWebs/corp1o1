@@ -174,8 +174,8 @@ EOF
     "HealthCheckConfiguration": {
         "Protocol": "HTTP",
         "Path": "/health",
-        "Interval": 30,
-        "Timeout": 10,
+        "Interval": 20,
+        "Timeout": 5,
         "HealthyThreshold": 1,
         "UnhealthyThreshold": 3
     },
