@@ -1,0 +1,40 @@
+version: 1.0
+runtime: nodejs18
+build:
+  commands:
+    build:
+      - echo "Building frontend application..."
+      - npm ci
+      - npm run build
+      - echo "Build completed"
+  artifacts:
+    - uri: .
+      dockerfile: Dockerfile
+      dockercontext: .
+run:
+  runtime-version: 18
+  command: node server.js
+  network:
+    port: 3000
+    env: PORT
+  env:
+    - name: NODE_ENV
+      value: production
+    - name: PORT
+      value: 3000
+    - name: HOSTNAME
+      value: 0.0.0.0
+  secrets:
+    - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+      value-from: "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:corp1o1/clerk-publishable-key"
+    - name: CLERK_SECRET_KEY
+      value-from: "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:corp1o1/clerk-secret-key"
+    - name: CLERK_WEBHOOK_SECRET
+      value-from: "arn:aws:secretsmanager:${AWS_REGION}:${AWS_ACCOUNT_ID}:secret:corp1o1/clerk-webhook-secret"
+  env:
+    - name: NEXT_PUBLIC_API_URL
+      value: "https://${BACKEND_DOMAIN}"
+    - name: NEXT_PUBLIC_ENVIRONMENT
+      value: production
+    - name: NEXT_TELEMETRY_DISABLED
+      value: "1"
