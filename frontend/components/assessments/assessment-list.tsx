@@ -43,7 +43,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+ 
 // Assessment categories with icons and colors
 const ASSESSMENT_CATEGORIES = [
   { 
@@ -290,7 +291,7 @@ export function AssessmentList({ initialAssessments = [] }: AssessmentListProps)
 
       // Try to fetch from API
       try {
-        const response = await fetch('/api/assessments?limit=20&offset=0', { headers });
+        const response = await fetch(`${BACKEND_URL}/api/assessments?limit=20&offset=0`, { headers });
         
         if (response.ok) {
           const data = await response.json();

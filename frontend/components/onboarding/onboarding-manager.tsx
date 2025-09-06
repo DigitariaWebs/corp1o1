@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/auth-context"
 import { WelcomeModal } from "./welcome-modal"
 import { FeatureTour } from "./feature-tour"
 import { IntelligentSignup } from "./intelligent-signup"
-
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 interface UserState {
   isFirstTime: boolean
   hasCompletedAssessment: boolean
@@ -168,9 +168,9 @@ export function OnboardingManager({ children }: OnboardingManagerProps) {
   const handlePersonalizationSkip = async () => {
     try {
       const token = await getToken()
-      
+          
       // Mark onboarding as completed but skipped
-      await fetch('/api/users/profile', {
+      await fetch(`${BACKEND_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,

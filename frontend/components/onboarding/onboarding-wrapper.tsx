@@ -10,7 +10,7 @@ export function OnboardingWrapper() {
   const router = useRouter();
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   useEffect(() => {
     checkOnboardingStatus();
   }, [user]);
@@ -23,7 +23,7 @@ export function OnboardingWrapper() {
 
     try {
       const token = await getToken();
-      const response = await fetch('/api/users/profile', {
+      const response = await fetch(`${BACKEND_URL}/api/users/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -82,7 +82,7 @@ export function OnboardingWrapper() {
       const token = await getToken();
       
       // Mark onboarding as skipped but completed
-      await fetch('/api/users/profile', {
+      await fetch(`${BACKEND_URL}/api/users/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
