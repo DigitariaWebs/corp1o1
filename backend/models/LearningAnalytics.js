@@ -1,90 +1,90 @@
 // models/LearningAnalytics.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const learningAnalyticsSchema = new mongoose.Schema({
   // User reference
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true
+    ref: 'User',
+    required: true,
   },
 
   // Time period for this analytics record
   period: {
     type: {
       type: String,
-      enum: ["daily", "weekly", "monthly", "quarterly", "yearly", "lifetime"],
+      enum: ['daily', 'weekly', 'monthly', 'quarterly', 'yearly', 'lifetime'],
       required: true,
-      default: "daily"
+      default: 'daily',
     },
     startDate: {
       type: Date,
-      required: true
+      required: true,
     },
     endDate: {
       type: Date,
-      required: true
-    }
+      required: true,
+    },
   },
 
   // Learning engagement metrics
   engagement: {
     totalSessionTime: {
       type: Number,
-      default: 0 // in minutes
+      default: 0, // in minutes
     },
     averageSessionDuration: {
       type: Number,
-      default: 0 // in minutes
+      default: 0, // in minutes
     },
     sessionCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     interactionRate: {
       type: Number,
       default: 0, // interactions per minute
       min: 0,
-      max: 100
+      max: 100,
     },
     focusScore: {
       type: Number,
       default: 0, // 0-100 based on session consistency
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   },
 
   // Learning progress metrics
   progress: {
     modulesStarted: {
       type: Number,
-      default: 0
+      default: 0,
     },
     modulesCompleted: {
       type: Number,
-      default: 0
+      default: 0,
     },
     pathsEnrolled: {
       type: Number,
-      default: 0
+      default: 0,
     },
     pathsCompleted: {
       type: Number,
-      default: 0
+      default: 0,
     },
     completionRate: {
       type: Number,
       default: 0, // percentage
       min: 0,
-      max: 100
+      max: 100,
     },
     averageModuleScore: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   },
 
   // Performance patterns
@@ -93,93 +93,93 @@ const learningAnalyticsSchema = new mongoose.Schema({
       hour: {
         type: Number,
         min: 0,
-        max: 23
+        max: 23,
       },
       dayOfWeek: {
         type: Number,
         min: 0,
-        max: 6 // 0 = Sunday
+        max: 6, // 0 = Sunday
       },
       confidence: {
         type: Number,
         default: 0,
         min: 0,
-        max: 100
-      }
+        max: 100,
+      },
     },
     strugglePatterns: [{
       category: {
         type: String,
         enum: [
-          "Communication & Leadership",
-          "Innovation & Creativity", 
-          "Technical Skills",
-          "Business Strategy",
-          "Personal Development",
-          "Data & Analytics"
-        ]
+          'Communication & Leadership',
+          'Innovation & Creativity', 
+          'Technical Skills',
+          'Business Strategy',
+          'Personal Development',
+          'Data & Analytics',
+        ],
       },
       difficulty: {
         type: String,
-        enum: ["beginner", "intermediate", "advanced", "expert"]
+        enum: ['beginner', 'intermediate', 'advanced', 'expert'],
       },
       strugglingTopics: [String],
       interventionNeeded: {
         type: Boolean,
-        default: false
-      }
+        default: false,
+      },
     }],
     strengthAreas: [{
       category: String,
       proficiencyLevel: {
         type: Number,
         min: 0,
-        max: 100
+        max: 100,
       },
       consistencyScore: {
         type: Number,
         min: 0,
-        max: 100
-      }
-    }]
+        max: 100,
+      },
+    }],
   },
 
   // AI interaction analytics
   aiInteraction: {
     totalInteractions: {
       type: Number,
-      default: 0
+      default: 0,
     },
     averageResponseTime: {
       type: Number,
-      default: 0 // in seconds
+      default: 0, // in seconds
     },
     satisfactionScore: {
       type: Number,
       default: 0,
       min: 0,
-      max: 5
+      max: 5,
     },
     personalityUsage: {
       ARIA: {
         type: Number,
-        default: 0 // percentage of interactions
+        default: 0, // percentage of interactions
       },
       SAGE: {
         type: Number,
-        default: 0
+        default: 0,
       },
       COACH: {
         type: Number,
-        default: 0
-      }
+        default: 0,
+      },
     },
     effectivenessScore: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   },
 
   // Learning predictions
@@ -188,107 +188,107 @@ const learningAnalyticsSchema = new mongoose.Schema({
       currentPath: {
         type: Number,
         min: 0,
-        max: 100
+        max: 100,
       },
       nextModule: {
         type: Number,
         min: 0,
-        max: 100
-      }
+        max: 100,
+      },
     },
     timeToCompletion: {
       currentPath: {
-        type: Number // in days
+        type: Number, // in days
       },
       estimatedAccuracy: {
         type: Number,
         min: 0,
-        max: 100
-      }
+        max: 100,
+      },
     },
     riskFactors: [{
       type: {
         type: String,
-        enum: ["disengagement", "difficulty_spike", "time_constraint", "motivation_drop"]
+        enum: ['disengagement', 'difficulty_spike', 'time_constraint', 'motivation_drop'],
       },
       severity: {
         type: String,
-        enum: ["low", "medium", "high", "critical"]
+        enum: ['low', 'medium', 'high', 'critical'],
       },
       confidence: {
         type: Number,
         min: 0,
-        max: 100
-      }
-    }]
+        max: 100,
+      },
+    }],
   },
 
   // Recommendation metrics
   recommendations: {
     generated: {
       type: Number,
-      default: 0
+      default: 0,
     },
     accepted: {
       type: Number,
-      default: 0
+      default: 0,
     },
     effectiveness: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
+      max: 100,
     },
     lastRecommendation: {
-      type: Date
-    }
+      type: Date,
+    },
   },
 
   // Metadata
   calculatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   version: {
     type: String,
-    default: "1.0"
-  }
+    default: '1.0',
+  },
 
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
 });
 
 // Indexes for efficient querying
-learningAnalyticsSchema.index({ user: 1, "period.type": 1, "period.startDate": -1 });
-learningAnalyticsSchema.index({ "period.endDate": 1 }); // For cleanup
+learningAnalyticsSchema.index({ user: 1, 'period.type': 1, 'period.startDate': -1 });
+learningAnalyticsSchema.index({ 'period.endDate': 1 }); // For cleanup
 learningAnalyticsSchema.index({ calculatedAt: -1 }); // For recent analytics
 
 // Virtual for period duration
-learningAnalyticsSchema.virtual("period.duration").get(function() {
+learningAnalyticsSchema.virtual('period.duration').get(function() {
   return Math.ceil((this.period.endDate - this.period.startDate) / (1000 * 60 * 60 * 24));
 });
 
 // Static method to get user analytics for period
-learningAnalyticsSchema.statics.getUserAnalytics = async function(userId, periodType = "weekly", limit = 12) {
+learningAnalyticsSchema.statics.getUserAnalytics = async function(userId, periodType = 'weekly', limit = 12) {
   return this.find({
     user: userId,
-    "period.type": periodType
+    'period.type': periodType,
   })
-  .sort({ "period.startDate": -1 })
-  .limit(limit)
-  .lean();
+    .sort({ 'period.startDate': -1 })
+    .limit(limit)
+    .lean();
 };
 
 // Static method to get latest analytics for user
 learningAnalyticsSchema.statics.getLatestAnalytics = async function(userId) {
   return this.findOne({
-    user: userId
+    user: userId,
   })
-  .sort({ calculatedAt: -1 })
-  .lean();
+    .sort({ calculatedAt: -1 })
+    .lean();
 };
 
 // Static method to get aggregated insights
@@ -300,24 +300,24 @@ learningAnalyticsSchema.statics.getAggregatedInsights = async function(userId, d
     {
       $match: {
         user: new mongoose.Types.ObjectId(userId),
-        "period.startDate": { $gte: startDate },
-        "period.endDate": { $lte: endDate }
-      }
+        'period.startDate': { $gte: startDate },
+        'period.endDate': { $lte: endDate },
+      },
     },
     {
       $group: {
         _id: null,
-        totalSessionTime: { $sum: "$engagement.totalSessionTime" },
-        avgSessionDuration: { $avg: "$engagement.averageSessionDuration" },
-        totalSessions: { $sum: "$engagement.sessionCount" },
-        avgCompletionRate: { $avg: "$progress.completionRate" },
-        avgModuleScore: { $avg: "$progress.averageModuleScore" },
-        totalAIInteractions: { $sum: "$aiInteraction.totalInteractions" },
-        avgSatisfactionScore: { $avg: "$aiInteraction.satisfactionScore" },
-        totalRecommendations: { $sum: "$recommendations.generated" },
-        acceptedRecommendations: { $sum: "$recommendations.accepted" }
-      }
-    }
+        totalSessionTime: { $sum: '$engagement.totalSessionTime' },
+        avgSessionDuration: { $avg: '$engagement.averageSessionDuration' },
+        totalSessions: { $sum: '$engagement.sessionCount' },
+        avgCompletionRate: { $avg: '$progress.completionRate' },
+        avgModuleScore: { $avg: '$progress.averageModuleScore' },
+        totalAIInteractions: { $sum: '$aiInteraction.totalInteractions' },
+        avgSatisfactionScore: { $avg: '$aiInteraction.satisfactionScore' },
+        totalRecommendations: { $sum: '$recommendations.generated' },
+        acceptedRecommendations: { $sum: '$recommendations.accepted' },
+      },
+    },
   ]);
 };
 
@@ -349,27 +349,27 @@ learningAnalyticsSchema.methods.identifyLearningPatterns = function() {
   // High engagement pattern
   if (this.engagement.focusScore > 80 && this.engagement.sessionCount > 4) {
     patterns.push({
-      type: "high_engagement",
+      type: 'high_engagement',
       confidence: 0.9,
-      description: "Consistent high engagement with frequent learning sessions"
+      description: 'Consistent high engagement with frequent learning sessions',
     });
   }
   
   // Optimal time pattern
   if (this.performance.optimalLearningTime.confidence > 70) {
     patterns.push({
-      type: "optimal_timing",
+      type: 'optimal_timing',
       confidence: this.performance.optimalLearningTime.confidence / 100,
-      description: `Best learning time: ${this.performance.optimalLearningTime.hour}:00 on ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][this.performance.optimalLearningTime.dayOfWeek]}`
+      description: `Best learning time: ${this.performance.optimalLearningTime.hour}:00 on ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][this.performance.optimalLearningTime.dayOfWeek]}`,
     });
   }
   
   // Struggle pattern
   if (this.performance.strugglePatterns.some(p => p.interventionNeeded)) {
     patterns.push({
-      type: "needs_intervention",
+      type: 'needs_intervention',
       confidence: 0.8,
-      description: "Struggling in specific areas, intervention recommended"
+      description: 'Struggling in specific areas, intervention recommended',
     });
   }
   
@@ -377,7 +377,7 @@ learningAnalyticsSchema.methods.identifyLearningPatterns = function() {
 };
 
 // Pre-save middleware to validate data consistency
-learningAnalyticsSchema.pre("save", function(next) {
+learningAnalyticsSchema.pre('save', function(next) {
   // Ensure completion rate is consistent with modules data
   if (this.progress.modulesStarted > 0) {
     const calculatedCompletionRate = (this.progress.modulesCompleted / this.progress.modulesStarted) * 100;
@@ -407,12 +407,12 @@ learningAnalyticsSchema.statics.cleanupOldAnalytics = async function(daysToKeep 
   const cutoffDate = new Date(Date.now() - daysToKeep * 24 * 60 * 60 * 1000);
   
   const result = await this.deleteMany({
-    "period.endDate": { $lt: cutoffDate },
-    "period.type": { $in: ["daily", "weekly"] } // Keep monthly/yearly longer
+    'period.endDate': { $lt: cutoffDate },
+    'period.type': { $in: ['daily', 'weekly'] }, // Keep monthly/yearly longer
   });
   
   return result.deletedCount;
 };
 
 // Export model
-module.exports = mongoose.model("LearningAnalytics", learningAnalyticsSchema);
+module.exports = mongoose.model('LearningAnalytics', learningAnalyticsSchema);

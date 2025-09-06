@@ -4,18 +4,18 @@ const mongoose = require('mongoose');
 const contextVariableSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   type: {
     type: String,
     enum: ['user_profile', 'learning_progress', 'session_data', 'module_content', 'performance_data'],
-    required: true
+    required: true,
   },
   description: String,
   required: {
     type: Boolean,
-    default: true
-  }
+    default: true,
+  },
 }, { _id: false });
 
 // Response configuration schema
@@ -24,32 +24,32 @@ const responseConfigSchema = new mongoose.Schema({
     type: Number,
     default: 500,
     min: 50,
-    max: 2000
+    max: 2000,
   },
   temperature: {
     type: Number,
     default: 0.7,
     min: 0,
-    max: 2
+    max: 2,
   },
   topP: {
     type: Number,
     default: 1,
     min: 0,
-    max: 1
+    max: 1,
   },
   frequencyPenalty: {
     type: Number,
     default: 0,
     min: -2,
-    max: 2
+    max: 2,
   },
   presencePenalty: {
     type: Number,
     default: 0,
     min: -2,
-    max: 2
-  }
+    max: 2,
+  },
 }, { _id: false });
 
 // Adaptation rules for dynamic prompt modification
@@ -59,33 +59,33 @@ const adaptationRuleSchema = new mongoose.Schema({
     enum: [
       'user_struggling', 'user_excelling', 'low_engagement', 'high_engagement',
       'first_session', 'assessment_failed', 'assessment_passed',
-      'learning_style_mismatch', 'time_pressure', 'help_requested'
+      'learning_style_mismatch', 'time_pressure', 'help_requested',
     ],
-    required: true
+    required: true,
   },
   conditionValue: {
     type: mongoose.Schema.Types.Mixed, // Can be number, string, boolean
-    default: null
+    default: null,
   },
   modification: {
     type: String,
     enum: [
       'simplify_language', 'add_examples', 'increase_encouragement',
       'add_challenges', 'provide_hints', 'break_down_steps',
-      'add_motivation', 'adjust_tone', 'add_resources'
+      'add_motivation', 'adjust_tone', 'add_resources',
     ],
-    required: true
+    required: true,
   },
   modificationText: {
     type: String,
-    required: true
+    required: true,
   },
   priority: {
     type: Number,
     min: 1,
     max: 10,
-    default: 5
-  }
+    default: 5,
+  },
 }, { _id: true });
 
 // AI Prompt schema
@@ -95,27 +95,27 @@ const aiPromptSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Prompt name is required'],
     trim: true,
-    maxlength: [100, 'Prompt name cannot exceed 100 characters']
+    maxlength: [100, 'Prompt name cannot exceed 100 characters'],
   },
   
   description: {
     type: String,
     required: [true, 'Prompt description is required'],
     trim: true,
-    maxlength: [500, 'Description cannot exceed 500 characters']
+    maxlength: [500, 'Description cannot exceed 500 characters'],
   },
   
   // AI model and personality configuration
   modelType: {
     type: String,
     enum: ['openai-gpt4', 'openai-gpt35', 'claude', 'local'],
-    default: 'openai-gpt4'
+    default: 'openai-gpt4',
   },
   
   personality: {
     type: String,
     enum: ['ARIA', 'SAGE', 'COACH'],
-    required: [true, 'AI personality is required']
+    required: [true, 'AI personality is required'],
   },
   
   // Context and usage
@@ -124,22 +124,22 @@ const aiPromptSchema = new mongoose.Schema({
     enum: [
       'learning_help', 'motivation', 'assessment_feedback', 'progress_review',
       'module_introduction', 'concept_explanation', 'skill_guidance',
-      'encouragement', 'challenge', 'reflection', 'goal_setting'
+      'encouragement', 'challenge', 'reflection', 'goal_setting',
     ],
-    required: [true, 'Context type is required']
+    required: [true, 'Context type is required'],
   },
   
   // Prompt template structure
   systemPrompt: {
     type: String,
     required: [true, 'System prompt is required'],
-    maxlength: [2000, 'System prompt cannot exceed 2000 characters']
+    maxlength: [2000, 'System prompt cannot exceed 2000 characters'],
   },
   
   userPromptTemplate: {
     type: String,
     required: [true, 'User prompt template is required'],
-    maxlength: [1000, 'User prompt template cannot exceed 1000 characters']
+    maxlength: [1000, 'User prompt template cannot exceed 1000 characters'],
   },
   
   // Dynamic context variables
@@ -148,7 +148,7 @@ const aiPromptSchema = new mongoose.Schema({
   // Response configuration
   responseConfig: {
     type: responseConfigSchema,
-    default: () => ({})
+    default: () => ({}),
   },
   
   // Adaptation rules for dynamic modification
@@ -158,50 +158,50 @@ const aiPromptSchema = new mongoose.Schema({
   performanceMetrics: {
     useCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     averageRating: {
       type: Number,
       default: 0,
       min: 0,
-      max: 5
+      max: 5,
     },
     ratingCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     effectivenessScore: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
+      max: 100,
     },
     averageResponseTime: {
       type: Number,
-      default: 0 // in milliseconds
+      default: 0, // in milliseconds
     },
     successRate: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   },
   
   // Version and status management
   version: {
     type: String,
-    default: '1.0.0'
+    default: '1.0.0',
   },
   
   isActive: {
     type: Boolean,
-    default: true
+    default: true,
   },
   
   isDefault: {
     type: Boolean,
-    default: false
+    default: false,
   },
   
   // Learning domain and difficulty
@@ -209,28 +209,28 @@ const aiPromptSchema = new mongoose.Schema({
     type: String,
     enum: [
       'Communication & Leadership', 'Innovation & Creativity', 'Technical Skills',
-      'Business Strategy', 'Personal Development', 'Data & Analytics'
-    ]
+      'Business Strategy', 'Personal Development', 'Data & Analytics',
+    ],
   }],
   
   targetDifficulty: {
     type: String,
     enum: ['any', 'beginner', 'intermediate', 'advanced', 'expert'],
-    default: 'any'
+    default: 'any',
   },
   
   // A/B testing support
   testGroup: {
     type: String,
-    default: 'default'
+    default: 'default',
   },
   
   testWeight: {
     type: Number,
     default: 1,
     min: 0,
-    max: 1
-  }
+    max: 1,
+  },
 }, {
   timestamps: true,
   toJSON: {
@@ -239,8 +239,8 @@ const aiPromptSchema = new mongoose.Schema({
       delete ret._id;
       delete ret.__v;
       return ret;
-    }
-  }
+    },
+  },
 });
 
 // Indexes for performance optimization
@@ -259,7 +259,7 @@ aiPromptSchema.virtual('overallPerformance').get(function() {
   return Math.round(
     (rating / 5) * 30 + 
     (effectiveness / 100) * 40 + 
-    (successRate / 100) * 30
+    (successRate / 100) * 30,
   );
 });
 
@@ -288,7 +288,7 @@ aiPromptSchema.methods.buildContextualizedPrompt = function(context = {}) {
     systemPrompt,
     userPrompt,
     config: this.responseConfig,
-    adaptationsApplied: adaptations.map(rule => rule.modification)
+    adaptationsApplied: adaptations.map(rule => rule.modification),
   };
 };
 
@@ -297,18 +297,18 @@ aiPromptSchema.methods.getContextValue = function(context, variable) {
   const { name, type } = variable;
   
   switch (type) {
-    case 'user_profile':
-      return context.user?.[name] || `[${name}]`;
-    case 'learning_progress':
-      return context.progress?.[name] || `[${name}]`;
-    case 'session_data':
-      return context.session?.[name] || `[${name}]`;
-    case 'module_content':
-      return context.module?.[name] || `[${name}]`;
-    case 'performance_data':
-      return context.performance?.[name] || `[${name}]`;
-    default:
-      return `[${name}]`;
+  case 'user_profile':
+    return context.user?.[name] || `[${name}]`;
+  case 'learning_progress':
+    return context.progress?.[name] || `[${name}]`;
+  case 'session_data':
+    return context.session?.[name] || `[${name}]`;
+  case 'module_content':
+    return context.module?.[name] || `[${name}]`;
+  case 'performance_data':
+    return context.performance?.[name] || `[${name}]`;
+  default:
+    return `[${name}]`;
   }
 };
 
@@ -324,24 +324,24 @@ aiPromptSchema.methods.checkAdaptationCondition = function(rule, context) {
   const { triggerCondition, conditionValue } = rule;
   
   switch (triggerCondition) {
-    case 'user_struggling':
-      return context.performance?.averageScore < (conditionValue || 60);
-    case 'user_excelling':
-      return context.performance?.averageScore > (conditionValue || 90);
-    case 'low_engagement':
-      return context.session?.engagementScore < (conditionValue || 50);
-    case 'high_engagement':
-      return context.session?.engagementScore > (conditionValue || 85);
-    case 'first_session':
-      return context.progress?.sessionCount === 1;
-    case 'assessment_failed':
-      return context.performance?.lastAssessmentScore < (conditionValue || 70);
-    case 'assessment_passed':
-      return context.performance?.lastAssessmentScore >= (conditionValue || 70);
-    case 'help_requested':
-      return context.session?.helpRequestCount > 0;
-    default:
-      return false;
+  case 'user_struggling':
+    return context.performance?.averageScore < (conditionValue || 60);
+  case 'user_excelling':
+    return context.performance?.averageScore > (conditionValue || 90);
+  case 'low_engagement':
+    return context.session?.engagementScore < (conditionValue || 50);
+  case 'high_engagement':
+    return context.session?.engagementScore > (conditionValue || 85);
+  case 'first_session':
+    return context.progress?.sessionCount === 1;
+  case 'assessment_failed':
+    return context.performance?.lastAssessmentScore < (conditionValue || 70);
+  case 'assessment_passed':
+    return context.performance?.lastAssessmentScore >= (conditionValue || 70);
+  case 'help_requested':
+    return context.session?.helpRequestCount > 0;
+  default:
+    return false;
   }
 };
 
@@ -372,7 +372,7 @@ aiPromptSchema.statics.getBestPrompt = async function(personality, contextType, 
   const query = {
     personality,
     contextType,
-    isActive: true
+    isActive: true,
   };
   
   if (options.learningDomain) {
@@ -382,7 +382,7 @@ aiPromptSchema.statics.getBestPrompt = async function(personality, contextType, 
   if (options.difficulty) {
     query.$or = [
       { targetDifficulty: 'any' },
-      { targetDifficulty: options.difficulty }
+      { targetDifficulty: options.difficulty },
     ];
   }
   
@@ -390,7 +390,7 @@ aiPromptSchema.statics.getBestPrompt = async function(personality, contextType, 
   const prompts = await this.find(query)
     .sort({ 
       'performanceMetrics.effectivenessScore': -1,
-      'performanceMetrics.averageRating': -1 
+      'performanceMetrics.averageRating': -1, 
     })
     .limit(5);
   
@@ -419,43 +419,43 @@ aiPromptSchema.statics.getBestPrompt = async function(personality, contextType, 
 aiPromptSchema.statics.createDefaults = async function() {
   const defaultPrompts = [
     {
-      name: "ARIA Learning Help",
-      description: "Encouraging learning assistance from ARIA",
-      personality: "ARIA",
-      contextType: "learning_help",
-      systemPrompt: "You are ARIA, an encouraging AI learning assistant. You provide helpful, supportive guidance while adapting to the user's learning style ({{learningStyle}}) and current progress ({{progressPercentage}}%).",
-      userPromptTemplate: "The user needs help with: {{userQuestion}}. Their current module is '{{moduleTitle}}' and they've been struggling with {{strugglingAreas}}. Provide encouraging, practical help.",
+      name: 'ARIA Learning Help',
+      description: 'Encouraging learning assistance from ARIA',
+      personality: 'ARIA',
+      contextType: 'learning_help',
+      systemPrompt: 'You are ARIA, an encouraging AI learning assistant. You provide helpful, supportive guidance while adapting to the user\'s learning style ({{learningStyle}}) and current progress ({{progressPercentage}}%).',
+      userPromptTemplate: 'The user needs help with: {{userQuestion}}. Their current module is \'{{moduleTitle}}\' and they\'ve been struggling with {{strugglingAreas}}. Provide encouraging, practical help.',
       contextVariables: [
-        { name: "learningStyle", type: "user_profile", description: "User's learning style" },
-        { name: "progressPercentage", type: "learning_progress", description: "Current progress percentage" },
-        { name: "userQuestion", type: "session_data", description: "User's question or concern" },
-        { name: "moduleTitle", type: "module_content", description: "Current module title" },
-        { name: "strugglingAreas", type: "performance_data", description: "Areas where user is struggling" }
+        { name: 'learningStyle', type: 'user_profile', description: 'User\'s learning style' },
+        { name: 'progressPercentage', type: 'learning_progress', description: 'Current progress percentage' },
+        { name: 'userQuestion', type: 'session_data', description: 'User\'s question or concern' },
+        { name: 'moduleTitle', type: 'module_content', description: 'Current module title' },
+        { name: 'strugglingAreas', type: 'performance_data', description: 'Areas where user is struggling' },
       ],
-      isDefault: true
+      isDefault: true,
     },
     {
-      name: "SAGE Progress Review",
-      description: "Professional progress analysis from SAGE",
-      personality: "SAGE",
-      contextType: "progress_review",
-      systemPrompt: "You are SAGE, a professional AI learning analyst. Provide detailed, objective analysis of learning progress for users with {{totalLearningTime}} minutes of study time.",
-      userPromptTemplate: "Analyze the user's progress: {{progressPercentage}}% complete, {{assessmentScores}} assessment scores, {{engagementLevel}} engagement. Provide professional insights and recommendations.",
+      name: 'SAGE Progress Review',
+      description: 'Professional progress analysis from SAGE',
+      personality: 'SAGE',
+      contextType: 'progress_review',
+      systemPrompt: 'You are SAGE, a professional AI learning analyst. Provide detailed, objective analysis of learning progress for users with {{totalLearningTime}} minutes of study time.',
+      userPromptTemplate: 'Analyze the user\'s progress: {{progressPercentage}}% complete, {{assessmentScores}} assessment scores, {{engagementLevel}} engagement. Provide professional insights and recommendations.',
       contextVariables: [
-        { name: "totalLearningTime", type: "learning_progress", description: "Total learning time" },
-        { name: "progressPercentage", type: "learning_progress", description: "Overall progress" },
-        { name: "assessmentScores", type: "performance_data", description: "Recent assessment scores" },
-        { name: "engagementLevel", type: "session_data", description: "User engagement level" }
+        { name: 'totalLearningTime', type: 'learning_progress', description: 'Total learning time' },
+        { name: 'progressPercentage', type: 'learning_progress', description: 'Overall progress' },
+        { name: 'assessmentScores', type: 'performance_data', description: 'Recent assessment scores' },
+        { name: 'engagementLevel', type: 'session_data', description: 'User engagement level' },
       ],
-      isDefault: true
-    }
+      isDefault: true,
+    },
   ];
   
   for (const promptData of defaultPrompts) {
     const existing = await this.findOne({
       personality: promptData.personality,
       contextType: promptData.contextType,
-      isDefault: true
+      isDefault: true,
     });
     
     if (!existing) {

@@ -1,11 +1,11 @@
 // services/assessmentService.js
-const Assessment = require("../models/Assessment");
-const AssessmentSession = require("../models/AssessmentSession");
-const User = require("../models/User");
-const UserProgress = require("../models/UserProgress");
-const { openAIService } = require("./openaiService");
-const { AppError } = require("../middleware/errorHandler");
-const { v4: uuidv4 } = require("uuid");
+const Assessment = require('../models/Assessment');
+const AssessmentSession = require('../models/AssessmentSession');
+const User = require('../models/User');
+const UserProgress = require('../models/UserProgress');
+const { openAIService } = require('./openaiService');
+const { AppError } = require('../middleware/errorHandler');
+const { v4: uuidv4 } = require('uuid');
 
 class AssessmentService {
   /**
@@ -18,7 +18,7 @@ class AssessmentService {
   async createAssessmentSession(userId, assessmentId, options = {}) {
     try {
       console.log(
-        `📝 Creating assessment session: User ${userId}, Assessment ${assessmentId}`
+        `📝 Creating assessment session: User ${userId}, Assessment ${assessmentId}`,
       );
 
       // Get assessment and user data
@@ -28,33 +28,33 @@ class AssessmentService {
       ]);
 
       if (!assessment) {
-        throw new AppError("Assessment not found", 404);
+        throw new AppError('Assessment not found', 404);
       }
 
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError('User not found', 404);
       }
 
       // Check user eligibility
       const eligibility = await assessment.checkUserEligibility(userId);
       if (!eligibility.eligible) {
         throw new AppError(
-          `Not eligible for assessment: ${eligibility.reasons.join(", ")}`,
-          403
+          `Not eligible for assessment: ${eligibility.reasons.join(', ')}`,
+          403,
         );
       }
 
       // Check attempt limits
       const existingAttempts = await AssessmentSession.findUserAttempts(
         userId,
-        assessmentId
+        assessmentId,
       );
       const completedAttempts = existingAttempts.filter(
-        (a) => a.status === "completed"
+        (a) => a.status === 'completed',
       );
 
       if (completedAttempts.length >= assessment.attemptSettings.maxAttempts) {
-        throw new AppError("Maximum attempts exceeded", 403);
+        throw new AppError('Maximum attempts exceeded', 403);
       }
 
       // Check cooldown period
@@ -67,11 +67,11 @@ class AssessmentService {
 
         if (timeSinceLastAttempt < cooldownMs) {
           const remainingTime = Math.ceil(
-            (cooldownMs - timeSinceLastAttempt) / (60 * 60 * 1000)
+            (cooldownMs - timeSinceLastAttempt) / (60 * 60 * 1000),
           );
           throw new AppError(
             `Must wait ${remainingTime} hours before next attempt`,
-            429
+            429,
           );
         }
       }
@@ -91,7 +91,7 @@ class AssessmentService {
           assessment.tags[0] || assessment.category, // Use first tag as topic
           assessment.difficulty,
           assessment.totalQuestions || 10,
-          ['multiple_choice', 'text', 'essay']
+          ['multiple_choice', 'text', 'essay'],
         );
         
         // Format and save questions to assessment
@@ -108,7 +108,7 @@ class AssessmentService {
           subcategory: q.category || assessment.tags[0],
           hints: q.hints || [],
           explanation: q.explanation || '',
-          order: index + 1
+          order: index + 1,
         }));
         
         // Update scoring based on generated questions
@@ -122,8 +122,8 @@ class AssessmentService {
       } else {
         // Get adaptive questions for existing assessments
         questions = assessment.getAdaptiveQuestions(
-          user.learningProfile?.currentLevel || "intermediate",
-          user.learningProfile?.skills || []
+          user.learningProfile?.currentLevel || 'intermediate',
+          user.learningProfile?.skills || [],
         );
       }
 
@@ -146,12 +146,12 @@ class AssessmentService {
           adaptiveQuestioning: assessment.aiFeatures.adaptiveQuestioning,
         },
         userContext: {
-          deviceType: options.deviceType || "unknown",
-          browser: options.browser || "unknown",
-          screenSize: options.screenSize || "unknown",
-          timezone: options.timezone || "UTC",
-          learningStyle: user.learningProfile?.learningStyle || "visual",
-          currentLevel: user.learningProfile?.currentLevel || "intermediate",
+          deviceType: options.deviceType || 'unknown',
+          browser: options.browser || 'unknown',
+          screenSize: options.screenSize || 'unknown',
+          timezone: options.timezone || 'UTC',
+          learningStyle: user.learningProfile?.learningStyle || 'visual',
+          currentLevel: user.learningProfile?.currentLevel || 'intermediate',
         },
       });
 
@@ -168,7 +168,7 @@ class AssessmentService {
           : null,
       };
     } catch (error) {
-      console.error("❌ Error creating assessment session:", error);
+      console.error('❌ Error creating assessment session:', error);
       throw error;
     }
   }
@@ -184,34 +184,34 @@ class AssessmentService {
   async submitAnswer(sessionId, questionId, userAnswer, timeSpent = 0) {
     try {
       console.log(
-        `📋 Submitting answer: Session ${sessionId}, Question ${questionId}`
+        `📋 Submitting answer: Session ${sessionId}, Question ${questionId}`,
       );
 
       // Get session and assessment
       const session = await AssessmentSession.findOne({ sessionId });
       if (!session) {
-        throw new AppError("Assessment session not found", 404);
+        throw new AppError('Assessment session not found', 404);
       }
 
-      if (session.status !== "in_progress") {
-        throw new AppError("Assessment session is not active", 400);
+      if (session.status !== 'in_progress') {
+        throw new AppError('Assessment session is not active', 400);
       }
 
       // Check for timeout
       if (session.shouldTimeout()) {
-        session.status = "timeout";
+        session.status = 'timeout';
         await session.save();
-        throw new AppError("Assessment session has timed out", 408);
+        throw new AppError('Assessment session has timed out', 408);
       }
 
       // Get assessment and question
       const assessment = await Assessment.findById(session.assessmentId);
       const question = assessment.questions.find(
-        (q) => q.questionId === questionId
+        (q) => q.questionId === questionId,
       );
 
       if (!question) {
-        throw new AppError("Question not found", 404);
+        throw new AppError('Question not found', 404);
       }
 
       // Update time tracking
@@ -226,12 +226,12 @@ class AssessmentService {
       const evaluation = await this.evaluateAnswer(
         question,
         userAnswer,
-        session
+        session,
       );
 
       // Update answer with evaluation results
       const answerIndex = session.answers.findIndex(
-        (a) => a.questionId === questionId
+        (a) => a.questionId === questionId,
       );
       if (answerIndex >= 0) {
         session.answers[answerIndex].isCorrect = evaluation.isCorrect;
@@ -245,11 +245,11 @@ class AssessmentService {
       await assessment.updateQuestionAnalytics(
         questionId,
         evaluation.isCorrect,
-        timeSpent
+        timeSpent,
       );
 
       console.log(
-        `✅ Answer submitted and evaluated: ${evaluation.pointsEarned}/${question.points} points`
+        `✅ Answer submitted and evaluated: ${evaluation.pointsEarned}/${question.points} points`,
       );
 
       return {
@@ -260,7 +260,7 @@ class AssessmentService {
           maxPoints: question.points,
           feedback: evaluation.feedback,
           showCorrectAnswer:
-            assessment.attemptSettings.showResults === "immediately"
+            assessment.attemptSettings.showResults === 'immediately'
               ? evaluation.correctAnswer
               : undefined,
         },
@@ -268,7 +268,7 @@ class AssessmentService {
         nextQuestionId: this.getNextQuestionId(session, assessment),
       };
     } catch (error) {
-      console.error("❌ Error submitting answer:", error);
+      console.error('❌ Error submitting answer:', error);
       throw error;
     }
   }
@@ -286,16 +286,16 @@ class AssessmentService {
       // Get session and assessment
       const session = await AssessmentSession.findOne({ sessionId });
       if (!session) {
-        throw new AppError("Assessment session not found", 404);
+        throw new AppError('Assessment session not found', 404);
       }
 
-      if (session.status !== "in_progress") {
-        throw new AppError("Assessment session is not active", 400);
+      if (session.status !== 'in_progress') {
+        throw new AppError('Assessment session is not active', 400);
       }
 
       const assessment = await Assessment.findById(session.assessmentId);
       if (!assessment) {
-        throw new AppError("Assessment not found", 404);
+        throw new AppError('Assessment not found', 404);
       }
 
       // Submit each answer
@@ -306,13 +306,13 @@ class AssessmentService {
           submissionResults.push({
             questionId,
             success: true,
-            result: result.evaluation
+            result: result.evaluation,
           });
         } catch (error) {
           submissionResults.push({
             questionId,
             success: false,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -329,11 +329,11 @@ class AssessmentService {
           successfulSubmissions: submissionResults.filter(r => r.success).length,
           failedSubmissions: submissionResults.filter(r => !r.success).length,
           finalScore: finalResults.results.finalScore,
-          passed: finalResults.results.passed
-        }
+          passed: finalResults.results.passed,
+        },
       };
     } catch (error) {
-      console.error("❌ Error submitting full assessment:", error);
+      console.error('❌ Error submitting full assessment:', error);
       throw error;
     }
   }
@@ -351,12 +351,12 @@ class AssessmentService {
       // Get session and assessment
       const session = await AssessmentSession.findOne({ sessionId });
       if (!session) {
-        throw new AppError("Assessment session not found", 404);
+        throw new AppError('Assessment session not found', 404);
       }
 
       const assessment = await Assessment.findById(
-        session.assessmentId
-      ).populate("relatedPaths relatedModules");
+        session.assessmentId,
+      ).populate('relatedPaths relatedModules');
 
       // Submit any final answers
       for (const [questionId, answer] of Object.entries(finalAnswers)) {
@@ -369,7 +369,7 @@ class AssessmentService {
       // Calculate comprehensive results
       const results = await this.calculateComprehensiveResults(
         session,
-        assessment
+        assessment,
       );
 
       // Update session with results
@@ -386,15 +386,15 @@ class AssessmentService {
       const aiInsights = await this.generateAIInsights(
         session,
         results,
-        assessment
+        assessment,
       );
       session.results.aiInsights = aiInsights;
       await session.save();
 
       console.log(
         `✅ Assessment completed: ${results.finalScore}% (${
-          results.passed ? "PASSED" : "FAILED"
-        })`
+          results.passed ? 'PASSED' : 'FAILED'
+        })`,
       );
 
       return {
@@ -411,7 +411,7 @@ class AssessmentService {
           results.passed && assessment.certification.issuesCertificate,
       };
     } catch (error) {
-      console.error("❌ Error completing assessment:", error);
+      console.error('❌ Error completing assessment:', error);
       throw error;
     }
   }
@@ -425,70 +425,70 @@ class AssessmentService {
    */
   async evaluateAnswer(question, userAnswer, session) {
     console.log(
-      `🔍 Evaluating ${question.type} question: ${question.questionId}`
+      `🔍 Evaluating ${question.type} question: ${question.questionId}`,
     );
 
     let evaluation = {
       isCorrect: false,
       pointsEarned: 0,
-      feedback: "",
+      feedback: '',
       correctAnswer: question.correctAnswer,
       aiEvaluation: null,
     };
 
     try {
       switch (question.type) {
-        case "multiple_choice":
-        case "true_false":
-          evaluation = this.evaluateMultipleChoice(question, userAnswer);
-          break;
+      case 'multiple_choice':
+      case 'true_false':
+        evaluation = this.evaluateMultipleChoice(question, userAnswer);
+        break;
 
-        case "multiple_select":
-          evaluation = this.evaluateMultipleSelect(question, userAnswer);
-          break;
+      case 'multiple_select':
+        evaluation = this.evaluateMultipleSelect(question, userAnswer);
+        break;
 
-        case "short_answer":
-          evaluation = await this.evaluateShortAnswer(
-            question,
-            userAnswer,
-            session
-          );
-          break;
+      case 'short_answer':
+        evaluation = await this.evaluateShortAnswer(
+          question,
+          userAnswer,
+          session,
+        );
+        break;
 
-        case "essay":
-        case "scenario_analysis":
-          evaluation = await this.evaluateEssayWithAI(
-            question,
-            userAnswer,
-            session
-          );
-          break;
+      case 'essay':
+      case 'scenario_analysis':
+        evaluation = await this.evaluateEssayWithAI(
+          question,
+          userAnswer,
+          session,
+        );
+        break;
 
-        case "code_review":
-          evaluation = await this.evaluateCodeWithAI(
-            question,
-            userAnswer,
-            session
-          );
-          break;
+      case 'code_review':
+        evaluation = await this.evaluateCodeWithAI(
+          question,
+          userAnswer,
+          session,
+        );
+        break;
 
-        case "practical_task":
-          evaluation = await this.evaluatePracticalTask(
-            question,
-            userAnswer,
-            session
-          );
-          break;
+      case 'practical_task':
+        evaluation = await this.evaluatePracticalTask(
+          question,
+          userAnswer,
+          session,
+        );
+        break;
 
-        default:
-          evaluation.feedback =
-            "Question type not supported for automatic evaluation";
+      default:
+        evaluation.feedback =
+            'Question type not supported for automatic evaluation';
       }
 
       return evaluation;
     } catch (error) {
-      console.error("Error evaluating answer:", error);
-      evaluation.feedback = "Error occurred during evaluation";
+      console.error('Error evaluating answer:', error);
+      evaluation.feedback = 'Error occurred during evaluation';
       return evaluation;
     }
   }
@@ -502,7 +502,7 @@ class AssessmentService {
   evaluateMultipleChoice(question, userAnswer) {
     const correctOption = question.options.find((opt) => opt.isCorrect);
     const selectedOption = question.options.find(
-      (opt) => opt.id === userAnswer
+      (opt) => opt.id === userAnswer,
     );
 
     const isCorrect =
@@ -511,7 +511,7 @@ class AssessmentService {
     return {
       isCorrect,
       pointsEarned: isCorrect ? question.points : 0,
-      feedback: selectedOption?.explanation || correctOption?.explanation || "",
+      feedback: selectedOption?.explanation || correctOption?.explanation || '',
       correctAnswer: correctOption?.id || null,
     };
   }
@@ -532,17 +532,17 @@ class AssessmentService {
 
     // Calculate partial credit
     const correctSelections = selectedOptions.filter((sel) =>
-      correctOptions.includes(sel)
+      correctOptions.includes(sel),
     ).length;
     const incorrectSelections = selectedOptions.filter(
-      (sel) => !correctOptions.includes(sel)
+      (sel) => !correctOptions.includes(sel),
     ).length;
     const missedCorrect = correctOptions.length - correctSelections;
 
     // Scoring: +1 for correct, -0.5 for incorrect, -0.25 for missed
     const score = Math.max(
       0,
-      correctSelections - incorrectSelections * 0.5 - missedCorrect * 0.25
+      correctSelections - incorrectSelections * 0.5 - missedCorrect * 0.25,
     );
     const maxScore = correctOptions.length;
     const percentage = score / maxScore;
@@ -575,25 +575,25 @@ class AssessmentService {
       const prompt = this.buildEvaluationPrompt(
         question,
         userAnswer,
-        "short_answer"
+        'short_answer',
       );
       const aiResponse = await openAIService.createChatCompletion(
         [
-          { role: "system", content: prompt },
+          { role: 'system', content: prompt },
           {
-            role: "user",
+            role: 'user',
             content: `Question: "${question.question}"\nUser Answer: "${userAnswer}"`,
           },
         ],
         {
           temperature: 0.1, // Low temperature for consistent evaluation
           maxTokens: 300,
-        }
+        },
       );
 
       const evaluation = this.parseAIEvaluation(
         aiResponse.content,
-        question.points
+        question.points,
       );
 
       return {
@@ -610,7 +610,7 @@ class AssessmentService {
         },
       };
     } catch (error) {
-      console.error("AI evaluation failed, using keyword fallback:", error);
+      console.error('AI evaluation failed, using keyword fallback:', error);
       return this.evaluateWithKeywords(question, userAnswer);
     }
   }
@@ -624,26 +624,26 @@ class AssessmentService {
    */
   async evaluateEssayWithAI(question, userAnswer, session) {
     try {
-      console.log("🤖 Using AI for comprehensive essay evaluation");
+      console.log('🤖 Using AI for comprehensive essay evaluation');
 
-      const prompt = this.buildEvaluationPrompt(question, userAnswer, "essay");
+      const prompt = this.buildEvaluationPrompt(question, userAnswer, 'essay');
       const aiResponse = await openAIService.createChatCompletion(
         [
-          { role: "system", content: prompt },
+          { role: 'system', content: prompt },
           {
-            role: "user",
+            role: 'user',
             content: `Question: "${question.question}"\n\nStudent Essay:\n"${userAnswer}"`,
           },
         ],
         {
           temperature: 0.2,
           maxTokens: 800,
-        }
+        },
       );
 
       const evaluation = this.parseAdvancedAIEvaluation(
         aiResponse.content,
-        question.points
+        question.points,
       );
 
       return {
@@ -660,14 +660,14 @@ class AssessmentService {
         },
       };
     } catch (error) {
-      console.error("AI essay evaluation failed:", error);
+      console.error('AI essay evaluation failed:', error);
       return {
         isCorrect: false,
         pointsEarned: 0,
-        feedback: "Essay submitted for manual review",
+        feedback: 'Essay submitted for manual review',
         aiEvaluation: {
           score: 0,
-          feedback: "Automatic evaluation failed - requires human review",
+          feedback: 'Automatic evaluation failed - requires human review',
           requiresHumanReview: true,
           confidence: 0,
         },
@@ -683,7 +683,7 @@ class AssessmentService {
    * @returns {string} AI prompt
    */
   buildEvaluationPrompt(question, userAnswer, questionType) {
-    const basePrompt = `You are an expert educational assessor. Evaluate the student's answer objectively and provide constructive feedback.`;
+    const basePrompt = 'You are an expert educational assessor. Evaluate the student\'s answer objectively and provide constructive feedback.';
 
     const typeSpecificPrompts = {
       short_answer: `
@@ -694,8 +694,8 @@ class AssessmentService {
         - Proper terminology usage (10%)
         
         Key Points to Look For: ${
-          question.evaluationCriteria?.keyPoints?.join(", ") || "N/A"
-        }
+  question.evaluationCriteria?.keyPoints?.join(', ') || 'N/A'
+}
         
         Respond with a JSON object:
         {
@@ -715,8 +715,8 @@ class AssessmentService {
         - Use of examples/evidence (10%)
         
         Scoring Rubric: ${JSON.stringify(
-          question.evaluationCriteria?.scoringRubric || []
-        )}
+    question.evaluationCriteria?.scoringRubric || [],
+  )}
         
         Respond with a JSON object:
         {
@@ -742,7 +742,7 @@ class AssessmentService {
 
     return (
       basePrompt +
-      "\n\n" +
+      '\n\n' +
       (typeSpecificPrompts[questionType] || typeSpecificPrompts.short_answer)
     );
   }
@@ -757,29 +757,29 @@ class AssessmentService {
     try {
       // Try to parse JSON response
       const cleaned = aiResponse
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
         .trim();
       const evaluation = JSON.parse(cleaned);
 
       return {
         score: Math.max(0, Math.min(1, evaluation.score || 0)),
-        feedback: evaluation.feedback || "No feedback provided",
+        feedback: evaluation.feedback || 'No feedback provided',
         keyPoints: evaluation.keyPoints || [],
         improvements: evaluation.improvements || evaluation.missing || [],
       };
     } catch (error) {
-      console.error("Failed to parse AI evaluation:", error);
+      console.error('Failed to parse AI evaluation:', error);
 
       // Fallback: try to extract score from text
       const scoreMatch = aiResponse.match(
-        /(\d+(?:\.\d+)?)\s*(?:\/|out\s+of|points?|%)/i
+        /(\d+(?:\.\d+)?)\s*(?:\/|out\s+of|points?|%)/i,
       );
       const score = scoreMatch ? parseFloat(scoreMatch[1]) / maxPoints : 0;
 
       return {
         score: Math.max(0, Math.min(1, score)),
-        feedback: aiResponse.slice(0, 200) + "...",
+        feedback: aiResponse.slice(0, 200) + '...',
         keyPoints: [],
         improvements: [],
       };
@@ -795,21 +795,21 @@ class AssessmentService {
   parseAdvancedAIEvaluation(aiResponse, maxPoints) {
     try {
       const cleaned = aiResponse
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
         .trim();
       const evaluation = JSON.parse(cleaned);
 
       return {
         score: Math.max(0, Math.min(1, evaluation.score || 0)),
-        feedback: evaluation.feedback || "No feedback provided",
+        feedback: evaluation.feedback || 'No feedback provided',
         keyPoints: evaluation.keyPoints || [],
         improvements: evaluation.improvements || [],
         confidence: evaluation.confidence || 75,
         needsReview: evaluation.needsReview || false,
       };
     } catch (error) {
-      console.error("Failed to parse advanced AI evaluation:", error);
+      console.error('Failed to parse advanced AI evaluation:', error);
       return this.parseAIEvaluation(aiResponse, maxPoints);
     }
   }
@@ -829,9 +829,9 @@ class AssessmentService {
       description: q.description,
       options: q.options
         ? q.options.map((opt) => ({
-            id: opt.id,
-            text: opt.text,
-          }))
+          id: opt.id,
+          text: opt.text,
+        }))
         : undefined,
       points: q.points,
       estimatedTimeMinutes: q.estimatedTimeMinutes,
@@ -849,7 +849,7 @@ class AssessmentService {
   getNextQuestionId(session, assessment) {
     const answeredQuestionIds = session.answers.map((a) => a.questionId);
     const availableQuestions = assessment.questions.filter(
-      (q) => q.isActive && !answeredQuestionIds.includes(q.questionId)
+      (q) => q.isActive && !answeredQuestionIds.includes(q.questionId),
     );
 
     if (availableQuestions.length === 0) return null;
@@ -868,11 +868,11 @@ class AssessmentService {
     const answers = session.answers;
     const totalPointsEarned = answers.reduce(
       (sum, a) => sum + (a.pointsEarned || 0),
-      0
+      0,
     );
     const totalPointsPossible = answers.reduce(
       (sum, a) => sum + a.maxPoints,
-      0
+      0,
     );
 
     const finalScore =
@@ -884,7 +884,7 @@ class AssessmentService {
     // Calculate detailed breakdowns
     const scoreByDifficulty = this.calculateScoreByDifficulty(
       answers,
-      assessment
+      assessment,
     );
     const scoreBySkill = this.calculateScoreBySkill(answers, assessment);
     const scoreByQuestionType = this.calculateScoreByType(answers, assessment);
@@ -892,7 +892,7 @@ class AssessmentService {
     // Generate strengths and weaknesses
     const { strengths, weaknesses } = this.analyzePerformance(
       answers,
-      assessment
+      assessment,
     );
 
     // Calculate grade
@@ -907,7 +907,7 @@ class AssessmentService {
       grade,
       totalTimeSpent: session.timeTracking.totalTimeSpent,
       averageTimePerQuestion: Math.round(
-        session.timeTracking.totalTimeSpent / answers.length
+        session.timeTracking.totalTimeSpent / answers.length,
       ),
       scoreByDifficulty,
       scoreBySkill,
@@ -920,25 +920,25 @@ class AssessmentService {
 
   // Additional helper methods...
   calculateScoreByDifficulty(answers, assessment) {
-    const difficulties = ["beginner", "intermediate", "advanced", "expert"];
+    const difficulties = ['beginner', 'intermediate', 'advanced', 'expert'];
     const result = {};
 
     difficulties.forEach((diff) => {
       const questionsAtLevel = assessment.questions.filter(
-        (q) => q.difficulty === diff
+        (q) => q.difficulty === diff,
       );
       const answersAtLevel = answers.filter((a) =>
-        questionsAtLevel.some((q) => q.questionId === a.questionId)
+        questionsAtLevel.some((q) => q.questionId === a.questionId),
       );
 
       if (answersAtLevel.length > 0) {
         const earned = answersAtLevel.reduce(
           (sum, a) => sum + (a.pointsEarned || 0),
-          0
+          0,
         );
         const possible = answersAtLevel.reduce(
           (sum, a) => sum + a.maxPoints,
-          0
+          0,
         );
         result[diff] = possible > 0 ? Math.round((earned / possible) * 100) : 0;
       } else {
@@ -960,7 +960,7 @@ class AssessmentService {
           }
 
           const answer = answers.find(
-            (a) => a.questionId === question.questionId
+            (a) => a.questionId === question.questionId,
           );
           if (answer) {
             skillScores[skill.name].earned +=
@@ -1016,7 +1016,7 @@ class AssessmentService {
     // Analyze by difficulty
     const difficultyScores = this.calculateScoreByDifficulty(
       answers,
-      assessment
+      assessment,
     );
     Object.entries(difficultyScores).forEach(([diff, score]) => {
       if (score >= 80) {
@@ -1030,9 +1030,9 @@ class AssessmentService {
     const typeScores = this.calculateScoreByType(answers, assessment);
     typeScores.forEach(({ type, percentage }) => {
       if (percentage >= 80) {
-        strengths.push(`Excellent ${type.replace("_", " ")} skills`);
+        strengths.push(`Excellent ${type.replace('_', ' ')} skills`);
       } else if (percentage < 50) {
-        weaknesses.push(`Difficulty with ${type.replace("_", " ")} questions`);
+        weaknesses.push(`Difficulty with ${type.replace('_', ' ')} questions`);
       }
     });
 
@@ -1040,18 +1040,18 @@ class AssessmentService {
   }
 
   calculateGrade(finalScore) {
-    if (finalScore >= 97) return "A+";
-    if (finalScore >= 93) return "A";
-    if (finalScore >= 90) return "A-";
-    if (finalScore >= 87) return "B+";
-    if (finalScore >= 83) return "B";
-    if (finalScore >= 80) return "B-";
-    if (finalScore >= 77) return "C+";
-    if (finalScore >= 73) return "C";
-    if (finalScore >= 70) return "C-";
-    if (finalScore >= 67) return "D+";
-    if (finalScore >= 60) return "D";
-    return "F";
+    if (finalScore >= 97) return 'A+';
+    if (finalScore >= 93) return 'A';
+    if (finalScore >= 90) return 'A-';
+    if (finalScore >= 87) return 'B+';
+    if (finalScore >= 83) return 'B';
+    if (finalScore >= 80) return 'B-';
+    if (finalScore >= 77) return 'C+';
+    if (finalScore >= 73) return 'C';
+    if (finalScore >= 70) return 'C-';
+    if (finalScore >= 67) return 'D+';
+    if (finalScore >= 60) return 'D';
+    return 'F';
   }
 
   /**
@@ -1074,8 +1074,8 @@ Assessment Details:
 - Time Spent: ${Math.round(results.totalTimeSpent / 60)} minutes
 
 Performance Breakdown:
-- Strengths: ${results.strengths.join(", ") || "None identified"}
-- Weaknesses: ${results.weaknesses.join(", ") || "None identified"}
+- Strengths: ${results.strengths.join(', ') || 'None identified'}
+- Weaknesses: ${results.weaknesses.join(', ') || 'None identified'}
 - Score by Difficulty: ${JSON.stringify(results.scoreByDifficulty)}
 
 Provide a JSON response with:
@@ -1088,22 +1088,22 @@ Provide a JSON response with:
 }`;
 
       const aiResponse = await openAIService.createChatCompletion(
-        [{ role: "system", content: prompt }],
+        [{ role: 'system', content: prompt }],
         {
           temperature: 0.3,
           maxTokens: 500,
-        }
+        },
       );
 
       const insights = JSON.parse(
         aiResponse.content
-          .replace(/```json\n?/g, "")
-          .replace(/```\n?/g, "")
-          .trim()
+          .replace(/```json\n?/g, '')
+          .replace(/```\n?/g, '')
+          .trim(),
       );
 
       return {
-        overallAssessment: insights.overallAssessment || "Assessment completed",
+        overallAssessment: insights.overallAssessment || 'Assessment completed',
         learningGaps: insights.learningGaps || [],
         nextSteps: insights.nextSteps || [],
         studyRecommendations: insights.studyRecommendations || [],
@@ -1111,22 +1111,22 @@ Provide a JSON response with:
         confidenceLevel: 85,
       };
     } catch (error) {
-      console.error("Failed to generate AI insights:", error);
+      console.error('Failed to generate AI insights:', error);
 
       // Fallback insights
       return {
         overallAssessment: `Completed ${assessment.title} with ${results.finalScore}% score`,
         learningGaps: results.weaknesses,
         nextSteps: results.passed
-          ? ["Continue to advanced topics", "Consider related assessments"]
+          ? ['Continue to advanced topics', 'Consider related assessments']
           : [
-              "Review weak areas",
-              "Practice more questions",
-              "Retake assessment",
-            ],
+            'Review weak areas',
+            'Practice more questions',
+            'Retake assessment',
+          ],
         studyRecommendations: [
-          "Focus on identified weak areas",
-          "Review related learning materials",
+          'Focus on identified weak areas',
+          'Review related learning materials',
         ],
         estimatedImprovementTime: results.passed ? 5 : 15,
         confidenceLevel: 60,
@@ -1198,7 +1198,7 @@ Provide a JSON response with:
 
         // Update average score
         const scores = progress.performance.assessmentResults.map(
-          (r) => r.score
+          (r) => r.score,
         );
         progress.performance.averageScore =
           scores.reduce((a, b) => a + b, 0) / scores.length;
@@ -1210,11 +1210,11 @@ Provide a JSON response with:
 
   // Fallback evaluation methods
   evaluateWithKeywords(question, userAnswer) {
-    if (!question.correctAnswer || typeof question.correctAnswer !== "string") {
+    if (!question.correctAnswer || typeof question.correctAnswer !== 'string') {
       return {
         isCorrect: false,
         pointsEarned: 0,
-        feedback: "Unable to evaluate - requires manual review",
+        feedback: 'Unable to evaluate - requires manual review',
       };
     }
 
@@ -1223,7 +1223,7 @@ Provide a JSON response with:
 
     // Simple keyword matching
     const keywordMatch = correctLower
-      .split(" ")
+      .split(' ')
       .some((word) => word.length > 2 && userLower.includes(word));
 
     // Exact match
@@ -1234,20 +1234,20 @@ Provide a JSON response with:
       userLower.includes(correctLower) || correctLower.includes(userLower);
 
     let score = 0;
-    let feedback = "";
+    let feedback = '';
 
     if (exactMatch) {
       score = 1;
-      feedback = "Correct answer";
+      feedback = 'Correct answer';
     } else if (partialMatch) {
       score = 0.7;
-      feedback = "Partially correct - contains key elements";
+      feedback = 'Partially correct - contains key elements';
     } else if (keywordMatch) {
       score = 0.5;
-      feedback = "Partially correct - contains some key terms";
+      feedback = 'Partially correct - contains some key terms';
     } else {
       score = 0;
-      feedback = "Incorrect answer";
+      feedback = 'Incorrect answer';
     }
 
     return {
@@ -1267,7 +1267,7 @@ Provide a JSON response with:
     return {
       isCorrect: false,
       pointsEarned: 0,
-      feedback: "Practical task submitted for instructor review",
+      feedback: 'Practical task submitted for instructor review',
       aiEvaluation: {
         requiresHumanReview: true,
         confidence: 0,

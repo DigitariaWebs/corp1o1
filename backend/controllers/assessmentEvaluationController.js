@@ -5,8 +5,8 @@ const aiEvaluationService = require('../services/aiEvaluationService');
 // AI Personality configurations
 const AI_PERSONALITIES = {
   ARIA: {
-    name: "ARIA",
-    style: "encouraging and supportive",
+    name: 'ARIA',
+    style: 'encouraging and supportive',
     systemPrompt: `You are ARIA, an encouraging and supportive AI learning assistant. Your role is to:
     - Provide warm, motivational feedback
     - Focus on what the student did well
@@ -15,11 +15,11 @@ const AI_PERSONALITIES = {
     - Be patient and empathetic
     - Celebrate effort as much as accuracy
     Always maintain an uplifting and encouraging tone.`,
-    traits: ["Motivational", "Patient", "Empathetic"]
+    traits: ['Motivational', 'Patient', 'Empathetic'],
   },
   SAGE: {
-    name: "SAGE",
-    style: "analytical and detailed",
+    name: 'SAGE',
+    style: 'analytical and detailed',
     systemPrompt: `You are SAGE, an analytical and thorough AI learning assistant. Your role is to:
     - Provide comprehensive, detailed analysis
     - Focus on underlying principles and concepts
@@ -28,11 +28,11 @@ const AI_PERSONALITIES = {
     - Provide deep insights into the subject matter
     - Suggest additional resources for learning
     Always maintain a professional and educational tone.`,
-    traits: ["Precise", "Thorough", "Knowledgeable"]
+    traits: ['Precise', 'Thorough', 'Knowledgeable'],
   },
   COACH: {
-    name: "COACH",
-    style: "motivational and goal-oriented",
+    name: 'COACH',
+    style: 'motivational and goal-oriented',
     systemPrompt: `You are COACH, a dynamic and results-focused AI learning assistant. Your role is to:
     - Push students towards excellence
     - Set high standards and expectations
@@ -41,8 +41,8 @@ const AI_PERSONALITIES = {
     - Challenge students to reach their potential
     - Emphasize achievement and mastery
     Always maintain an energetic and challenging tone.`,
-    traits: ["Dynamic", "Results-focused", "Challenging"]
-  }
+    traits: ['Dynamic', 'Results-focused', 'Challenging'],
+  },
 };
 
 /**
@@ -57,15 +57,15 @@ exports.evaluateAnswer = async (req, res, next) => {
       difficulty: rawDifficulty = 'medium',
       points = 10,
       rubric = null,
-      context = null
+      context = null,
     } = req.body;
 
     // Normalize 4-level difficulty to 3-level scale for evaluation prompt
     const difficulty = (
       rawDifficulty === 'beginner' ? 'easy' :
-      rawDifficulty === 'intermediate' ? 'medium' :
-      rawDifficulty === 'advanced' || rawDifficulty === 'expert' ? 'hard' :
-      rawDifficulty
+        rawDifficulty === 'intermediate' ? 'medium' :
+          rawDifficulty === 'advanced' || rawDifficulty === 'expert' ? 'hard' :
+            rawDifficulty
     );
 
     // Validate inputs
@@ -114,15 +114,15 @@ exports.evaluateAnswer = async (req, res, next) => {
       messages: [
         {
           role: 'system',
-          content: selectedPersonality.systemPrompt
+          content: selectedPersonality.systemPrompt,
         },
         {
           role: 'user',
-          content: evaluationPrompt
-        }
+          content: evaluationPrompt,
+        },
       ],
       temperature: 0.7,
-      max_tokens: 800
+      max_tokens: 800,
     });
 
     let evaluationResult;
@@ -133,30 +133,30 @@ exports.evaluateAnswer = async (req, res, next) => {
       evaluationResult = {
         score: Math.floor(points * 0.7), // Default to 70% score
         feedback: completion.choices[0].message.content,
-        strengths: ["Shows understanding of the topic"],
-        improvements: ["Could provide more detail"],
-        suggestions: ["Review the material and practice more"],
-        overallAssessment: "Good effort with room for improvement"
+        strengths: ['Shows understanding of the topic'],
+        improvements: ['Could provide more detail'],
+        suggestions: ['Review the material and practice more'],
+        overallAssessment: 'Good effort with room for improvement',
       };
     }
 
     // Add personality-specific encouragement
     const personalityMessages = {
       ARIA: [
-        "Keep up the great work! Every step forward is progress! 🌟",
-        "You're doing amazingly! I believe in your potential! 💪",
-        "Your effort is truly inspiring! Keep learning and growing! 🚀"
+        'Keep up the great work! Every step forward is progress! 🌟',
+        'You\'re doing amazingly! I believe in your potential! 💪',
+        'Your effort is truly inspiring! Keep learning and growing! 🚀',
       ],
       SAGE: [
-        "Your analytical approach shows promise. Continue exploring the depths of this subject.",
-        "Consider the theoretical implications of your answer for deeper understanding.",
-        "This demonstrates solid foundational knowledge. Build upon it systematically."
+        'Your analytical approach shows promise. Continue exploring the depths of this subject.',
+        'Consider the theoretical implications of your answer for deeper understanding.',
+        'This demonstrates solid foundational knowledge. Build upon it systematically.',
       ],
       COACH: [
-        "Push yourself to the next level! Excellence is within reach!",
-        "Champions are made through challenges like this! Keep pushing!",
-        "You've got what it takes to master this! Stay focused on the goal!"
-      ]
+        'Push yourself to the next level! Excellence is within reach!',
+        'Champions are made through challenges like this! Keep pushing!',
+        'You\'ve got what it takes to master this! Stay focused on the goal!',
+      ],
     };
 
     // Add a personality-specific message
@@ -169,7 +169,7 @@ exports.evaluateAnswer = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: evaluationResult
+      data: evaluationResult,
     });
 
   } catch (error) {
@@ -183,14 +183,14 @@ exports.evaluateAnswer = async (req, res, next) => {
       data: {
         score: fallbackScore,
         feedback: `Your answer shows understanding of the topic. ${AI_PERSONALITIES[p].style}.`,
-        strengths: ["Shows effort", "Addresses the question"],
-        improvements: ["Provide more detail", "Add concrete examples"],
-        suggestions: ["Review the core concepts", "Practice similar questions"],
-        overallAssessment: "Good attempt with room for growth",
-        personalityMessage: "Keep working hard! You're on the right path!",
+        strengths: ['Shows effort', 'Addresses the question'],
+        improvements: ['Provide more detail', 'Add concrete examples'],
+        suggestions: ['Review the core concepts', 'Practice similar questions'],
+        overallAssessment: 'Good attempt with room for growth',
+        personalityMessage: 'Keep working hard! You\'re on the right path!',
         personality: p,
-        isFallback: true
-      }
+        isFallback: true,
+      },
     });
   }
 };
@@ -206,7 +206,7 @@ exports.evaluateMultipleChoice = async (req, res, next) => {
       correctAnswer,
       options,
       personality = 'ARIA',
-      points = 10
+      points = 10,
     } = req.body;
 
     const isCorrect = selectedAnswer === correctAnswer;
@@ -217,15 +217,15 @@ exports.evaluateMultipleChoice = async (req, res, next) => {
     let feedback;
     if (isCorrect) {
       feedback = {
-        ARIA: "Excellent work! You got it right! Your understanding is growing stronger! 🎉",
-        SAGE: "Correct. This demonstrates a solid grasp of the underlying concept. Well reasoned.",
-        COACH: "YES! That's what I'm talking about! You nailed it! Keep this momentum going!"
+        ARIA: 'Excellent work! You got it right! Your understanding is growing stronger! 🎉',
+        SAGE: 'Correct. This demonstrates a solid grasp of the underlying concept. Well reasoned.',
+        COACH: 'YES! That\'s what I\'m talking about! You nailed it! Keep this momentum going!',
       }[personality];
     } else {
       feedback = {
         ARIA: `Not quite right, but that's okay! The correct answer was "${correctAnswer}". Every mistake is a learning opportunity! Keep trying! 💪`,
         SAGE: `Incorrect. The correct answer is "${correctAnswer}". Let's analyze why this is the case and understand the underlying principles.`,
-        COACH: `Wrong answer! The correct one was "${correctAnswer}". Champions learn from mistakes. Analyze, adapt, and come back stronger!`
+        COACH: `Wrong answer! The correct one was "${correctAnswer}". Champions learn from mistakes. Analyze, adapt, and come back stronger!`,
       }[personality];
     }
 
@@ -236,8 +236,8 @@ exports.evaluateMultipleChoice = async (req, res, next) => {
         score: earnedPoints,
         feedback: feedback,
         correctAnswer: correctAnswer,
-        personality: personality
-      }
+        personality: personality,
+      },
     });
 
   } catch (error) {
@@ -255,15 +255,15 @@ exports.getPersonalities = async (req, res, next) => {
       name: value.name,
       style: value.style,
       traits: value.traits,
-      description: `${value.name} is ${value.style} and focuses on ${value.traits.join(', ').toLowerCase()}.`
+      description: `${value.name} is ${value.style} and focuses on ${value.traits.join(', ').toLowerCase()}.`,
     }));
 
     res.status(200).json({
       success: true,
       data: {
         personalities,
-        default: 'ARIA'
-      }
+        default: 'ARIA',
+      },
     });
 
   } catch (error) {
@@ -280,7 +280,7 @@ exports.generateStudyRecommendations = async (req, res, next) => {
       assessmentResults,
       personality = 'ARIA',
       learningGoals,
-      timeAvailable
+      timeAvailable,
     } = req.body;
 
     const selectedPersonality = AI_PERSONALITIES[personality];
@@ -316,15 +316,15 @@ exports.generateStudyRecommendations = async (req, res, next) => {
       messages: [
         {
           role: 'system',
-          content: selectedPersonality.systemPrompt
+          content: selectedPersonality.systemPrompt,
         },
         {
           role: 'user',
-          content: recommendationPrompt
-        }
+          content: recommendationPrompt,
+        },
       ],
       temperature: 0.8,
-      max_tokens: 600
+      max_tokens: 600,
     });
 
     let recommendations;
@@ -333,11 +333,11 @@ exports.generateStudyRecommendations = async (req, res, next) => {
     } catch (parseError) {
       // Fallback recommendations
       recommendations = {
-        priorityTopics: ["Review fundamental concepts", "Practice problem-solving"],
-        resources: ["Online tutorials", "Practice assessments", "Study guides"],
-        exercises: ["Daily practice problems", "Timed quizzes"],
-        timeline: "2-3 weeks of consistent study",
-        motivation: AI_PERSONALITIES[personality].traits[0] + " message: Keep pushing forward!"
+        priorityTopics: ['Review fundamental concepts', 'Practice problem-solving'],
+        resources: ['Online tutorials', 'Practice assessments', 'Study guides'],
+        exercises: ['Daily practice problems', 'Timed quizzes'],
+        timeline: '2-3 weeks of consistent study',
+        motivation: AI_PERSONALITIES[personality].traits[0] + ' message: Keep pushing forward!',
       };
     }
 
@@ -345,7 +345,7 @@ exports.generateStudyRecommendations = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: recommendations
+      data: recommendations,
     });
 
   } catch (error) {

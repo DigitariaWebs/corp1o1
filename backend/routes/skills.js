@@ -1,17 +1,17 @@
 // routes/skills.js
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Joi = require("joi");
+const Joi = require('joi');
 
 // Import middleware
-const { authenticate } = require("../middleware/auth");
-const { validate } = require("../middleware/validation");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const { authenticate } = require('../middleware/auth');
+const { validate } = require('../middleware/validation');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 // Import models
-const User = require("../models/User");
-const SkillCategory = require("../models/SkillCategory");
-const AssessmentSession = require("../models/AssessmentSession");
+const User = require('../models/User');
+const SkillCategory = require('../models/SkillCategory');
+const AssessmentSession = require('../models/AssessmentSession');
 
 // Validation schemas
 const progressQuerySchema = Joi.object({
@@ -19,7 +19,7 @@ const progressQuerySchema = Joi.object({
     .pattern(/^[0-9a-fA-F]{24}$/)
     .optional()
     .messages({
-      "string.pattern.base": "Category ID must be a valid MongoDB ObjectId",
+      'string.pattern.base': 'Category ID must be a valid MongoDB ObjectId',
     }),
 
   includeHistory: Joi.boolean().default(false),
@@ -27,8 +27,8 @@ const progressQuerySchema = Joi.object({
   includeRecommendations: Joi.boolean().default(true),
   
   timeRange: Joi.string()
-    .valid("7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
     
   limit: Joi.number().integer().min(1).max(100).default(20),
 });
@@ -49,7 +49,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
     includeHistory, 
     includeRecommendations, 
     timeRange, 
-    limit 
+    limit, 
   } = req.query;
 
   console.log(`📊 Getting skill progress for user: ${userId}`);
@@ -57,7 +57,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
   // Get user with populated skill progress
   const user = await User.findById(userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Get user's skills summary
@@ -67,7 +67,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
   let skillAssessments = user.skillsProgress.skillAssessments;
   if (categoryId) {
     skillAssessments = skillAssessments.filter(
-      skill => skill.categoryId.toString() === categoryId
+      skill => skill.categoryId.toString() === categoryId,
     );
   }
 
@@ -76,7 +76,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
   const skillCategories = await SkillCategory.find({
     ...categoryFilter,
     isActive: true,
-    isPublic: true
+    isPublic: true,
   }).select('name displayName icon color type skills difficultyLevels');
 
   // Create category lookup
@@ -96,7 +96,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
         displayName: category.displayName,
         icon: category.icon,
         color: category.color,
-        type: category.type
+        type: category.type,
       } : null,
       currentLevel: skill.currentLevel,
       lastScore: skill.lastScore,
@@ -106,7 +106,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
       firstAssessmentAt: skill.firstAssessmentAt,
       progression: skill.levelHistory || [],
       nextRecommendedLevel: skill.nextRecommendedLevel,
-      aiInsights: skill.aiInsights
+      aiInsights: skill.aiInsights,
     };
   });
 
@@ -117,7 +117,7 @@ const getSkillProgress = catchAsync(async (req, res) => {
     const historyQuery = {
       userId,
       status: 'completed',
-      endTime: { $gte: dateThreshold }
+      endTime: { $gte: dateThreshold },
     };
     
     if (categoryId) {
@@ -155,9 +155,9 @@ const getSkillProgress = catchAsync(async (req, res) => {
         categoryFilter: categoryId || null,
         totalCategories: skillCategories.length,
         assessedCategories: skillAssessments.length,
-        lastUpdated: user.skillsProgress.improvementMetrics?.lastUpdated || user.updatedAt
-      }
-    }
+        lastUpdated: user.skillsProgress.improvementMetrics?.lastUpdated || user.updatedAt,
+      },
+    },
   });
 });
 
@@ -170,11 +170,11 @@ const getSkillProgress = catchAsync(async (req, res) => {
 const getSkillCategories = catchAsync(async (req, res) => {
   const { type, featured, limit = 50 } = req.query;
   
-  console.log("📂 Getting skill categories");
+  console.log('📂 Getting skill categories');
 
   const filters = {
     isActive: true,
-    isPublic: true
+    isPublic: true,
   };
 
   if (type) filters.type = type;
@@ -191,7 +191,7 @@ const getSkillCategories = catchAsync(async (req, res) => {
   
   const categoriesWithProgress = categories.map(category => {
     const userSkill = user?.skillsProgress?.skillAssessments?.find(
-      skill => skill.categoryId.toString() === category._id.toString()
+      skill => skill.categoryId.toString() === category._id.toString(),
     );
 
     return {
@@ -210,8 +210,8 @@ const getSkillCategories = catchAsync(async (req, res) => {
         lastScore: userSkill.lastScore,
         bestScore: userSkill.bestScore,
         attemptCount: userSkill.attemptCount,
-        lastAssessmentAt: userSkill.lastAssessmentAt
-      } : null
+        lastAssessmentAt: userSkill.lastAssessmentAt,
+      } : null,
     };
   });
 
@@ -222,9 +222,9 @@ const getSkillCategories = catchAsync(async (req, res) => {
       pagination: {
         total: categoriesWithProgress.length,
         limit: parseInt(limit),
-        filters: { type, featured }
-      }
-    }
+        filters: { type, featured },
+      },
+    },
   });
 });
 
@@ -243,7 +243,7 @@ const getSkillRecommendations = catchAsync(async (req, res) => {
   const user = await User.findById(userId);
   const categories = await SkillCategory.find({
     isActive: true,
-    isPublic: true
+    isPublic: true,
   });
 
   const recommendations = await generateSkillRecommendations(user, categories, type, limit);
@@ -256,9 +256,9 @@ const getSkillRecommendations = catchAsync(async (req, res) => {
         userId,
         type,
         generatedAt: new Date(),
-        algorithm: 'skill_gap_analysis_v1'
-      }
-    }
+        algorithm: 'skill_gap_analysis_v1',
+      },
+    },
   });
 });
 
@@ -276,12 +276,12 @@ const updateSkillGoals = catchAsync(async (req, res) => {
 
   // Validate goals structure
   if (!Array.isArray(goals)) {
-    throw new AppError("Goals must be an array", 400);
+    throw new AppError('Goals must be an array', 400);
   }
 
   const user = await User.findById(userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update user's learning goals (you may need to add this field to User model)
@@ -291,7 +291,7 @@ const updateSkillGoals = catchAsync(async (req, res) => {
     deadline: goal.deadline ? new Date(goal.deadline) : null,
     priority: goal.priority || 'medium',
     status: 'active',
-    createdAt: new Date()
+    createdAt: new Date(),
   }));
 
   await user.save();
@@ -299,9 +299,9 @@ const updateSkillGoals = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Skill goals updated successfully",
-      goals: user.learningProfile.goals
-    }
+      message: 'Skill goals updated successfully',
+      goals: user.learningProfile.goals,
+    },
   });
 });
 
@@ -313,21 +313,21 @@ const updateSkillGoals = catchAsync(async (req, res) => {
 function getDateThreshold(timeRange) {
   const date = new Date();
   switch (timeRange) {
-    case '7d':
-      date.setDate(date.getDate() - 7);
-      break;
-    case '30d':
-      date.setDate(date.getDate() - 30);
-      break;
-    case '90d':
-      date.setDate(date.getDate() - 90);
-      break;
-    case '1y':
-      date.setFullYear(date.getFullYear() - 1);
-      break;
-    case 'all':
-    default:
-      date.setFullYear(2020); // Far enough back to include everything
+  case '7d':
+    date.setDate(date.getDate() - 7);
+    break;
+  case '30d':
+    date.setDate(date.getDate() - 30);
+    break;
+  case '90d':
+    date.setDate(date.getDate() - 90);
+    break;
+  case '1y':
+    date.setFullYear(date.getFullYear() - 1);
+    break;
+  case 'all':
+  default:
+    date.setFullYear(2020); // Far enough back to include everything
   }
   return date;
 }
@@ -358,7 +358,7 @@ async function generateSkillRecommendations(user, categories, type = 'all', limi
         reason: 'Expand your skill portfolio',
         priority: category.isFeatured ? 'high' : 'medium',
         estimatedTime: '2-4 weeks',
-        benefits: [`Learn ${category.displayName}`, 'Broaden expertise', 'Career advancement']
+        benefits: [`Learn ${category.displayName}`, 'Broaden expertise', 'Career advancement'],
       });
     } else if (userSkill.currentLevel !== 'expert') {
       // Recommend advancing current skill
@@ -372,7 +372,7 @@ async function generateSkillRecommendations(user, categories, type = 'all', limi
         reason: `Advance from ${userSkill.currentLevel} to ${nextLevel}`,
         priority: userSkill.lastScore >= 80 ? 'high' : 'medium',
         estimatedTime: '3-6 weeks',
-        benefits: [`Master ${category.displayName}`, 'Higher skill certification', 'Expert recognition']
+        benefits: [`Master ${category.displayName}`, 'Higher skill certification', 'Expert recognition'],
       });
     }
   }
@@ -404,8 +404,8 @@ async function calculateLearningAnalytics(userId, timeRange) {
       $match: {
         userId,
         status: 'completed',
-        endTime: { $gte: dateThreshold }
-      }
+        endTime: { $gte: dateThreshold },
+      },
     },
     {
       $group: {
@@ -414,16 +414,16 @@ async function calculateLearningAnalytics(userId, timeRange) {
         averageScore: { $avg: '$results.finalScore' },
         totalTimeSpent: { $sum: '$timeTracking.totalTimeSpent' },
         passedAssessments: {
-          $sum: { $cond: ['$results.passed', 1, 0] }
+          $sum: { $cond: ['$results.passed', 1, 0] },
         },
         scoreProgression: {
           $push: {
             date: '$endTime',
-            score: '$results.finalScore'
-          }
-        }
-      }
-    }
+            score: '$results.finalScore',
+          },
+        },
+      },
+    },
   ]);
 
   const result = analytics[0] || {
@@ -431,7 +431,7 @@ async function calculateLearningAnalytics(userId, timeRange) {
     averageScore: 0,
     totalTimeSpent: 0,
     passedAssessments: 0,
-    scoreProgression: []
+    scoreProgression: [],
   };
 
   return {
@@ -441,7 +441,7 @@ async function calculateLearningAnalytics(userId, timeRange) {
     passRate: result.totalAssessments > 0 ? 
       Math.round((result.passedAssessments / result.totalAssessments) * 100) : 0,
     scoreProgression: result.scoreProgression.slice(-20), // Last 20 scores
-    timeRange
+    timeRange,
   };
 }
 
@@ -449,7 +449,7 @@ async function calculateLearningAnalytics(userId, timeRange) {
 router.get(
   '/progress',
   validate(progressQuerySchema, 'query'),
-  getSkillProgress
+  getSkillProgress,
 );
 
 router.get(
@@ -457,18 +457,18 @@ router.get(
   validate(Joi.object({
     type: Joi.string().valid('technical', 'creative', 'business', 'soft-skills', 'language', 'certification').optional(),
     featured: Joi.string().valid('true', 'false').optional(),
-    limit: Joi.number().integer().min(1).max(100).default(50)
+    limit: Joi.number().integer().min(1).max(100).default(50),
   }), 'query'),
-  getSkillCategories
+  getSkillCategories,
 );
 
 router.get(
   '/recommendations',
   validate(Joi.object({
     type: Joi.string().valid('all', 'new_skill', 'skill_advancement', 'weak_areas').default('all'),
-    limit: Joi.number().integer().min(1).max(20).default(10)
+    limit: Joi.number().integer().min(1).max(20).default(10),
   }), 'query'),
-  getSkillRecommendations
+  getSkillRecommendations,
 );
 
 router.put(
@@ -479,11 +479,11 @@ router.put(
         categoryId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
         targetLevel: Joi.string().valid('beginner', 'intermediate', 'advanced', 'expert').required(),
         deadline: Joi.date().optional(),
-        priority: Joi.string().valid('low', 'medium', 'high').default('medium')
-      })
-    ).required()
+        priority: Joi.string().valid('low', 'medium', 'high').default('medium'),
+      }),
+    ).required(),
   })),
-  updateSkillGoals
+  updateSkillGoals,
 );
 
 module.exports = router;

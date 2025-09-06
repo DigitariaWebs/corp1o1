@@ -17,7 +17,7 @@ async function testAIEndpoints() {
       subdomains: ['Django', 'Flask', 'Data Science'],
       experience: '1-2 years',
       goals: 'become a Python backend developer',
-      difficulty: 'intermediate'
+      difficulty: 'intermediate',
     });
     
     console.log('✅ Assessment Plan:', JSON.stringify(planResponse.data, null, 2));
@@ -31,7 +31,7 @@ async function testAIEndpoints() {
       topic: 'Django REST Framework',
       difficulty: 'intermediate',
       questionCount: 3,
-      includeTypes: ['multiple_choice', 'text']
+      includeTypes: ['multiple_choice', 'text'],
     });
     
     console.log('✅ Questions:', JSON.stringify(questionsResponse.data, null, 2));

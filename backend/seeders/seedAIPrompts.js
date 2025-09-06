@@ -1,16 +1,16 @@
 // seeders/seedAIPrompts.js
-require("dotenv").config();
-const mongoose = require("mongoose");
-const AIPrompt = require("../models/AIPrompt");
+require('dotenv').config();
+const mongoose = require('mongoose');
+const AIPrompt = require('../models/AIPrompt');
 
 // Comprehensive AI prompts for all personalities and contexts
 const aiPrompts = [
   // ARIA - Encouraging and supportive prompts
   {
-    name: "ARIA Learning Help",
-    description: "Encouraging assistance for learning difficulties",
-    personality: "ARIA",
-    contextType: "learning_help",
+    name: 'ARIA Learning Help',
+    description: 'Encouraging assistance for learning difficulties',
+    personality: 'ARIA',
+    contextType: 'learning_help',
     systemPrompt: `You are ARIA, a warm and encouraging AI learning assistant. Your role is to provide supportive guidance while building the user's confidence. 
 
 User Profile:
@@ -22,48 +22,48 @@ User Profile:
 Be encouraging, patient, and focus on positive reinforcement. Break down complex concepts into manageable steps.`,
 
     userPromptTemplate:
-      "The user is asking for help: {{userQuestion}}. They are currently working on {{moduleTitle}} and have been struggling with {{strugglingAreas}}. Please provide encouraging, step-by-step guidance.",
+      'The user is asking for help: {{userQuestion}}. They are currently working on {{moduleTitle}} and have been struggling with {{strugglingAreas}}. Please provide encouraging, step-by-step guidance.',
 
     contextVariables: [
       {
-        name: "learningStyle",
-        type: "user_profile",
-        description: "User's preferred learning style",
+        name: 'learningStyle',
+        type: 'user_profile',
+        description: 'User\'s preferred learning style',
       },
       {
-        name: "preferredPace",
-        type: "user_profile",
-        description: "User's preferred learning pace",
+        name: 'preferredPace',
+        type: 'user_profile',
+        description: 'User\'s preferred learning pace',
       },
       {
-        name: "progressPercentage",
-        type: "learning_progress",
-        description: "Current progress percentage",
+        name: 'progressPercentage',
+        type: 'learning_progress',
+        description: 'Current progress percentage',
       },
       {
-        name: "currentPathTitle",
-        type: "learning_progress",
-        description: "Current learning path title",
+        name: 'currentPathTitle',
+        type: 'learning_progress',
+        description: 'Current learning path title',
       },
       {
-        name: "averagePerformance",
-        type: "performance_data",
-        description: "Average performance score",
+        name: 'averagePerformance',
+        type: 'performance_data',
+        description: 'Average performance score',
       },
       {
-        name: "userQuestion",
-        type: "session_data",
-        description: "User's question or concern",
+        name: 'userQuestion',
+        type: 'session_data',
+        description: 'User\'s question or concern',
       },
       {
-        name: "moduleTitle",
-        type: "module_content",
-        description: "Current module title",
+        name: 'moduleTitle',
+        type: 'module_content',
+        description: 'Current module title',
       },
       {
-        name: "strugglingAreas",
-        type: "performance_data",
-        description: "Areas where user is struggling",
+        name: 'strugglingAreas',
+        type: 'performance_data',
+        description: 'Areas where user is struggling',
       },
     ],
 
@@ -74,11 +74,11 @@ Be encouraging, patient, and focus on positive reinforcement. Break down complex
 
     adaptationRules: [
       {
-        triggerCondition: "user_struggling",
+        triggerCondition: 'user_struggling',
         conditionValue: 60,
-        modification: "add_encouragement",
+        modification: 'add_encouragement',
         modificationText:
-          "EXTRA ENCOURAGEMENT: The user is struggling. Be extra patient, use simpler language, and provide lots of positive reinforcement. Celebrate small wins.",
+          'EXTRA ENCOURAGEMENT: The user is struggling. Be extra patient, use simpler language, and provide lots of positive reinforcement. Celebrate small wins.',
         priority: 8,
       },
     ],
@@ -88,10 +88,10 @@ Be encouraging, patient, and focus on positive reinforcement. Break down complex
   },
 
   {
-    name: "ARIA Motivation Boost",
-    description: "Motivational support from ARIA",
-    personality: "ARIA",
-    contextType: "motivation",
+    name: 'ARIA Motivation Boost',
+    description: 'Motivational support from ARIA',
+    personality: 'ARIA',
+    contextType: 'motivation',
     systemPrompt: `You are ARIA, providing motivational support with warmth and understanding. The user needs encouragement and inspiration.
 
 User Context:
@@ -103,33 +103,33 @@ User Context:
 Focus on their progress, celebrate achievements, and help them reconnect with their learning goals.`,
 
     userPromptTemplate:
-      "The user needs motivation. Their message: {{userQuestion}}. Help them feel inspired and remind them of their progress and potential.",
+      'The user needs motivation. Their message: {{userQuestion}}. Help them feel inspired and remind them of their progress and potential.',
 
     contextVariables: [
       {
-        name: "motivationLevel",
-        type: "session_data",
-        description: "Current motivation level",
+        name: 'motivationLevel',
+        type: 'session_data',
+        description: 'Current motivation level',
       },
       {
-        name: "streakCount",
-        type: "user_profile",
-        description: "Current learning streak",
+        name: 'streakCount',
+        type: 'user_profile',
+        description: 'Current learning streak',
       },
       {
-        name: "recentAchievements",
-        type: "learning_progress",
-        description: "Recent accomplishments",
+        name: 'recentAchievements',
+        type: 'learning_progress',
+        description: 'Recent accomplishments',
       },
       {
-        name: "totalLearningTime",
-        type: "user_profile",
-        description: "Total learning time",
+        name: 'totalLearningTime',
+        type: 'user_profile',
+        description: 'Total learning time',
       },
       {
-        name: "userQuestion",
-        type: "session_data",
-        description: "User's message",
+        name: 'userQuestion',
+        type: 'session_data',
+        description: 'User\'s message',
       },
     ],
 
@@ -144,10 +144,10 @@ Focus on their progress, celebrate achievements, and help them reconnect with th
 
   // SAGE - Professional and analytical prompts
   {
-    name: "SAGE Progress Analysis",
-    description: "Professional progress review and analysis",
-    personality: "SAGE",
-    contextType: "progress_review",
+    name: 'SAGE Progress Analysis',
+    description: 'Professional progress review and analysis',
+    personality: 'SAGE',
+    contextType: 'progress_review',
     systemPrompt: `You are SAGE, a professional AI learning analyst. Provide objective, data-driven analysis of the user's learning progress.
 
 Performance Data:
@@ -160,48 +160,48 @@ Performance Data:
 Provide structured analysis with specific recommendations for improvement.`,
 
     userPromptTemplate:
-      "Analyze the user's learning progress. Current status: {{progressPercentage}}% complete in {{activePathDetails}}. Recent performance: {{recentPerformance}}. Provide professional insights and actionable recommendations.",
+      'Analyze the user\'s learning progress. Current status: {{progressPercentage}}% complete in {{activePathDetails}}. Recent performance: {{recentPerformance}}. Provide professional insights and actionable recommendations.',
 
     contextVariables: [
       {
-        name: "progressPercentage",
-        type: "learning_progress",
-        description: "Overall progress percentage",
+        name: 'progressPercentage',
+        type: 'learning_progress',
+        description: 'Overall progress percentage',
       },
       {
-        name: "totalPaths",
-        type: "learning_progress",
-        description: "Total learning paths",
+        name: 'totalPaths',
+        type: 'learning_progress',
+        description: 'Total learning paths',
       },
       {
-        name: "averageEngagement",
-        type: "performance_data",
-        description: "Average engagement score",
+        name: 'averageEngagement',
+        type: 'performance_data',
+        description: 'Average engagement score',
       },
       {
-        name: "averageAssessmentScore",
-        type: "performance_data",
-        description: "Average assessment score",
+        name: 'averageAssessmentScore',
+        type: 'performance_data',
+        description: 'Average assessment score',
       },
       {
-        name: "totalLearningTime",
-        type: "user_profile",
-        description: "Total learning time",
+        name: 'totalLearningTime',
+        type: 'user_profile',
+        description: 'Total learning time',
       },
       {
-        name: "consistencyScore",
-        type: "session_data",
-        description: "Learning consistency score",
+        name: 'consistencyScore',
+        type: 'session_data',
+        description: 'Learning consistency score',
       },
       {
-        name: "activePathDetails",
-        type: "learning_progress",
-        description: "Active learning paths",
+        name: 'activePathDetails',
+        type: 'learning_progress',
+        description: 'Active learning paths',
       },
       {
-        name: "recentPerformance",
-        type: "performance_data",
-        description: "Recent performance data",
+        name: 'recentPerformance',
+        type: 'performance_data',
+        description: 'Recent performance data',
       },
     ],
 
@@ -212,11 +212,11 @@ Provide structured analysis with specific recommendations for improvement.`,
 
     adaptationRules: [
       {
-        triggerCondition: "user_excelling",
+        triggerCondition: 'user_excelling',
         conditionValue: 90,
-        modification: "add_challenges",
+        modification: 'add_challenges',
         modificationText:
-          "ADVANCED ANALYSIS: The user is excelling. Provide deeper insights, advanced metrics, and suggest more challenging learning paths.",
+          'ADVANCED ANALYSIS: The user is excelling. Provide deeper insights, advanced metrics, and suggest more challenging learning paths.',
         priority: 7,
       },
     ],
@@ -226,10 +226,10 @@ Provide structured analysis with specific recommendations for improvement.`,
   },
 
   {
-    name: "SAGE Concept Explanation",
-    description: "Detailed, professional concept explanations",
-    personality: "SAGE",
-    contextType: "concept_explanation",
+    name: 'SAGE Concept Explanation',
+    description: 'Detailed, professional concept explanations',
+    personality: 'SAGE',
+    contextType: 'concept_explanation',
     systemPrompt: `You are SAGE, providing comprehensive and structured explanations. Focus on accuracy, depth, and logical organization.
 
 Learning Context:
@@ -241,38 +241,38 @@ Learning Context:
 Provide thorough, well-structured explanations with examples and practical applications.`,
 
     userPromptTemplate:
-      "The user needs an explanation of: {{userQuestion}}. They are learning {{moduleTitle}} at {{currentDifficulty}} level. Provide a comprehensive, professional explanation.",
+      'The user needs an explanation of: {{userQuestion}}. They are learning {{moduleTitle}} at {{currentDifficulty}} level. Provide a comprehensive, professional explanation.',
 
     contextVariables: [
       {
-        name: "currentPathCategory",
-        type: "learning_progress",
-        description: "Current learning path category",
+        name: 'currentPathCategory',
+        type: 'learning_progress',
+        description: 'Current learning path category',
       },
       {
-        name: "currentDifficulty",
-        type: "learning_progress",
-        description: "Current difficulty level",
+        name: 'currentDifficulty',
+        type: 'learning_progress',
+        description: 'Current difficulty level',
       },
       {
-        name: "learningStyle",
-        type: "user_profile",
-        description: "User's learning style",
+        name: 'learningStyle',
+        type: 'user_profile',
+        description: 'User\'s learning style',
       },
       {
-        name: "strengths",
-        type: "performance_data",
-        description: "User's learning strengths",
+        name: 'strengths',
+        type: 'performance_data',
+        description: 'User\'s learning strengths',
       },
       {
-        name: "userQuestion",
-        type: "session_data",
-        description: "User's question",
+        name: 'userQuestion',
+        type: 'session_data',
+        description: 'User\'s question',
       },
       {
-        name: "moduleTitle",
-        type: "module_content",
-        description: "Current module title",
+        name: 'moduleTitle',
+        type: 'module_content',
+        description: 'Current module title',
       },
     ],
 
@@ -287,10 +287,10 @@ Provide thorough, well-structured explanations with examples and practical appli
 
   // COACH - Motivational and goal-oriented prompts
   {
-    name: "COACH Goal Setting",
-    description: "Energetic goal-setting and achievement planning",
-    personality: "COACH",
-    contextType: "goal_setting",
+    name: 'COACH Goal Setting',
+    description: 'Energetic goal-setting and achievement planning',
+    personality: 'COACH',
+    contextType: 'goal_setting',
     systemPrompt: `You are COACH, an energetic motivational learning coach. Help users set ambitious but achievable goals and create action plans.
 
 User Status:
@@ -303,38 +303,38 @@ User Status:
 Be direct, energetic, and focused on results and accountability.`,
 
     userPromptTemplate:
-      "The user wants to set learning goals. Their current situation: {{userQuestion}}. Help them create specific, measurable goals with a clear action plan.",
+      'The user wants to set learning goals. Their current situation: {{userQuestion}}. Help them create specific, measurable goals with a clear action plan.',
 
     contextVariables: [
       {
-        name: "progressPercentage",
-        type: "learning_progress",
-        description: "Current progress",
+        name: 'progressPercentage',
+        type: 'learning_progress',
+        description: 'Current progress',
       },
       {
-        name: "targetCompletionDate",
-        type: "learning_progress",
-        description: "Target completion date",
+        name: 'targetCompletionDate',
+        type: 'learning_progress',
+        description: 'Target completion date',
       },
       {
-        name: "dailyTimeGoal",
-        type: "user_profile",
-        description: "Daily time goal",
+        name: 'dailyTimeGoal',
+        type: 'user_profile',
+        description: 'Daily time goal',
       },
       {
-        name: "activityLevel",
-        type: "performance_data",
-        description: "Recent activity level",
+        name: 'activityLevel',
+        type: 'performance_data',
+        description: 'Recent activity level',
       },
       {
-        name: "motivationLevel",
-        type: "session_data",
-        description: "Motivation level",
+        name: 'motivationLevel',
+        type: 'session_data',
+        description: 'Motivation level',
       },
       {
-        name: "userQuestion",
-        type: "session_data",
-        description: "User's request",
+        name: 'userQuestion',
+        type: 'session_data',
+        description: 'User\'s request',
       },
     ],
 
@@ -345,11 +345,11 @@ Be direct, energetic, and focused on results and accountability.`,
 
     adaptationRules: [
       {
-        triggerCondition: "low_engagement",
+        triggerCondition: 'low_engagement',
         conditionValue: 40,
-        modification: "increase_encouragement",
+        modification: 'increase_encouragement',
         modificationText:
-          "MOTIVATION BOOST: Low engagement detected. Be extra energetic and encouraging. Focus on rebuilding momentum with small, achievable wins.",
+          'MOTIVATION BOOST: Low engagement detected. Be extra energetic and encouraging. Focus on rebuilding momentum with small, achievable wins.',
         priority: 9,
       },
     ],
@@ -359,10 +359,10 @@ Be direct, energetic, and focused on results and accountability.`,
   },
 
   {
-    name: "COACH Challenge Mode",
-    description: "High-energy challenges for advanced users",
-    personality: "COACH",
-    contextType: "challenge",
+    name: 'COACH Challenge Mode',
+    description: 'High-energy challenges for advanced users',
+    personality: 'COACH',
+    contextType: 'challenge',
     systemPrompt: `You are COACH in challenge mode. The user is ready for advanced challenges and needs to be pushed to their limits.
 
 Performance Indicators:
@@ -374,33 +374,33 @@ Performance Indicators:
 Push them harder, set ambitious goals, and maintain high standards.`,
 
     userPromptTemplate:
-      "The user is ready for challenges: {{userQuestion}}. Their performance shows they can handle more difficulty. Provide challenging tasks and raise the bar.",
+      'The user is ready for challenges: {{userQuestion}}. Their performance shows they can handle more difficulty. Provide challenging tasks and raise the bar.',
 
     contextVariables: [
       {
-        name: "averagePerformance",
-        type: "performance_data",
-        description: "Average performance score",
+        name: 'averagePerformance',
+        type: 'performance_data',
+        description: 'Average performance score',
       },
       {
-        name: "averageEngagement",
-        type: "performance_data",
-        description: "Average engagement score",
+        name: 'averageEngagement',
+        type: 'performance_data',
+        description: 'Average engagement score',
       },
       {
-        name: "streakCount",
-        type: "user_profile",
-        description: "Learning streak",
+        name: 'streakCount',
+        type: 'user_profile',
+        description: 'Learning streak',
       },
       {
-        name: "completedPaths",
-        type: "learning_progress",
-        description: "Number of completed paths",
+        name: 'completedPaths',
+        type: 'learning_progress',
+        description: 'Number of completed paths',
       },
       {
-        name: "userQuestion",
-        type: "session_data",
-        description: "User's message",
+        name: 'userQuestion',
+        type: 'session_data',
+        description: 'User\'s message',
       },
     ],
 
@@ -415,10 +415,10 @@ Push them harder, set ambitious goals, and maintain high standards.`,
 
   // Assessment feedback prompts for all personalities
   {
-    name: "ARIA Assessment Feedback",
-    description: "Encouraging assessment feedback from ARIA",
-    personality: "ARIA",
-    contextType: "assessment_feedback",
+    name: 'ARIA Assessment Feedback',
+    description: 'Encouraging assessment feedback from ARIA',
+    personality: 'ARIA',
+    contextType: 'assessment_feedback',
     systemPrompt: `You are ARIA providing supportive feedback on the user's assessment performance.
 
 Assessment Results:
@@ -430,28 +430,28 @@ Assessment Results:
 Focus on encouragement and specific improvement suggestions.`,
 
     userPromptTemplate:
-      "The user completed an assessment with score {{lastAssessmentScore}}/100. Provide encouraging feedback and suggestions for improvement in {{strugglingAreas}}.",
+      'The user completed an assessment with score {{lastAssessmentScore}}/100. Provide encouraging feedback and suggestions for improvement in {{strugglingAreas}}.',
 
     contextVariables: [
       {
-        name: "lastAssessmentScore",
-        type: "performance_data",
-        description: "Latest assessment score",
+        name: 'lastAssessmentScore',
+        type: 'performance_data',
+        description: 'Latest assessment score',
       },
       {
-        name: "strengths",
-        type: "performance_data",
-        description: "Performance strengths",
+        name: 'strengths',
+        type: 'performance_data',
+        description: 'Performance strengths',
       },
       {
-        name: "strugglingAreas",
-        type: "performance_data",
-        description: "Areas needing improvement",
+        name: 'strugglingAreas',
+        type: 'performance_data',
+        description: 'Areas needing improvement',
       },
       {
-        name: "assessmentDuration",
-        type: "session_data",
-        description: "Time spent on assessment",
+        name: 'assessmentDuration',
+        type: 'session_data',
+        description: 'Time spent on assessment',
       },
     ],
 
@@ -464,10 +464,10 @@ Focus on encouragement and specific improvement suggestions.`,
   },
 
   {
-    name: "SAGE Assessment Analysis",
-    description: "Analytical assessment feedback from SAGE",
-    personality: "SAGE",
-    contextType: "assessment_feedback",
+    name: 'SAGE Assessment Analysis',
+    description: 'Analytical assessment feedback from SAGE',
+    personality: 'SAGE',
+    contextType: 'assessment_feedback',
     systemPrompt: `You are SAGE providing analytical assessment feedback with detailed performance analysis.
 
 Assessment Metrics:
@@ -479,28 +479,28 @@ Assessment Metrics:
 Provide objective analysis and specific study recommendations.`,
 
     userPromptTemplate:
-      "Analyze the assessment results: {{lastAssessmentScore}}/100 score with improvement trend {{improvementTrend}}. Provide detailed feedback and study strategy.",
+      'Analyze the assessment results: {{lastAssessmentScore}}/100 score with improvement trend {{improvementTrend}}. Provide detailed feedback and study strategy.',
 
     contextVariables: [
       {
-        name: "lastAssessmentScore",
-        type: "performance_data",
-        description: "Assessment score",
+        name: 'lastAssessmentScore',
+        type: 'performance_data',
+        description: 'Assessment score',
       },
       {
-        name: "performancePercentile",
-        type: "performance_data",
-        description: "Performance percentile",
+        name: 'performancePercentile',
+        type: 'performance_data',
+        description: 'Performance percentile',
       },
       {
-        name: "skillBreakdown",
-        type: "performance_data",
-        description: "Skill-by-skill breakdown",
+        name: 'skillBreakdown',
+        type: 'performance_data',
+        description: 'Skill-by-skill breakdown',
       },
       {
-        name: "improvementTrend",
-        type: "performance_data",
-        description: "Performance trend",
+        name: 'improvementTrend',
+        type: 'performance_data',
+        description: 'Performance trend',
       },
     ],
 
@@ -513,10 +513,10 @@ Provide objective analysis and specific study recommendations.`,
   },
 
   {
-    name: "COACH Assessment Push",
-    description: "Motivational assessment feedback from COACH",
-    personality: "COACH",
-    contextType: "assessment_feedback",
+    name: 'COACH Assessment Push',
+    description: 'Motivational assessment feedback from COACH',
+    personality: 'COACH',
+    contextType: 'assessment_feedback',
     systemPrompt: `You are COACH providing motivational feedback on assessment performance. Focus on next steps and improvement goals.
 
 Performance Data:
@@ -528,28 +528,28 @@ Performance Data:
 Push them to improve and set higher goals.`,
 
     userPromptTemplate:
-      "Assessment result: {{lastAssessmentScore}}/100. The user's goal is {{targetScore}}. Motivate them to improve and provide an action plan.",
+      'Assessment result: {{lastAssessmentScore}}/100. The user\'s goal is {{targetScore}}. Motivate them to improve and provide an action plan.',
 
     contextVariables: [
       {
-        name: "lastAssessmentScore",
-        type: "performance_data",
-        description: "Latest score",
+        name: 'lastAssessmentScore',
+        type: 'performance_data',
+        description: 'Latest score',
       },
       {
-        name: "targetScore",
-        type: "user_profile",
-        description: "User's target score",
+        name: 'targetScore',
+        type: 'user_profile',
+        description: 'User\'s target score',
       },
       {
-        name: "assessmentAttempts",
-        type: "performance_data",
-        description: "Number of attempts",
+        name: 'assessmentAttempts',
+        type: 'performance_data',
+        description: 'Number of attempts',
       },
       {
-        name: "bestScore",
-        type: "performance_data",
-        description: "Personal best score",
+        name: 'bestScore',
+        type: 'performance_data',
+        description: 'Personal best score',
       },
     ],
 
@@ -567,13 +567,13 @@ async function seedAIPrompts() {
   try {
     // Connect to database
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log("✅ Connected to MongoDB");
+    console.log('✅ Connected to MongoDB');
 
     // Clear existing prompts (optional - be careful in production!)
-    const deleteExisting = process.argv.includes("--reset");
+    const deleteExisting = process.argv.includes('--reset');
     if (deleteExisting) {
       await AIPrompt.deleteMany({});
-      console.log("🗑️ Cleared existing AI prompts");
+      console.log('🗑️ Cleared existing AI prompts');
     }
 
     // Check if prompts already exist
@@ -606,46 +606,46 @@ async function seedAIPrompts() {
     }
 
     // Summary
-    console.log("\n🎯 AI Prompts Seeding Complete!");
+    console.log('\n🎯 AI Prompts Seeding Complete!');
     console.log(`➕ Inserted: ${insertedCount} new prompts`);
     console.log(`📝 Updated: ${updatedCount} existing prompts`);
     console.log(
-      `📊 Total prompts in database: ${await AIPrompt.countDocuments()}`
+      `📊 Total prompts in database: ${await AIPrompt.countDocuments()}`,
     );
 
     // Verify prompts by personality
     const promptsByPersonality = await AIPrompt.aggregate([
-      { $group: { _id: "$personality", count: { $sum: 1 } } },
+      { $group: { _id: '$personality', count: { $sum: 1 } } },
     ]);
 
-    console.log("\n📈 Prompts by personality:");
+    console.log('\n📈 Prompts by personality:');
     promptsByPersonality.forEach((p) => {
       console.log(`   ${p._id}: ${p.count} prompts`);
     });
 
     // Verify prompts by context type
     const promptsByContext = await AIPrompt.aggregate([
-      { $group: { _id: "$contextType", count: { $sum: 1 } } },
+      { $group: { _id: '$contextType', count: { $sum: 1 } } },
     ]);
 
-    console.log("\n🏷️ Prompts by context type:");
+    console.log('\n🏷️ Prompts by context type:');
     promptsByContext.forEach((p) => {
       console.log(`   ${p._id}: ${p.count} prompts`);
     });
   } catch (error) {
-    console.error("❌ Error seeding AI prompts:", error);
+    console.error('❌ Error seeding AI prompts:', error);
     process.exit(1);
   } finally {
     await mongoose.disconnect();
-    console.log("👋 Disconnected from MongoDB");
+    console.log('👋 Disconnected from MongoDB');
     process.exit(0);
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  console.log("🤖 Starting AI Prompts Seeding...");
-  console.log("Use --reset to clear existing prompts first");
+  console.log('🤖 Starting AI Prompts Seeding...');
+  console.log('Use --reset to clear existing prompts first');
   seedAIPrompts();
 }
 

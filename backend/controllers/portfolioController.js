@@ -1,7 +1,7 @@
-const Portfolio = require("../models/Portfolio");
-const User = require("../models/User");
-const Certificate = require("../models/Certificate");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const Portfolio = require('../models/Portfolio');
+const User = require('../models/User');
+const Certificate = require('../models/Certificate');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 /**
  * Get user's portfolio
@@ -12,31 +12,31 @@ const getUserPortfolio = catchAsync(async (req, res) => {
 
   console.log(`📁 Getting portfolio for user: ${userId}`);
 
-  let portfolio = await Portfolio.findOne({ userId }).populate("userId", "name email avatar");
+  let portfolio = await Portfolio.findOne({ userId }).populate('userId', 'name email avatar');
 
   // Create portfolio if it doesn't exist
   if (!portfolio) {
     portfolio = new Portfolio({
       userId,
       headline: `${req.user.name}'s Professional Portfolio`,
-      summary: "Passionate professional with expertise in various domains.",
+      summary: 'Passionate professional with expertise in various domains.',
       settings: {
         isPublic: true,
         allowContact: true,
-        theme: "default",
+        theme: 'default',
       },
     });
     await portfolio.save();
-    await portfolio.populate("userId", "name email avatar");
+    await portfolio.populate('userId', 'name email avatar');
   }
 
   // Get user's certificates to display
   const certificates = await Certificate.find({
     userId,
-    status: "issued",
+    status: 'issued',
     isValid: true,
   })
-    .select("title type category issueDate skillsVerified assets")
+    .select('title type category issueDate skillsVerified assets')
     .limit(10);
 
   res.status(200).json({
@@ -69,17 +69,17 @@ const updatePortfolio = catchAsync(async (req, res) => {
   const portfolio = await Portfolio.findOneAndUpdate(
     { userId },
     { $set: updateData },
-    { new: true, runValidators: true }
-  ).populate("userId", "name email avatar");
+    { new: true, runValidators: true },
+  ).populate('userId', 'name email avatar');
 
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   res.status(200).json({
     success: true,
     data: { portfolio },
-    message: "Portfolio updated successfully",
+    message: 'Portfolio updated successfully',
   });
 });
 
@@ -94,23 +94,23 @@ const getPublicPortfolio = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({
     userId,
-    "settings.isPublic": true,
-  }).populate("userId", "name avatar");
+    'settings.isPublic': true,
+  }).populate('userId', 'name avatar');
 
   if (!portfolio) {
-    throw new AppError("Portfolio not found or not public", 404);
+    throw new AppError('Portfolio not found or not public', 404);
   }
 
   // Increment view count
-  await portfolio.incrementViews(req.get("Referer") || "direct");
+  await portfolio.incrementViews(req.get('Referer') || 'direct');
 
   // Get certificates if public
   const certificates = await Certificate.find({
     userId,
-    status: "issued",
+    status: 'issued',
     isValid: true,
   })
-    .select("title type category issueDate skillsVerified")
+    .select('title type category issueDate skillsVerified')
     .limit(10);
 
   res.status(200).json({
@@ -137,12 +137,12 @@ const addProject = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   // Validate project data
   if (!projectData.title || !projectData.description || !projectData.category) {
-    throw new AppError("Title, description, and category are required", 400);
+    throw new AppError('Title, description, and category are required', 400);
   }
 
   await portfolio.addProject(projectData);
@@ -150,7 +150,7 @@ const addProject = catchAsync(async (req, res) => {
   res.status(201).json({
     success: true,
     data: { portfolio },
-    message: "Project added successfully",
+    message: 'Project added successfully',
   });
 });
 
@@ -167,12 +167,12 @@ const updateProject = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   const project = portfolio.projects.id(projectId);
   if (!project) {
-    throw new AppError("Project not found", 404);
+    throw new AppError('Project not found', 404);
   }
 
   Object.assign(project, updateData);
@@ -181,7 +181,7 @@ const updateProject = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { portfolio },
-    message: "Project updated successfully",
+    message: 'Project updated successfully',
   });
 });
 
@@ -197,7 +197,7 @@ const deleteProject = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   portfolio.projects.pull(projectId);
@@ -206,7 +206,7 @@ const deleteProject = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: { portfolio },
-    message: "Project deleted successfully",
+    message: 'Project deleted successfully',
   });
 });
 
@@ -222,12 +222,12 @@ const addWorkExperience = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   // Validate experience data
   if (!experienceData.company || !experienceData.position || !experienceData.startDate) {
-    throw new AppError("Company, position, and start date are required", 400);
+    throw new AppError('Company, position, and start date are required', 400);
   }
 
   portfolio.workExperience.push(experienceData);
@@ -236,7 +236,7 @@ const addWorkExperience = catchAsync(async (req, res) => {
   res.status(201).json({
     success: true,
     data: { portfolio },
-    message: "Work experience added successfully",
+    message: 'Work experience added successfully',
   });
 });
 
@@ -251,29 +251,29 @@ const connectExternalPlatform = catchAsync(async (req, res) => {
   console.log(`🔗 Connecting ${platform} for user: ${userId}`);
 
   if (!platform || !username || !profileUrl) {
-    throw new AppError("Platform, username, and profile URL are required", 400);
+    throw new AppError('Platform, username, and profile URL are required', 400);
   }
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   // Check if platform already connected
   const existingConnection = portfolio.externalConnections.find(
-    (conn) => conn.platform === platform
+    (conn) => conn.platform === platform,
   );
 
   if (existingConnection) {
     existingConnection.username = username;
     existingConnection.profileUrl = profileUrl;
-    existingConnection.syncStatus = "pending";
+    existingConnection.syncStatus = 'pending';
   } else {
     portfolio.externalConnections.push({
       platform,
       username,
       profileUrl,
-      syncStatus: "pending",
+      syncStatus: 'pending',
     });
   }
 
@@ -301,11 +301,11 @@ const disconnectExternalPlatform = catchAsync(async (req, res) => {
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   portfolio.externalConnections = portfolio.externalConnections.filter(
-    (conn) => conn.platform !== platform
+    (conn) => conn.platform !== platform,
   );
 
   await portfolio.save();
@@ -323,21 +323,21 @@ const disconnectExternalPlatform = catchAsync(async (req, res) => {
  */
 const getPortfolioAnalytics = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { timeRange = "30d" } = req.query;
+  const { timeRange = '30d' } = req.query;
 
   console.log(`📊 Getting portfolio analytics for user: ${userId}`);
 
   const portfolio = await Portfolio.findOne({ userId });
   if (!portfolio) {
-    throw new AppError("Portfolio not found", 404);
+    throw new AppError('Portfolio not found', 404);
   }
 
   // Calculate analytics based on time range
-  const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+  const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
   const recentViews = portfolio.analytics.viewHistory.filter(
-    (entry) => entry.date >= since
+    (entry) => entry.date >= since,
   );
 
   const analytics = {
@@ -372,8 +372,8 @@ const searchPortfolios = catchAsync(async (req, res) => {
   console.log(`🔍 Searching portfolios with query: ${query}`);
 
   const filters = {};
-  if (skills) filters.skills = skills.split(",");
-  if (technologies) filters.technologies = technologies.split(",");
+  if (skills) filters.skills = skills.split(',');
+  if (technologies) filters.technologies = technologies.split(',');
 
   const skip = (page - 1) * limit;
 

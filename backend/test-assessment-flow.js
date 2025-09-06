@@ -19,12 +19,12 @@ async function testAssessmentFlow() {
       subdomains: ['Django', 'Flask', 'FastAPI'],
       yearsExperience: '2-3',
       goals: 'become a Python backend expert',
-      preferredDifficulty: 'intermediate'
+      preferredDifficulty: 'intermediate',
     });
     
     console.log('✅ Plan generated:', planResponse.data.data.plan.map(p => ({
       title: p.title,
-      assessmentId: p.assessmentId
+      assessmentId: p.assessmentId,
     })));
     
     // Step 2: Get Available Assessments
@@ -34,7 +34,7 @@ async function testAssessmentFlow() {
     
     // Find one of our generated assessments
     const generatedAssessment = assessmentsResponse.data.data.assessments.find(a => 
-      a.title.includes('Python')
+      a.title.includes('Python'),
     );
     
     if (generatedAssessment) {
@@ -48,13 +48,13 @@ async function testAssessmentFlow() {
         const sessionResponse = await axios.post(
           `${BASE_URL}/assessments/${generatedAssessment._id}/start`,
           {},
-          { headers: { 'user-id': TEST_USER_ID } }
+          { headers: { 'user-id': TEST_USER_ID } },
         );
         
         console.log('✅ Session started:', {
           sessionId: sessionResponse.data.data.session.sessionId,
           totalQuestions: sessionResponse.data.data.questions.length,
-          firstQuestion: sessionResponse.data.data.questions[0]?.question?.substring(0, 50) + '...'
+          firstQuestion: sessionResponse.data.data.questions[0]?.question?.substring(0, 50) + '...',
         });
       } catch (sessionError) {
         console.error('❌ Session start failed:', sessionError.response?.data || sessionError.message);

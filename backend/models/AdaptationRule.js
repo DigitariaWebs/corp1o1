@@ -1,5 +1,5 @@
 // models/AdaptationRule.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const adaptationRuleSchema = new mongoose.Schema(
   {
@@ -21,22 +21,22 @@ const adaptationRuleSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "content_difficulty",
-        "ai_personality",
-        "learning_pace",
-        "intervention",
-        "recommendation",
-        "engagement",
-        "assessment_timing",
+        'content_difficulty',
+        'ai_personality',
+        'learning_pace',
+        'intervention',
+        'recommendation',
+        'engagement',
+        'assessment_timing',
       ],
       required: true,
     },
 
     type: {
       type: String,
-      enum: ["trigger", "continuous", "scheduled", "manual"],
+      enum: ['trigger', 'continuous', 'scheduled', 'manual'],
       required: true,
-      default: "trigger",
+      default: 'trigger',
     },
 
     // Trigger conditions
@@ -177,12 +177,12 @@ const adaptationRuleSchema = new mongoose.Schema(
       content: {
         adjustDifficulty: {
           type: String,
-          enum: ["increase", "decrease", "auto"],
+          enum: ['increase', 'decrease', 'auto'],
           default: null,
         },
         changeContentFormat: {
           type: String,
-          enum: ["visual", "auditory", "kinesthetic", "reading", "mixed"],
+          enum: ['visual', 'auditory', 'kinesthetic', 'reading', 'mixed'],
           default: null,
         },
         addSupplementaryResources: {
@@ -199,16 +199,16 @@ const adaptationRuleSchema = new mongoose.Schema(
       aiPersonality: {
         switchTo: {
           type: String,
-          enum: ["ARIA", "SAGE", "COACH", "auto"],
+          enum: ['ARIA', 'SAGE', 'COACH', 'auto'],
           default: null,
         },
         adjustTone: {
           type: String,
           enum: [
-            "more_encouraging",
-            "more_direct",
-            "more_detailed",
-            "more_concise",
+            'more_encouraging',
+            'more_direct',
+            'more_detailed',
+            'more_concise',
           ],
           default: null,
         },
@@ -226,7 +226,7 @@ const adaptationRuleSchema = new mongoose.Schema(
         },
         adjustSessionLength: {
           type: String,
-          enum: ["shorter", "longer", "adaptive"],
+          enum: ['shorter', 'longer', 'adaptive'],
           default: null,
         },
         recommendSchedule: {
@@ -325,7 +325,7 @@ const adaptationRuleSchema = new mongoose.Schema(
     targetUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
 
@@ -335,25 +335,25 @@ const adaptationRuleSchema = new mongoose.Schema(
         {
           type: String,
           enum: [
-            "Communication & Leadership",
-            "Innovation & Creativity",
-            "Technical Skills",
-            "Business Strategy",
-            "Personal Development",
-            "Data & Analytics",
+            'Communication & Leadership',
+            'Innovation & Creativity',
+            'Technical Skills',
+            'Business Strategy',
+            'Personal Development',
+            'Data & Analytics',
           ],
         },
       ],
       difficulties: [
         {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
         },
       ],
       learningStyles: [
         {
           type: String,
-          enum: ["visual", "auditory", "kinesthetic", "reading"],
+          enum: ['visual', 'auditory', 'kinesthetic', 'reading'],
         },
       ],
     },
@@ -361,7 +361,7 @@ const adaptationRuleSchema = new mongoose.Schema(
     // Metadata
     createdBy: {
       type: String,
-      default: "system",
+      default: 'system',
     },
 
     lastTriggered: {
@@ -370,25 +370,25 @@ const adaptationRuleSchema = new mongoose.Schema(
 
     version: {
       type: String,
-      default: "1.0",
+      default: '1.0',
     },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for efficient querying
 adaptationRuleSchema.index({ category: 1, isActive: 1 });
-adaptationRuleSchema.index({ "configuration.priority": -1 });
+adaptationRuleSchema.index({ 'configuration.priority': -1 });
 adaptationRuleSchema.index({ isGlobal: 1, isActive: 1 });
 adaptationRuleSchema.index({ lastTriggered: 1 });
 
 // Virtual for success rate calculation
 adaptationRuleSchema
-  .virtual("configuration.effectiveness.currentSuccessRate")
+  .virtual('configuration.effectiveness.currentSuccessRate')
   .get(function () {
     if (this.configuration.effectiveness.totalTriggers === 0) return 0;
     return (
@@ -400,12 +400,12 @@ adaptationRuleSchema
 
 // Static method to get active rules by category
 adaptationRuleSchema.statics.getActiveRulesByCategory = async function (
-  category
+  category,
 ) {
   return this.find({
     category,
     isActive: true,
-  }).sort({ "configuration.priority": -1 });
+  }).sort({ 'configuration.priority': -1 });
 };
 
 // Static method to get applicable rules for user context
@@ -420,8 +420,8 @@ adaptationRuleSchema.statics.getApplicableRules = async function (userContext) {
     query.$and = query.$and || [];
     query.$and.push({
       $or: [
-        { "applicableContexts.categories": { $size: 0 } },
-        { "applicableContexts.categories": userContext.category },
+        { 'applicableContexts.categories': { $size: 0 } },
+        { 'applicableContexts.categories': userContext.category },
       ],
     });
   }
@@ -430,8 +430,8 @@ adaptationRuleSchema.statics.getApplicableRules = async function (userContext) {
     query.$and = query.$and || [];
     query.$and.push({
       $or: [
-        { "applicableContexts.difficulties": { $size: 0 } },
-        { "applicableContexts.difficulties": userContext.difficulty },
+        { 'applicableContexts.difficulties': { $size: 0 } },
+        { 'applicableContexts.difficulties': userContext.difficulty },
       ],
     });
   }
@@ -440,19 +440,19 @@ adaptationRuleSchema.statics.getApplicableRules = async function (userContext) {
     query.$and = query.$and || [];
     query.$and.push({
       $or: [
-        { "applicableContexts.learningStyles": { $size: 0 } },
-        { "applicableContexts.learningStyles": userContext.learningStyle },
+        { 'applicableContexts.learningStyles': { $size: 0 } },
+        { 'applicableContexts.learningStyles': userContext.learningStyle },
       ],
     });
   }
 
-  return this.find(query).sort({ "configuration.priority": -1 });
+  return this.find(query).sort({ 'configuration.priority': -1 });
 };
 
 // Instance method to check if rule conditions are met
 adaptationRuleSchema.methods.checkConditions = function (
   userAnalytics,
-  userContext
+  userContext,
 ) {
   const conditions = this.triggerConditions;
 
@@ -563,7 +563,7 @@ adaptationRuleSchema.methods.isInCooldown = function () {
 
 // Instance method to record successful trigger
 adaptationRuleSchema.methods.recordTrigger = async function (
-  wasSuccessful = true
+  wasSuccessful = true,
 ) {
   this.configuration.effectiveness.totalTriggers += 1;
   if (wasSuccessful) {
@@ -584,10 +584,10 @@ adaptationRuleSchema.methods.recordTrigger = async function (
 adaptationRuleSchema.statics.createDefaults = async function () {
   const defaultRules = [
     {
-      name: "Low Completion Rate Intervention",
-      description: "Triggers when user completion rate drops below 30%",
-      category: "intervention",
-      type: "trigger",
+      name: 'Low Completion Rate Intervention',
+      description: 'Triggers when user completion rate drops below 30%',
+      category: 'intervention',
+      type: 'trigger',
       triggerConditions: {
         performance: {
           maxCompletionRate: 30,
@@ -595,7 +595,7 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
       adaptationActions: {
         aiPersonality: {
-          switchTo: "COACH",
+          switchTo: 'COACH',
           increaseSupport: true,
         },
         intervention: {
@@ -609,10 +609,10 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
     },
     {
-      name: "High Performer Content Boost",
-      description: "Increases difficulty for high-performing users",
-      category: "content_difficulty",
-      type: "trigger",
+      name: 'High Performer Content Boost',
+      description: 'Increases difficulty for high-performing users',
+      category: 'content_difficulty',
+      type: 'trigger',
       triggerConditions: {
         performance: {
           minCompletionRate: 85,
@@ -621,7 +621,7 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
       adaptationActions: {
         content: {
-          adjustDifficulty: "increase",
+          adjustDifficulty: 'increase',
           addSupplementaryResources: true,
         },
       },
@@ -631,10 +631,10 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
     },
     {
-      name: "Low Engagement Recovery",
-      description: "Adapts to re-engage users with low focus scores",
-      category: "engagement",
-      type: "trigger",
+      name: 'Low Engagement Recovery',
+      description: 'Adapts to re-engage users with low focus scores',
+      category: 'engagement',
+      type: 'trigger',
       triggerConditions: {
         engagement: {
           maxFocusScore: 40,
@@ -643,11 +643,11 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
       adaptationActions: {
         aiPersonality: {
-          switchTo: "ARIA",
-          adjustTone: "more_encouraging",
+          switchTo: 'ARIA',
+          adjustTone: 'more_encouraging',
         },
         pace: {
-          adjustSessionLength: "shorter",
+          adjustSessionLength: 'shorter',
         },
       },
       configuration: {
@@ -656,10 +656,10 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
     },
     {
-      name: "AI Personality Mismatch Detection",
-      description: "Switches AI personality when satisfaction is low",
-      category: "ai_personality",
-      type: "trigger",
+      name: 'AI Personality Mismatch Detection',
+      description: 'Switches AI personality when satisfaction is low',
+      category: 'ai_personality',
+      type: 'trigger',
       triggerConditions: {
         aiInteraction: {
           maxSatisfactionScore: 2,
@@ -668,8 +668,8 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
       adaptationActions: {
         aiPersonality: {
-          switchTo: "auto",
-          adjustTone: "more_detailed",
+          switchTo: 'auto',
+          adjustTone: 'more_detailed',
         },
       },
       configuration: {
@@ -678,10 +678,10 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
     },
     {
-      name: "Struggling Learner Support",
-      description: "Provides additional support for struggling learners",
-      category: "content_difficulty",
-      type: "trigger",
+      name: 'Struggling Learner Support',
+      description: 'Provides additional support for struggling learners',
+      category: 'content_difficulty',
+      type: 'trigger',
       triggerConditions: {
         performance: {
           maxAverageScore: 60,
@@ -690,12 +690,12 @@ adaptationRuleSchema.statics.createDefaults = async function () {
       },
       adaptationActions: {
         content: {
-          adjustDifficulty: "decrease",
+          adjustDifficulty: 'decrease',
           addSupplementaryResources: true,
           enableHints: true,
         },
         aiPersonality: {
-          switchTo: "SAGE",
+          switchTo: 'SAGE',
           increaseSupport: true,
         },
       },
@@ -717,13 +717,13 @@ adaptationRuleSchema.statics.createDefaults = async function () {
 };
 
 // Pre-save middleware to validate conditions
-adaptationRuleSchema.pre("save", function (next) {
+adaptationRuleSchema.pre('save', function (next) {
   // Ensure min/max values are logical
   const perf = this.triggerConditions.performance;
   if (perf && perf.minCompletionRate && perf.maxCompletionRate) {
     if (perf.minCompletionRate >= perf.maxCompletionRate) {
       return next(
-        new Error("minCompletionRate must be less than maxCompletionRate")
+        new Error('minCompletionRate must be less than maxCompletionRate'),
       );
     }
   }
@@ -732,11 +732,11 @@ adaptationRuleSchema.pre("save", function (next) {
   if (this.configuration.priority < 1 || this.configuration.priority > 10) {
     this.configuration.priority = Math.max(
       1,
-      Math.min(10, this.configuration.priority)
+      Math.min(10, this.configuration.priority),
     );
   }
 
   next();
 });
 
-module.exports = mongoose.model("AdaptationRule", adaptationRuleSchema);
+module.exports = mongoose.model('AdaptationRule', adaptationRuleSchema);

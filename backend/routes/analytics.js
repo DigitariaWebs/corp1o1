@@ -1,11 +1,11 @@
 // routes/analytics.js
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Joi = require("joi");
+const Joi = require('joi');
 
 // Import middleware
-const { authenticate } = require("../middleware/auth");
-const { validate } = require("../middleware/validation");
+const { authenticate } = require('../middleware/auth');
+const { validate } = require('../middleware/validation');
 
 // Import controllers
 const {
@@ -26,22 +26,22 @@ const {
   getPersonalizedInsights,
   getGoalProgress,
   getLearningPath,
-} = require("../controllers/analyticsController");
+} = require('../controllers/analyticsController');
 
 // Base time range fields for reuse
 const baseTimeRangeFields = {
   timeRange: Joi.string()
-    .valid("1d", "7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('1d', '7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
   startDate: Joi.date().optional(),
-  endDate: Joi.date().when("startDate", {
+  endDate: Joi.date().when('startDate', {
     is: Joi.exist(),
-    then: Joi.date().min(Joi.ref("startDate")).required(),
+    then: Joi.date().min(Joi.ref('startDate')).required(),
     otherwise: Joi.optional(),
   }),
   granularity: Joi.string()
-    .valid("hour", "day", "week", "month")
-    .default("day"),
+    .valid('hour', 'day', 'week', 'month')
+    .default('day'),
 };
 
 // Validation schemas
@@ -51,55 +51,55 @@ const analyticsQuerySchema = Joi.object({
   ...baseTimeRangeFields,
   category: Joi.string()
     .valid(
-      "Communication & Leadership",
-      "Innovation & Creativity",
-      "Technical Skills",
-      "Business Strategy",
-      "Personal Development",
-      "Data & Analytics",
-      "all"
+      'Communication & Leadership',
+      'Innovation & Creativity',
+      'Technical Skills',
+      'Business Strategy',
+      'Personal Development',
+      'Data & Analytics',
+      'all',
     )
-    .default("all"),
+    .default('all'),
   difficulty: Joi.string()
-    .valid("beginner", "intermediate", "advanced", "expert", "all")
-    .default("all"),
+    .valid('beginner', 'intermediate', 'advanced', 'expert', 'all')
+    .default('all'),
   includeComparison: Joi.boolean().default(false),
-  format: Joi.string().valid("summary", "detailed", "raw").default("summary"),
+  format: Joi.string().valid('summary', 'detailed', 'raw').default('summary'),
 });
 
 const dashboardQuerySchema = Joi.object({
   timeRange: Joi.string()
-    .valid("today", "week", "month", "quarter", "year")
-    .default("month"),
+    .valid('today', 'week', 'month', 'quarter', 'year')
+    .default('month'),
   widgets: Joi.array()
     .items(
       Joi.string().valid(
-        "progress_overview",
-        "engagement_metrics",
-        "recent_achievements",
-        "learning_streak",
-        "ai_interactions",
-        "performance_trends",
-        "upcoming_goals",
-        "recommendations"
-      )
+        'progress_overview',
+        'engagement_metrics',
+        'recent_achievements',
+        'learning_streak',
+        'ai_interactions',
+        'performance_trends',
+        'upcoming_goals',
+        'recommendations',
+      ),
     )
     .default([
-      "progress_overview",
-      "engagement_metrics",
-      "recent_achievements",
-      "performance_trends",
+      'progress_overview',
+      'engagement_metrics',
+      'recent_achievements',
+      'performance_trends',
     ]),
 });
 
 const performanceQuerySchema = Joi.object({
   timeRange: Joi.string()
-    .valid("1d", "7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('1d', '7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
   startDate: Joi.date().optional(),
-  endDate: Joi.date().when("startDate", {
+  endDate: Joi.date().when('startDate', {
     is: Joi.exist(),
-    then: Joi.date().min(Joi.ref("startDate")).required(),
+    then: Joi.date().min(Joi.ref('startDate')).required(),
     otherwise: Joi.optional(),
   }),
   pathId: Joi.string()
@@ -112,33 +112,33 @@ const performanceQuerySchema = Joi.object({
   metrics: Joi.array()
     .items(
       Joi.string().valid(
-        "completion_rate",
-        "average_score",
-        "time_spent",
-        "engagement_level",
-        "struggle_areas",
-        "improvement_rate"
-      )
+        'completion_rate',
+        'average_score',
+        'time_spent',
+        'engagement_level',
+        'struggle_areas',
+        'improvement_rate',
+      ),
     )
-    .default(["completion_rate", "average_score", "engagement_level"]),
+    .default(['completion_rate', 'average_score', 'engagement_level']),
 });
 
 const patternsQuerySchema = Joi.object({
   timeRange: Joi.string()
-    .valid("1d", "7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('1d', '7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
   patternTypes: Joi.array()
     .items(
       Joi.string().valid(
-        "optimal_timing",
-        "engagement_patterns",
-        "learning_velocity",
-        "struggle_patterns",
-        "strength_areas",
-        "ai_preference"
-      )
+        'optimal_timing',
+        'engagement_patterns',
+        'learning_velocity',
+        'struggle_patterns',
+        'strength_areas',
+        'ai_preference',
+      ),
     )
-    .default(["optimal_timing", "engagement_patterns", "learning_velocity"]),
+    .default(['optimal_timing', 'engagement_patterns', 'learning_velocity']),
   minConfidence: Joi.number().min(0).max(100).default(60),
 });
 
@@ -146,44 +146,44 @@ const predictionsQuerySchema = Joi.object({
   predictionTypes: Joi.array()
     .items(
       Joi.string().valid(
-        "completion_likelihood",
-        "time_to_completion",
-        "performance_forecast",
-        "engagement_forecast",
-        "risk_assessment",
-        "optimal_next_steps"
-      )
+        'completion_likelihood',
+        'time_to_completion',
+        'performance_forecast',
+        'engagement_forecast',
+        'risk_assessment',
+        'optimal_next_steps',
+      ),
     )
     .default([
-      "completion_likelihood",
-      "time_to_completion",
-      "risk_assessment",
+      'completion_likelihood',
+      'time_to_completion',
+      'risk_assessment',
     ]),
   horizon: Joi.string()
-    .valid("1week", "1month", "3months", "6months")
-    .default("1month"),
+    .valid('1week', '1month', '3months', '6months')
+    .default('1month'),
   includeRecommendations: Joi.boolean().default(true),
 });
 
 const reportSchema = Joi.object({
   reportType: Joi.string()
-    .valid("comprehensive", "performance", "engagement", "progress", "custom")
+    .valid('comprehensive', 'performance', 'engagement', 'progress', 'custom')
     .required(),
   timeRange: Joi.string()
-    .valid("1d", "7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('1d', '7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
   startDate: Joi.date().optional(),
-  endDate: Joi.date().when("startDate", {
+  endDate: Joi.date().when('startDate', {
     is: Joi.exist(),
-    then: Joi.date().min(Joi.ref("startDate")).required(),
+    then: Joi.date().min(Joi.ref('startDate')).required(),
     otherwise: Joi.optional(),
   }),
   includeCharts: Joi.boolean().default(true),
   includeTables: Joi.boolean().default(true),
   includeInsights: Joi.boolean().default(true),
-  format: Joi.string().valid("pdf", "html", "json", "csv").default("pdf"),
-  customSections: Joi.array().items(Joi.string()).when("reportType", {
-    is: "custom",
+  format: Joi.string().valid('pdf', 'html', 'json', 'csv').default('pdf'),
+  customSections: Joi.array().items(Joi.string()).when('reportType', {
+    is: 'custom',
     then: Joi.required(),
     otherwise: Joi.optional(),
   }),
@@ -191,27 +191,27 @@ const reportSchema = Joi.object({
 
 const exportSchema = Joi.object({
   timeRange: Joi.string()
-    .valid("1d", "7d", "30d", "90d", "1y", "all")
-    .default("30d"),
+    .valid('1d', '7d', '30d', '90d', '1y', 'all')
+    .default('30d'),
   startDate: Joi.date().optional(),
-  endDate: Joi.date().when("startDate", {
+  endDate: Joi.date().when('startDate', {
     is: Joi.exist(),
-    then: Joi.date().min(Joi.ref("startDate")).required(),
+    then: Joi.date().min(Joi.ref('startDate')).required(),
     otherwise: Joi.optional(),
   }),
   dataTypes: Joi.array()
     .items(
       Joi.string().valid(
-        "learning_sessions",
-        "module_completions",
-        "assessment_scores",
-        "ai_interactions",
-        "engagement_metrics",
-        "progress_data"
-      )
+        'learning_sessions',
+        'module_completions',
+        'assessment_scores',
+        'ai_interactions',
+        'engagement_metrics',
+        'progress_data',
+      ),
     )
-    .default(["learning_sessions", "progress_data"]),
-  format: Joi.string().valid("json", "csv", "xlsx").default("json"),
+    .default(['learning_sessions', 'progress_data']),
+  format: Joi.string().valid('json', 'csv', 'xlsx').default('json'),
   includePersonalData: Joi.boolean().default(false),
 });
 
@@ -224,7 +224,7 @@ router.use(authenticate);
  * @access  Private
  * @query   timeRange, widgets
  */
-router.get("/dashboard", validate(dashboardQuerySchema, "query"), getDashboard);
+router.get('/dashboard', validate(dashboardQuerySchema, 'query'), getDashboard);
 
 /**
  * @route   GET /api/analytics/performance
@@ -233,9 +233,9 @@ router.get("/dashboard", validate(dashboardQuerySchema, "query"), getDashboard);
  * @query   timeRange, pathId, moduleId, includeAIAnalysis, metrics
  */
 router.get(
-  "/performance",
-  validate(performanceQuerySchema, "query"),
-  getPerformanceAnalytics
+  '/performance',
+  validate(performanceQuerySchema, 'query'),
+  getPerformanceAnalytics,
 );
 
 /**
@@ -245,9 +245,9 @@ router.get(
  * @query   timeRange, patternTypes, minConfidence
  */
 router.get(
-  "/patterns",
-  validate(patternsQuerySchema, "query"),
-  getLearningPatterns
+  '/patterns',
+  validate(patternsQuerySchema, 'query'),
+  getLearningPatterns,
 );
 
 /**
@@ -257,9 +257,9 @@ router.get(
  * @query   predictionTypes, horizon, includeRecommendations
  */
 router.get(
-  "/predictions",
-  validate(predictionsQuerySchema, "query"),
-  getPredictions
+  '/predictions',
+  validate(predictionsQuerySchema, 'query'),
+  getPredictions,
 );
 
 /**
@@ -267,7 +267,7 @@ router.get(
  * @desc    Get personalized learning insights
  * @access  Private
  */
-router.get("/insights", getInsights);
+router.get('/insights', getInsights);
 
 /**
  * @route   GET /api/analytics/engagement
@@ -276,9 +276,9 @@ router.get("/insights", getInsights);
  * @query   timeRange, granularity
  */
 router.get(
-  "/engagement",
-  validate(timeRangeSchema, "query"),
-  getEngagementMetrics
+  '/engagement',
+  validate(timeRangeSchema, 'query'),
+  getEngagementMetrics,
 );
 
 /**
@@ -287,7 +287,7 @@ router.get(
  * @access  Private
  * @query   timeRange, granularity
  */
-router.get("/trends", validate(timeRangeSchema, "query"), getProgressTrends);
+router.get('/trends', validate(timeRangeSchema, 'query'), getProgressTrends);
 
 /**
  * @route   GET /api/analytics/comparison
@@ -296,9 +296,9 @@ router.get("/trends", validate(timeRangeSchema, "query"), getProgressTrends);
  * @query   timeRange, comparisonType
  */
 router.get(
-  "/comparison",
-  validate(analyticsQuerySchema, "query"),
-  getComparisonAnalytics
+  '/comparison',
+  validate(analyticsQuerySchema, 'query'),
+  getComparisonAnalytics,
 );
 
 /**
@@ -307,7 +307,7 @@ router.get(
  * @access  Private
  * @query   timeRange, granularity
  */
-router.get("/time", validate(timeRangeSchema, "query"), getTimeAnalytics);
+router.get('/time', validate(timeRangeSchema, 'query'), getTimeAnalytics);
 
 /**
  * @route   GET /api/analytics/skills
@@ -316,9 +316,9 @@ router.get("/time", validate(timeRangeSchema, "query"), getTimeAnalytics);
  * @query   category, difficulty
  */
 router.get(
-  "/skills",
-  validate(analyticsQuerySchema, "query"),
-  getSkillAnalytics
+  '/skills',
+  validate(analyticsQuerySchema, 'query'),
+  getSkillAnalytics,
 );
 
 /**
@@ -328,9 +328,9 @@ router.get(
  * @query   timeRange
  */
 router.get(
-  "/ai-effectiveness",
-  validate(timeRangeSchema, "query"),
-  getAIEffectivenessAnalytics
+  '/ai-effectiveness',
+  validate(timeRangeSchema, 'query'),
+  getAIEffectivenessAnalytics,
 );
 
 /**
@@ -339,7 +339,7 @@ router.get(
  * @access  Private
  * @body    reportType, timeRange, format, customSections
  */
-router.post("/report", validate(reportSchema, "body"), generateReport);
+router.post('/report', validate(reportSchema, 'body'), generateReport);
 
 /**
  * @route   GET /api/analytics/history
@@ -347,7 +347,7 @@ router.post("/report", validate(reportSchema, "body"), generateReport);
  * @access  Private
  * @query   timeRange
  */
-router.get("/history", validate(timeRangeSchema, "query"), getAnalyticsHistory);
+router.get('/history', validate(timeRangeSchema, 'query'), getAnalyticsHistory);
 
 /**
  * @route   POST /api/analytics/export
@@ -355,14 +355,14 @@ router.get("/history", validate(timeRangeSchema, "query"), getAnalyticsHistory);
  * @access  Private
  * @body    timeRange, dataTypes, format, includePersonalData
  */
-router.post("/export", validate(exportSchema, "body"), exportAnalyticsData);
+router.post('/export', validate(exportSchema, 'body'), exportAnalyticsData);
 
 /**
  * @route   GET /api/analytics/personalized-insights
  * @desc    Get AI-powered personalized insights
  * @access  Private
  */
-router.get("/personalized-insights", getPersonalizedInsights);
+router.get('/personalized-insights', getPersonalizedInsights);
 
 /**
  * @route   GET /api/analytics/goal-progress
@@ -371,9 +371,9 @@ router.get("/personalized-insights", getPersonalizedInsights);
  * @query   timeRange
  */
 router.get(
-  "/goal-progress",
-  validate(timeRangeSchema, "query"),
-  getGoalProgress
+  '/goal-progress',
+  validate(timeRangeSchema, 'query'),
+  getGoalProgress,
 );
 
 /**
@@ -381,6 +381,6 @@ router.get(
  * @desc    Get recommended learning path analytics
  * @access  Private
  */
-router.get("/learning-path", getLearningPath);
+router.get('/learning-path', getLearningPath);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Content material schema
 const materialSchema = new mongoose.Schema(
@@ -6,14 +6,14 @@ const materialSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        "video",
-        "text",
-        "image",
-        "audio",
-        "interactive",
-        "document",
-        "link",
-        "quiz",
+        'video',
+        'text',
+        'image',
+        'audio',
+        'interactive',
+        'document',
+        'link',
+        'quiz',
       ],
       required: true,
     },
@@ -43,7 +43,7 @@ const materialSchema = new mongoose.Schema(
       {
         learningStyle: {
           type: String,
-          enum: ["visual", "auditory", "kinesthetic", "reading"],
+          enum: ['visual', 'auditory', 'kinesthetic', 'reading'],
           required: true,
         },
         content: {
@@ -52,7 +52,7 @@ const materialSchema = new mongoose.Schema(
           additionalResources: [String],
           interactionType: {
             type: String,
-            enum: ["watch", "read", "listen", "practice", "explore"],
+            enum: ['watch', 'read', 'listen', 'practice', 'explore'],
           },
         },
       },
@@ -72,7 +72,7 @@ const materialSchema = new mongoose.Schema(
       },
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 // AI adaptation rule schema
@@ -81,22 +81,22 @@ const aiAdaptationSchema = new mongoose.Schema(
     triggerCondition: {
       type: String,
       enum: [
-        "struggling",
-        "excelling",
-        "time_pressure",
-        "learning_style_mismatch",
-        "low_engagement",
+        'struggling',
+        'excelling',
+        'time_pressure',
+        'learning_style_mismatch',
+        'low_engagement',
       ],
       required: true,
     },
     adaptationType: {
       type: String,
       enum: [
-        "difficulty_adjust",
-        "content_variation",
-        "additional_examples",
-        "simplified_explanation",
-        "advanced_content",
+        'difficulty_adjust',
+        'content_variation',
+        'additional_examples',
+        'simplified_explanation',
+        'advanced_content',
       ],
       required: true,
     },
@@ -116,7 +116,7 @@ const aiAdaptationSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Assessment question schema
@@ -130,11 +130,11 @@ const assessmentQuestionSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        "multiple_choice",
-        "true_false",
-        "short_answer",
-        "essay",
-        "practical",
+        'multiple_choice',
+        'true_false',
+        'short_answer',
+        'essay',
+        'practical',
       ],
       required: true,
     },
@@ -158,8 +158,8 @@ const assessmentQuestionSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ["easy", "medium", "hard"],
-      default: "medium",
+      enum: ['easy', 'medium', 'hard'],
+      default: 'medium',
     },
     skills: [
       {
@@ -168,7 +168,7 @@ const assessmentQuestionSchema = new mongoose.Schema(
       },
     ],
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Learning module schema
@@ -177,29 +177,29 @@ const learningModuleSchema = new mongoose.Schema(
     // Basic information
     title: {
       type: String,
-      required: [true, "Module title is required"],
+      required: [true, 'Module title is required'],
       trim: true,
-      maxlength: [200, "Title cannot exceed 200 characters"],
+      maxlength: [200, 'Title cannot exceed 200 characters'],
     },
 
     description: {
       type: String,
-      required: [true, "Module description is required"],
+      required: [true, 'Module description is required'],
       trim: true,
-      maxlength: [1500, "Description cannot exceed 1500 characters"],
+      maxlength: [1500, 'Description cannot exceed 1500 characters'],
     },
 
     shortDescription: {
       type: String,
       trim: true,
-      maxlength: [300, "Short description cannot exceed 300 characters"],
+      maxlength: [300, 'Short description cannot exceed 300 characters'],
     },
 
     // Path relationship
     pathId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "LearningPath",
-      required: [true, "Path ID is required"],
+      ref: 'LearningPath',
+      required: [true, 'Path ID is required'],
     },
 
     // Module content
@@ -207,19 +207,19 @@ const learningModuleSchema = new mongoose.Schema(
       type: {
         type: String,
         enum: [
-          "video",
-          "interactive",
-          "practice",
-          "assessment",
-          "reading",
-          "mixed",
+          'video',
+          'interactive',
+          'practice',
+          'assessment',
+          'reading',
+          'mixed',
         ],
         required: true,
       },
       duration: {
         type: Number, // in minutes
-        required: [true, "Duration is required"],
-        min: [1, "Duration must be at least 1 minute"],
+        required: [true, 'Duration is required'],
+        min: [1, 'Duration must be at least 1 minute'],
       },
       materials: [materialSchema],
     },
@@ -227,13 +227,13 @@ const learningModuleSchema = new mongoose.Schema(
     // Module metadata
     difficulty: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert"],
-      required: [true, "Difficulty is required"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+      required: [true, 'Difficulty is required'],
     },
 
     order: {
       type: Number,
-      required: [true, "Module order is required"],
+      required: [true, 'Module order is required'],
       min: 0,
     },
 
@@ -242,7 +242,7 @@ const learningModuleSchema = new mongoose.Schema(
       {
         moduleId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "LearningModule",
+          ref: 'LearningModule',
         },
         title: String,
         required: {
@@ -347,16 +347,16 @@ const learningModuleSchema = new mongoose.Schema(
         type: {
           type: String,
           enum: [
-            "module_completion",
-            "assessment_score",
-            "time_spent",
-            "manual",
+            'module_completion',
+            'assessment_score',
+            'time_spent',
+            'manual',
           ],
-          default: "module_completion",
+          default: 'module_completion',
         },
         moduleId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "LearningModule",
+          ref: 'LearningModule',
         },
         threshold: Number, // score percentage or minutes
         description: String,
@@ -406,8 +406,8 @@ const learningModuleSchema = new mongoose.Schema(
     // Module status
     status: {
       type: String,
-      enum: ["draft", "published", "archived", "under_review"],
-      default: "published",
+      enum: ['draft', 'published', 'archived', 'under_review'],
+      default: 'published',
     },
 
     isActive: {
@@ -418,7 +418,7 @@ const learningModuleSchema = new mongoose.Schema(
     // Version control
     version: {
       type: String,
-      default: "1.0.0",
+      default: '1.0.0',
     },
 
     lastUpdated: {
@@ -460,22 +460,22 @@ const learningModuleSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
 learningModuleSchema.index({ pathId: 1, order: 1 });
 learningModuleSchema.index({ pathId: 1, status: 1, isActive: 1 });
-learningModuleSchema.index({ title: "text", description: "text" });
-learningModuleSchema.index({ difficulty: 1, "content.type": 1 });
+learningModuleSchema.index({ title: 'text', description: 'text' });
+learningModuleSchema.index({ difficulty: 1, 'content.type': 1 });
 learningModuleSchema.index({ createdAt: -1 });
 
 // Virtual for estimated reading time (for text content)
-learningModuleSchema.virtual("estimatedReadingTime").get(function () {
-  if (this.content.type !== "reading") return null;
+learningModuleSchema.virtual('estimatedReadingTime').get(function () {
+  if (this.content.type !== 'reading') return null;
 
   const wordsPerMinute = 200; // Average reading speed
-  const textMaterials = this.content.materials.filter((m) => m.type === "text");
+  const textMaterials = this.content.materials.filter((m) => m.type === 'text');
 
   if (textMaterials.length === 0) return this.content.duration;
 
@@ -484,12 +484,12 @@ learningModuleSchema.virtual("estimatedReadingTime").get(function () {
 });
 
 // Virtual for total materials count
-learningModuleSchema.virtual("materialsCount").get(function () {
+learningModuleSchema.virtual('materialsCount').get(function () {
   return this.content.materials ? this.content.materials.length : 0;
 });
 
 // Pre-save middleware to update lastUpdated
-learningModuleSchema.pre("save", function (next) {
+learningModuleSchema.pre('save', function (next) {
   if (this.isModified() && !this.isNew) {
     this.lastUpdated = new Date();
   }
@@ -499,12 +499,12 @@ learningModuleSchema.pre("save", function (next) {
 // Instance method to get content for specific learning style
 learningModuleSchema.methods.getAdaptedContent = function (
   learningStyle,
-  userPerformance = {}
+  userPerformance = {},
 ) {
   const adaptedMaterials = this.content.materials.map((material) => {
     // Find learning style variation
     const variation = material.adaptiveVariations.find(
-      (v) => v.learningStyle === learningStyle
+      (v) => v.learningStyle === learningStyle,
     );
 
     if (variation) {
@@ -524,16 +524,16 @@ learningModuleSchema.methods.getAdaptedContent = function (
 
     // Check if trigger condition matches user performance
     switch (adaptation.triggerCondition) {
-      case "struggling":
-        return userPerformance.averageScore < 60;
-      case "excelling":
-        return userPerformance.averageScore > 90;
-      case "time_pressure":
-        return userPerformance.timeSpentRatio < 0.7;
-      case "low_engagement":
-        return userPerformance.engagementScore < 50;
-      default:
-        return false;
+    case 'struggling':
+      return userPerformance.averageScore < 60;
+    case 'excelling':
+      return userPerformance.averageScore > 90;
+    case 'time_pressure':
+      return userPerformance.timeSpentRatio < 0.7;
+    case 'low_engagement':
+      return userPerformance.engagementScore < 50;
+    default:
+      return false;
     }
   });
 
@@ -547,28 +547,28 @@ learningModuleSchema.methods.getAdaptedContent = function (
 
 // Instance method to check if user can access this module
 learningModuleSchema.methods.checkAccess = function (
-  userCompletedModules = []
+  userCompletedModules = [],
 ) {
   if (!this.isLocked) return { canAccess: true, reason: null };
 
   // Check unlock conditions
   for (const condition of this.unlockConditions) {
     switch (condition.type) {
-      case "module_completion":
-        if (!userCompletedModules.includes(condition.moduleId.toString())) {
-          return {
-            canAccess: false,
-            reason: `Must complete prerequisite module: ${condition.description}`,
-          };
-        }
-        break;
-      case "manual":
+    case 'module_completion':
+      if (!userCompletedModules.includes(condition.moduleId.toString())) {
         return {
           canAccess: false,
-          reason: "Manual unlock required",
+          reason: `Must complete prerequisite module: ${condition.description}`,
         };
-      default:
-        break;
+      }
+      break;
+    case 'manual':
+      return {
+        canAccess: false,
+        reason: 'Manual unlock required',
+      };
+    default:
+      break;
     }
   }
 
@@ -577,10 +577,10 @@ learningModuleSchema.methods.checkAccess = function (
 
 // Instance method to calculate personalized difficulty
 learningModuleSchema.methods.getPersonalizedDifficulty = function (
-  userSkillLevel
+  userSkillLevel,
 ) {
   const baseDifficulty = this.difficulty;
-  const difficultyLevels = ["beginner", "intermediate", "advanced", "expert"];
+  const difficultyLevels = ['beginner', 'intermediate', 'advanced', 'expert'];
 
   const baseIndex = difficultyLevels.indexOf(baseDifficulty);
   const userIndex = difficultyLevels.indexOf(userSkillLevel);
@@ -602,18 +602,18 @@ learningModuleSchema.methods.getPersonalizedDifficulty = function (
     adjustmentReason:
       adjustedIndex !== baseIndex
         ? `Adjusted for ${userSkillLevel} skill level`
-        : "No adjustment needed",
+        : 'No adjustment needed',
   };
 };
 
 // Static method to get modules by path
 learningModuleSchema.statics.getByPath = function (
   pathId,
-  includeInactive = false
+  includeInactive = false,
 ) {
   const query = { pathId };
   if (!includeInactive) {
-    query.status = "published";
+    query.status = 'published';
     query.isActive = true;
   }
 
@@ -625,7 +625,7 @@ learningModuleSchema.statics.getNextModule = function (pathId, currentOrder) {
   return this.findOne({
     pathId,
     order: { $gt: currentOrder },
-    status: "published",
+    status: 'published',
     isActive: true,
   }).sort({ order: 1 });
 };
@@ -633,12 +633,12 @@ learningModuleSchema.statics.getNextModule = function (pathId, currentOrder) {
 // Static method to get previous module in sequence
 learningModuleSchema.statics.getPreviousModule = function (
   pathId,
-  currentOrder
+  currentOrder,
 ) {
   return this.findOne({
     pathId,
     order: { $lt: currentOrder },
-    status: "published",
+    status: 'published',
     isActive: true,
   }).sort({ order: -1 });
 };
@@ -650,35 +650,35 @@ learningModuleSchema.methods.getRecommendations = function (userProgress) {
   // Recommend review if user struggled
   if (userProgress.averageScore < 70) {
     recommendations.push({
-      type: "review",
-      priority: "high",
+      type: 'review',
+      priority: 'high',
       message:
-        "Consider reviewing this module to strengthen your understanding",
+        'Consider reviewing this module to strengthen your understanding',
     });
   }
 
   // Recommend practice if assessment score was low
   if (userProgress.assessmentScore < 80) {
     recommendations.push({
-      type: "practice",
-      priority: "medium",
-      message: "Additional practice exercises could help improve your skills",
+      type: 'practice',
+      priority: 'medium',
+      message: 'Additional practice exercises could help improve your skills',
     });
   }
 
   // Recommend advanced content if user excelled
   if (userProgress.averageScore > 95) {
     recommendations.push({
-      type: "advanced",
-      priority: "low",
+      type: 'advanced',
+      priority: 'low',
       message:
-        "You might enjoy exploring advanced topics related to this module",
+        'You might enjoy exploring advanced topics related to this module',
     });
   }
 
   return recommendations;
 };
 
-const LearningModule = mongoose.model("LearningModule", learningModuleSchema);
+const LearningModule = mongoose.model('LearningModule', learningModuleSchema);
 
 module.exports = LearningModule;

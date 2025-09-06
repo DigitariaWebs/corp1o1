@@ -18,12 +18,12 @@ class ProgressService {
         overallProgress,
         sessionData,
         pathProgress,
-        moduleProgress
+        moduleProgress,
       ] = await Promise.all([
         this.getOverallProgressMetrics(userId),
         this.getSessionMetrics(userId, dateThreshold),
         this.getPathProgressMetrics(userId),
-        this.getModuleProgressMetrics(userId, dateThreshold)
+        this.getModuleProgressMetrics(userId, dateThreshold),
       ]);
 
       return {
@@ -32,7 +32,7 @@ class ProgressService {
         paths: pathProgress,
         modules: moduleProgress,
         trends: this.calculateTrends(sessionData),
-        recommendations: await this.generateProgressRecommendations(userId, overallProgress)
+        recommendations: await this.generateProgressRecommendations(userId, overallProgress),
       };
 
     } catch (error) {
@@ -52,33 +52,33 @@ class ProgressService {
           _id: null,
           totalEnrollments: { $sum: 1 },
           pathEnrollments: { 
-            $sum: { $cond: [{ $ne: ['$pathId', null] }, 1, 0] }
+            $sum: { $cond: [{ $ne: ['$pathId', null] }, 1, 0] },
           },
           moduleEnrollments: { 
-            $sum: { $cond: [{ $ne: ['$moduleId', null] }, 1, 0] }
+            $sum: { $cond: [{ $ne: ['$moduleId', null] }, 1, 0] },
           },
           completedPaths: { 
             $sum: { 
               $cond: [
                 { $and: [{ $ne: ['$pathId', null] }, '$progress.completed'] }, 
-                1, 0
-              ]
-            }
+                1, 0,
+              ],
+            },
           },
           completedModules: { 
             $sum: { 
               $cond: [
                 { $and: [{ $ne: ['$moduleId', null] }, '$progress.completed'] }, 
-                1, 0
-              ]
-            }
+                1, 0,
+              ],
+            },
           },
           totalTimeSpent: { $sum: '$analytics.totalTimeSpent' },
           totalSessions: { $sum: '$analytics.sessionsCount' },
           averageEngagement: { $avg: '$analytics.engagementScore' },
-          averageAssessmentScore: { $avg: '$performance.averageScore' }
-        }
-      }
+          averageAssessmentScore: { $avg: '$performance.averageScore' },
+        },
+      },
     ]);
 
     const metrics = progressData[0] || {
@@ -90,7 +90,7 @@ class ProgressService {
       totalTimeSpent: 0,
       totalSessions: 0,
       averageEngagement: 0,
-      averageAssessmentScore: 0
+      averageAssessmentScore: 0,
     };
 
     // Calculate derived metrics
@@ -115,7 +115,7 @@ class ProgressService {
   static async getSessionMetrics(userId, dateThreshold) {
     const sessions = await LearningSession.find({
       userId,
-      startTime: { $gte: dateThreshold }
+      startTime: { $gte: dateThreshold },
     }).sort({ startTime: -1 }).lean();
 
     if (sessions.length === 0) {
@@ -127,7 +127,7 @@ class ProgressService {
         averageEngagement: 0,
         averageFocus: 0,
         sessionCompletionRate: 0,
-        dailySessionData: []
+        dailySessionData: [],
       };
     }
 
@@ -139,7 +139,7 @@ class ProgressService {
         sum + (s.performance?.engagementScore || 0), 0) / sessions.length,
       averageFocus: sessions.reduce((sum, s) => 
         sum + (s.performance?.focusScore || 0), 0) / sessions.length,
-      dailySessionData: this.groupSessionsByDay(sessions)
+      dailySessionData: this.groupSessionsByDay(sessions),
     };
 
     metrics.averageDuration = metrics.totalSessions > 0 ? 
@@ -157,11 +157,11 @@ class ProgressService {
   static async getPathProgressMetrics(userId) {
     const pathProgress = await UserProgress.find({
       userId,
-      pathId: { $exists: true, $ne: null }
+      pathId: { $exists: true, $ne: null },
     })
-    .populate('pathId', 'title category difficulty estimatedHours')
-    .sort({ 'progress.lastAccessed': -1 })
-    .lean();
+      .populate('pathId', 'title category difficulty estimatedHours')
+      .sort({ 'progress.lastAccessed': -1 })
+      .lean();
 
     const metrics = {
       enrolledPaths: pathProgress.length,
@@ -169,17 +169,17 @@ class ProgressService {
         in_progress: 0,
         completed: 0,
         paused: 0,
-        abandoned: 0
+        abandoned: 0,
       },
       pathsByDifficulty: {
         beginner: 0,
         intermediate: 0,
         advanced: 0,
-        expert: 0
+        expert: 0,
       },
       pathsByCategory: {},
       averageProgress: 0,
-      mostActiveCategory: null
+      mostActiveCategory: null,
     };
 
     let totalProgress = 0;
@@ -229,7 +229,7 @@ class ProgressService {
       Object.entries(categoryProgress).forEach(([category, data]) => {
         metrics.pathsByCategory[category] = {
           count: data.count,
-          averageProgress: data.total / data.count
+          averageProgress: data.total / data.count,
         };
       });
     }
@@ -244,10 +244,10 @@ class ProgressService {
     const moduleProgress = await UserProgress.find({
       userId,
       moduleId: { $exists: true, $ne: null },
-      lastActivityDate: { $gte: dateThreshold }
+      lastActivityDate: { $gte: dateThreshold },
     })
-    .populate('moduleId', 'title difficulty content.type content.duration')
-    .lean();
+      .populate('moduleId', 'title difficulty content.type content.duration')
+      .lean();
 
     const metrics = {
       activeModules: moduleProgress.length,
@@ -257,12 +257,12 @@ class ProgressService {
         beginner: 0,
         intermediate: 0,
         advanced: 0,
-        expert: 0
+        expert: 0,
       },
       modulesByType: {},
       averageEngagementByType: {},
       strugglingModules: [],
-      excellingModules: []
+      excellingModules: [],
     };
 
     if (moduleProgress.length === 0) return metrics;
@@ -307,7 +307,7 @@ class ProgressService {
             difficulty: progress.moduleId.difficulty,
             progress: progressPercentage,
             engagement: engagementScore,
-            timeSpent: progress.analytics?.totalTimeSpent || 0
+            timeSpent: progress.analytics?.totalTimeSpent || 0,
           });
         } else if (engagementScore > 85 && progressPercentage > 80) {
           metrics.excellingModules.push({
@@ -316,7 +316,7 @@ class ProgressService {
             difficulty: progress.moduleId.difficulty,
             progress: progressPercentage,
             engagement: engagementScore,
-            timeSpent: progress.analytics?.totalTimeSpent || 0
+            timeSpent: progress.analytics?.totalTimeSpent || 0,
           });
         }
       }
@@ -340,11 +340,11 @@ class ProgressService {
     const recentSessions = await LearningSession.find({
       userId,
       status: 'completed',
-      startTime: { $gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) }
+      startTime: { $gte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000) },
     })
-    .select('startTime')
-    .sort({ startTime: -1 })
-    .lean();
+      .select('startTime')
+      .sort({ startTime: -1 })
+      .lean();
 
     if (recentSessions.length === 0) {
       return { current: 0, longest: 0, lastActive: null };
@@ -392,7 +392,7 @@ class ProgressService {
     return {
       current: currentStreak,
       longest: longestStreak,
-      lastActive: recentSessions[0] ? recentSessions[0].startTime : null
+      lastActive: recentSessions[0] ? recentSessions[0].startTime : null,
     };
   }
 
@@ -414,7 +414,7 @@ class ProgressService {
           averageEngagement: 0,
           averageFocus: 0,
           engagementSum: 0,
-          focusSum: 0
+          focusSum: 0,
         };
       }
 
@@ -438,7 +438,7 @@ class ProgressService {
       averageFocus: dayData.sessions > 0 ? 
         Math.round(dayData.focusSum / dayData.sessions) : 0,
       completionRate: dayData.sessions > 0 ? 
-        (dayData.completedSessions / dayData.sessions) * 100 : 0
+        (dayData.completedSessions / dayData.sessions) * 100 : 0,
     })).sort((a, b) => new Date(a.date) - new Date(b.date));
   }
 
@@ -453,7 +453,7 @@ class ProgressService {
         engagement: 'insufficient_data',
         focus: 'insufficient_data',
         sessionTime: 'insufficient_data',
-        completion: 'insufficient_data'
+        completion: 'insufficient_data',
       };
     }
 
@@ -474,14 +474,14 @@ class ProgressService {
       else if (change < -10) trend = 'declining';
       
       const mappedKey = metric === 'averageEngagement' ? 'engagement' :
-                       metric === 'averageFocus' ? 'focus' :
-                       metric === 'totalTime' ? 'sessionTime' : 'completion';
+        metric === 'averageFocus' ? 'focus' :
+          metric === 'totalTime' ? 'sessionTime' : 'completion';
       
       trends[mappedKey] = {
         trend,
         change: Math.round(change),
         current: Math.round(recentAvg),
-        previous: Math.round(previousAvg)
+        previous: Math.round(previousAvg),
       };
     });
 
@@ -505,8 +505,8 @@ class ProgressService {
           'Try interactive modules instead of video content',
           'Take breaks between study sessions',
           'Change your study environment',
-          'Set smaller, achievable goals'
-        ]
+          'Set smaller, achievable goals',
+        ],
       });
     }
 
@@ -521,8 +521,8 @@ class ProgressService {
           'Choose 1-2 paths to focus on',
           'Set weekly completion goals',
           'Review and abandon paths that no longer interest you',
-          'Break down large paths into smaller milestones'
-        ]
+          'Break down large paths into smaller milestones',
+        ],
       });
     }
 
@@ -537,8 +537,8 @@ class ProgressService {
           'Aim for 30-45 minute sessions',
           'Use the Pomodoro Technique',
           'Plan sessions in advance',
-          'Eliminate distractions during study time'
-        ]
+          'Eliminate distractions during study time',
+        ],
       });
     }
 
@@ -553,8 +553,8 @@ class ProgressService {
           'Set a daily learning reminder',
           'Start with just 15 minutes per day',
           'Choose a consistent time for learning',
-          'Track your daily progress'
-        ]
+          'Track your daily progress',
+        ],
       });
     }
 
@@ -569,8 +569,8 @@ class ProgressService {
           'Review module content before assessments',
           'Take practice quizzes when available',
           'Focus on understanding concepts, not memorization',
-          'Ask for help in areas where you struggle'
-        ]
+          'Ask for help in areas where you struggle',
+        ],
       });
     }
 
@@ -583,14 +583,14 @@ class ProgressService {
   static getDateThreshold(timeRange) {
     const now = new Date();
     switch (timeRange) {
-      case '7d':
-        return new Date(now.setDate(now.getDate() - 7));
-      case '30d':
-        return new Date(now.setDate(now.getDate() - 30));
-      case '90d':
-        return new Date(now.setDate(now.getDate() - 90));
-      default:
-        return new Date(now.setDate(now.getDate() - 30));
+    case '7d':
+      return new Date(now.setDate(now.getDate() - 7));
+    case '30d':
+      return new Date(now.setDate(now.getDate() - 30));
+    case '90d':
+      return new Date(now.setDate(now.getDate() - 90));
+    default:
+      return new Date(now.setDate(now.getDate() - 30));
     }
   }
 
@@ -602,7 +602,7 @@ class ProgressService {
       const session = await LearningSession.findOne({
         sessionId,
         userId,
-        status: 'completed'
+        status: 'completed',
       }).populate('moduleId pathId');
 
       if (!session) {
@@ -636,7 +636,7 @@ class ProgressService {
   static async updateModuleProgress(userId, session) {
     const progress = await UserProgress.findOne({
       userId,
-      moduleId: session.moduleId._id
+      moduleId: session.moduleId._id,
     });
 
     if (progress) {
@@ -644,7 +644,7 @@ class ProgressService {
       await progress.recordSession({
         timeSpent: session.totalDuration || 0,
         engagementScore: session.performance?.engagementScore,
-        activeTime: session.activeDuration || 0
+        activeTime: session.activeDuration || 0,
       });
     }
   }
@@ -656,7 +656,7 @@ class ProgressService {
     const pathProgress = await UserProgress.findOne({
       userId,
       pathId: session.pathId._id,
-      moduleId: { $exists: false }
+      moduleId: { $exists: false },
     });
 
     if (pathProgress) {
@@ -675,11 +675,11 @@ class ProgressService {
   static async updateUserStatistics(userId, session) {
     await User.findByIdAndUpdate(userId, {
       $inc: {
-        'statistics.totalLearningTime': session.totalDuration || 0
+        'statistics.totalLearningTime': session.totalDuration || 0,
       },
       $set: {
-        'statistics.lastActiveAt': new Date()
-      }
+        'statistics.lastActiveAt': new Date(),
+      },
     });
   }
 }

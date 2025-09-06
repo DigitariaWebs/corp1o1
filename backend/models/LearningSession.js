@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Activity tracking schema for granular session analysis
 const activitySchema = new mongoose.Schema(
@@ -10,21 +10,21 @@ const activitySchema = new mongoose.Schema(
     action: {
       type: String,
       enum: [
-        "session_start",
-        "session_pause",
-        "session_resume",
-        "session_end",
-        "content_view",
-        "content_skip",
-        "content_replay",
-        "content_bookmark",
-        "assessment_start",
-        "assessment_submit",
-        "assessment_review",
-        "note_create",
-        "note_update",
-        "help_request",
-        "feedback_submit",
+        'session_start',
+        'session_pause',
+        'session_resume',
+        'session_end',
+        'content_view',
+        'content_skip',
+        'content_replay',
+        'content_bookmark',
+        'assessment_start',
+        'assessment_submit',
+        'assessment_review',
+        'note_create',
+        'note_update',
+        'help_request',
+        'feedback_submit',
       ],
       required: true,
     },
@@ -37,7 +37,7 @@ const activitySchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Device and environment information schema
@@ -52,11 +52,11 @@ const deviceInfoSchema = new mongoose.Schema(
     connectionType: String,
     deviceType: {
       type: String,
-      enum: ["desktop", "tablet", "mobile", "unknown"],
-      default: "unknown",
+      enum: ['desktop', 'tablet', 'mobile', 'unknown'],
+      default: 'unknown',
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Content interaction tracking schema
@@ -69,14 +69,14 @@ const contentInteractionSchema = new mongoose.Schema(
     materialType: {
       type: String,
       enum: [
-        "video",
-        "text",
-        "image",
-        "audio",
-        "interactive",
-        "document",
-        "link",
-        "quiz",
+        'video',
+        'text',
+        'image',
+        'audio',
+        'interactive',
+        'document',
+        'link',
+        'quiz',
       ],
       required: true,
     },
@@ -86,8 +86,8 @@ const contentInteractionSchema = new mongoose.Schema(
     },
     engagementLevel: {
       type: String,
-      enum: ["low", "medium", "high"],
-      default: "medium",
+      enum: ['low', 'medium', 'high'],
+      default: 'medium',
     },
     completionPercentage: {
       type: Number,
@@ -100,14 +100,14 @@ const contentInteractionSchema = new mongoose.Schema(
         type: {
           type: String,
           enum: [
-            "play",
-            "pause",
-            "seek",
-            "scroll",
-            "click",
-            "hover",
-            "focus",
-            "blur",
+            'play',
+            'pause',
+            'seek',
+            'scroll',
+            'click',
+            'hover',
+            'focus',
+            'blur',
           ],
         },
         timestamp: Date,
@@ -131,7 +131,7 @@ const contentInteractionSchema = new mongoose.Schema(
     },
     feedback: String,
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Learning session schema
@@ -147,19 +147,19 @@ const learningSessionSchema = new mongoose.Schema(
     // User and content references
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: [true, "User ID is required"],
+      ref: 'User',
+      required: [true, 'User ID is required'],
     },
 
     pathId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "LearningPath",
+      ref: 'LearningPath',
       default: null,
     },
 
     moduleId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "LearningModule",
+      ref: 'LearningModule',
       default: null,
     },
 
@@ -192,18 +192,18 @@ const learningSessionSchema = new mongoose.Schema(
     // Session status
     status: {
       type: String,
-      enum: ["active", "paused", "completed", "abandoned", "interrupted"],
-      default: "active",
+      enum: ['active', 'paused', 'completed', 'abandoned', 'interrupted'],
+      default: 'active',
     },
 
     completionReason: {
       type: String,
       enum: [
-        "natural_end",
-        "user_choice",
-        "timeout",
-        "technical_issue",
-        "interruption",
+        'natural_end',
+        'user_choice',
+        'timeout',
+        'technical_issue',
+        'interruption',
       ],
       default: null,
     },
@@ -259,17 +259,17 @@ const learningSessionSchema = new mongoose.Schema(
           indicator: {
             type: String,
             enum: [
-              "repeated_content",
-              "long_pauses",
-              "fast_skipping",
-              "low_interaction",
-              "help_requests",
+              'repeated_content',
+              'long_pauses',
+              'fast_skipping',
+              'low_interaction',
+              'help_requests',
             ],
           },
           severity: {
             type: String,
-            enum: ["low", "medium", "high"],
-            default: "medium",
+            enum: ['low', 'medium', 'high'],
+            default: 'medium',
           },
           frequency: Number,
         },
@@ -282,11 +282,11 @@ const learningSessionSchema = new mongoose.Schema(
         adaptationType: {
           type: String,
           enum: [
-            "difficulty_adjust",
-            "content_variation",
-            "pacing_change",
-            "hint_provided",
-            "encouragement",
+            'difficulty_adjust',
+            'content_variation',
+            'pacing_change',
+            'hint_provided',
+            'encouragement',
           ],
         },
         trigger: String,
@@ -308,24 +308,24 @@ const learningSessionSchema = new mongoose.Schema(
       initialMood: {
         type: String,
         enum: [
-          "motivated",
-          "neutral",
-          "tired",
-          "stressed",
-          "excited",
-          "frustrated",
+          'motivated',
+          'neutral',
+          'tired',
+          'stressed',
+          'excited',
+          'frustrated',
         ],
-        default: "neutral",
+        default: 'neutral',
       },
       finalMood: {
         type: String,
         enum: [
-          "satisfied",
-          "neutral",
-          "frustrated",
-          "accomplished",
-          "confused",
-          "motivated",
+          'satisfied',
+          'neutral',
+          'frustrated',
+          'accomplished',
+          'confused',
+          'motivated',
         ],
         default: null,
       },
@@ -345,12 +345,12 @@ const learningSessionSchema = new mongoose.Schema(
       },
       difficultyPerception: {
         type: String,
-        enum: ["too_easy", "just_right", "too_hard"],
+        enum: ['too_easy', 'just_right', 'too_hard'],
         default: null,
       },
       pacePreference: {
         type: String,
-        enum: ["slower", "current_pace", "faster"],
+        enum: ['slower', 'current_pace', 'faster'],
         default: null,
       },
     },
@@ -365,12 +365,12 @@ const learningSessionSchema = new mongoose.Schema(
     environment: {
       location: {
         type: String,
-        enum: ["home", "office", "library", "cafe", "commuting", "other"],
-        default: "other",
+        enum: ['home', 'office', 'library', 'cafe', 'commuting', 'other'],
+        default: 'other',
       },
       noiseLevel: {
         type: String,
-        enum: ["quiet", "moderate", "noisy"],
+        enum: ['quiet', 'moderate', 'noisy'],
         default: null,
       },
       distractions: [
@@ -379,7 +379,7 @@ const learningSessionSchema = new mongoose.Schema(
           frequency: String,
           impact: {
             type: String,
-            enum: ["low", "medium", "high"],
+            enum: ['low', 'medium', 'high'],
           },
         },
       ],
@@ -442,12 +442,12 @@ const learningSessionSchema = new mongoose.Schema(
       },
       difficultyRating: {
         type: String,
-        enum: ["too_easy", "just_right", "too_hard"],
+        enum: ['too_easy', 'just_right', 'too_hard'],
         default: null,
       },
       paceRating: {
         type: String,
-        enum: ["too_slow", "just_right", "too_fast"],
+        enum: ['too_slow', 'just_right', 'too_fast'],
         default: null,
       },
       technicalIssues: [String],
@@ -464,11 +464,11 @@ const learningSessionSchema = new mongoose.Schema(
         type: {
           type: String,
           enum: [
-            "first_session",
-            "streak_milestone",
-            "focus_achievement",
-            "content_mastery",
-            "help_others",
+            'first_session',
+            'streak_milestone',
+            'focus_achievement',
+            'content_mastery',
+            'help_others',
           ],
         },
         description: String,
@@ -487,12 +487,12 @@ const learningSessionSchema = new mongoose.Schema(
     metadata: {
       version: {
         type: String,
-        default: "1.0",
+        default: '1.0',
       },
       source: {
         type: String,
-        enum: ["web", "mobile", "api"],
-        default: "web",
+        enum: ['web', 'mobile', 'api'],
+        default: 'web',
       },
       experimentGroups: [String], // for A/B testing
       flags: [String], // feature flags active during session
@@ -508,7 +508,7 @@ const learningSessionSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance optimization
@@ -520,13 +520,13 @@ learningSessionSchema.index({ status: 1, startTime: -1 });
 learningSessionSchema.index({ startTime: -1 });
 
 // Virtual for session efficiency (active time / total time)
-learningSessionSchema.virtual("efficiency").get(function () {
+learningSessionSchema.virtual('efficiency').get(function () {
   if (this.totalDuration === 0) return 0;
   return Math.round((this.activeDuration / this.totalDuration) * 100);
 });
 
 // Virtual for session quality score
-learningSessionSchema.virtual("qualityScore").get(function () {
+learningSessionSchema.virtual('qualityScore').get(function () {
   const engagementWeight = 0.4;
   const focusWeight = 0.3;
   const progressWeight = 0.3;
@@ -534,16 +534,16 @@ learningSessionSchema.virtual("qualityScore").get(function () {
   return Math.round(
     this.performance.engagementScore * engagementWeight +
       this.performance.focusScore * focusWeight +
-      this.performance.progressMade * progressWeight
+      this.performance.progressMade * progressWeight,
   );
 });
 
 // Pre-save middleware to calculate durations and scores
-learningSessionSchema.pre("save", function (next) {
+learningSessionSchema.pre('save', function (next) {
   // Calculate total duration if session is ended
   if (this.endTime && this.startTime) {
     this.totalDuration = Math.round(
-      (this.endTime - this.startTime) / (1000 * 60)
+      (this.endTime - this.startTime) / (1000 * 60),
     ); // minutes
   }
 
@@ -553,7 +553,7 @@ learningSessionSchema.pre("save", function (next) {
       this.activities
         .filter(
           (activity) =>
-            !["session_pause", "session_end"].includes(activity.action)
+            !['session_pause', 'session_end'].includes(activity.action),
         )
         .reduce((total, activity) => total + (activity.duration || 0), 0) / 60; // convert to minutes
   }
@@ -562,17 +562,17 @@ learningSessionSchema.pre("save", function (next) {
   if (this.contentInteractions && this.contentInteractions.length > 0) {
     const totalInteractions = this.contentInteractions.length;
     const highEngagementCount = this.contentInteractions.filter(
-      (interaction) => interaction.engagementLevel === "high"
+      (interaction) => interaction.engagementLevel === 'high',
     ).length;
 
     this.performance.engagementScore = Math.round(
-      (highEngagementCount / totalInteractions) * 100
+      (highEngagementCount / totalInteractions) * 100,
     );
   }
 
   // Calculate focus score based on pause frequency and help requests
   const pauseCount = this.activities.filter(
-    (activity) => activity.action === "session_pause"
+    (activity) => activity.action === 'session_pause',
   ).length;
   const helpRequestCount = this.helpRequests ? this.helpRequests.length : 0;
 
@@ -587,7 +587,7 @@ learningSessionSchema.pre("save", function (next) {
 learningSessionSchema.methods.addActivity = function (
   action,
   details = {},
-  duration = 0
+  duration = 0,
 ) {
   this.activities.push({
     timestamp: new Date(),
@@ -597,12 +597,12 @@ learningSessionSchema.methods.addActivity = function (
   });
 
   // Update session status based on action
-  if (action === "session_pause") {
-    this.status = "paused";
-  } else if (action === "session_resume") {
-    this.status = "active";
-  } else if (action === "session_end") {
-    this.status = "completed";
+  if (action === 'session_pause') {
+    this.status = 'paused';
+  } else if (action === 'session_resume') {
+    this.status = 'active';
+  } else if (action === 'session_end') {
+    this.status = 'completed';
     this.endTime = new Date();
   }
 
@@ -611,11 +611,11 @@ learningSessionSchema.methods.addActivity = function (
 
 // Instance method to record content interaction
 learningSessionSchema.methods.recordContentInteraction = function (
-  interactionData
+  interactionData,
 ) {
   const existingInteraction = this.contentInteractions.find(
     (interaction) =>
-      interaction.materialId.toString() === interactionData.materialId
+      interaction.materialId.toString() === interactionData.materialId,
   );
 
   if (existingInteraction) {
@@ -623,7 +623,7 @@ learningSessionSchema.methods.recordContentInteraction = function (
     existingInteraction.timeSpent += interactionData.timeSpent || 0;
     existingInteraction.completionPercentage = Math.max(
       existingInteraction.completionPercentage,
-      interactionData.completionPercentage || 0
+      interactionData.completionPercentage || 0,
     );
     if (interactionData.interactions) {
       existingInteraction.interactions.push(...interactionData.interactions);
@@ -639,7 +639,7 @@ learningSessionSchema.methods.recordContentInteraction = function (
 // Instance method to add help request
 learningSessionSchema.methods.addHelpRequest = function (
   question,
-  context = ""
+  context = '',
 ) {
   this.helpRequests.push({
     question,
@@ -654,7 +654,7 @@ learningSessionSchema.methods.addHelpRequest = function (
 // Instance method to respond to help request
 learningSessionSchema.methods.respondToHelpRequest = function (
   requestId,
-  aiResponse
+  aiResponse,
 ) {
   const helpRequest = this.helpRequests.id(requestId);
   if (helpRequest) {
@@ -669,7 +669,7 @@ learningSessionSchema.methods.respondToHelpRequest = function (
 learningSessionSchema.methods.addNote = function (
   content,
   materialId = null,
-  position = null
+  position = null,
 ) {
   this.notes.push({
     content,
@@ -684,7 +684,7 @@ learningSessionSchema.methods.addNote = function (
 // Instance method to apply AI adaptation
 learningSessionSchema.methods.applyAdaptation = function (
   adaptationType,
-  trigger
+  trigger,
 ) {
   this.appliedAdaptations.push({
     adaptationType,
@@ -693,7 +693,7 @@ learningSessionSchema.methods.applyAdaptation = function (
   });
 
   // Add activity for adaptation
-  this.addActivity("ai_adaptation", { type: adaptationType, trigger });
+  this.addActivity('ai_adaptation', { type: adaptationType, trigger });
 
   return this;
 };
@@ -704,28 +704,28 @@ learningSessionSchema.methods.calculateStrugglingIndicators = function () {
 
   // Check for repeated content viewing
   const contentViews = this.activities.filter(
-    (activity) => activity.action === "content_view"
+    (activity) => activity.action === 'content_view',
   );
   const uniqueContent = new Set(
-    contentViews.map((view) => view.details.materialId)
+    contentViews.map((view) => view.details.materialId),
   );
 
   if (contentViews.length > uniqueContent.size * 2) {
     indicators.repeated_content = {
-      severity: "medium",
+      severity: 'medium',
       frequency: contentViews.length - uniqueContent.size,
     };
   }
 
   // Check for long pauses
   const pauses = this.activities.filter(
-    (activity) => activity.action === "session_pause"
+    (activity) => activity.action === 'session_pause',
   );
   const longPauses = pauses.filter((pause) => pause.duration > 300); // 5 minutes
 
   if (longPauses.length > 2) {
     indicators.long_pauses = {
-      severity: "high",
+      severity: 'high',
       frequency: longPauses.length,
     };
   }
@@ -733,7 +733,7 @@ learningSessionSchema.methods.calculateStrugglingIndicators = function () {
   // Check for help requests
   if (this.helpRequests && this.helpRequests.length > 3) {
     indicators.help_requests = {
-      severity: "high",
+      severity: 'high',
       frequency: this.helpRequests.length,
     };
   }
@@ -744,7 +744,7 @@ learningSessionSchema.methods.calculateStrugglingIndicators = function () {
       indicator,
       severity: data.severity,
       frequency: data.frequency,
-    })
+    }),
   );
 
   return this;
@@ -753,19 +753,19 @@ learningSessionSchema.methods.calculateStrugglingIndicators = function () {
 // Static method to get session analytics for user
 learningSessionSchema.statics.getUserSessionAnalytics = function (
   userId,
-  timeRange = "30d"
+  timeRange = '30d',
 ) {
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "7d":
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
   }
 
   return this.aggregate([
@@ -779,12 +779,12 @@ learningSessionSchema.statics.getUserSessionAnalytics = function (
       $group: {
         _id: null,
         totalSessions: { $sum: 1 },
-        totalTime: { $sum: "$totalDuration" },
-        avgSessionLength: { $avg: "$totalDuration" },
-        avgEngagement: { $avg: "$performance.engagementScore" },
-        avgFocus: { $avg: "$performance.focusScore" },
+        totalTime: { $sum: '$totalDuration' },
+        avgSessionLength: { $avg: '$totalDuration' },
+        avgEngagement: { $avg: '$performance.engagementScore' },
+        avgFocus: { $avg: '$performance.focusScore' },
         completedSessions: {
-          $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
         },
       },
     },
@@ -793,26 +793,26 @@ learningSessionSchema.statics.getUserSessionAnalytics = function (
 
 // Static method to get trending content interactions
 learningSessionSchema.statics.getTrendingContentInteractions = function (
-  timeRange = "7d"
+  timeRange = '7d',
 ) {
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - parseInt(timeRange));
 
   return this.aggregate([
     { $match: { startTime: { $gte: dateThreshold } } },
-    { $unwind: "$contentInteractions" },
+    { $unwind: '$contentInteractions' },
     {
       $group: {
-        _id: "$contentInteractions.materialType",
+        _id: '$contentInteractions.materialType',
         totalInteractions: { $sum: 1 },
         avgEngagement: {
           $avg: {
             $cond: [
-              { $eq: ["$contentInteractions.engagementLevel", "high"] },
+              { $eq: ['$contentInteractions.engagementLevel', 'high'] },
               3,
               {
                 $cond: [
-                  { $eq: ["$contentInteractions.engagementLevel", "medium"] },
+                  { $eq: ['$contentInteractions.engagementLevel', 'medium'] },
                   2,
                   1,
                 ],
@@ -820,7 +820,7 @@ learningSessionSchema.statics.getTrendingContentInteractions = function (
             ],
           },
         },
-        avgTimeSpent: { $avg: "$contentInteractions.timeSpent" },
+        avgTimeSpent: { $avg: '$contentInteractions.timeSpent' },
       },
     },
     { $sort: { totalInteractions: -1 } },
@@ -828,8 +828,8 @@ learningSessionSchema.statics.getTrendingContentInteractions = function (
 };
 
 const LearningSession = mongoose.model(
-  "LearningSession",
-  learningSessionSchema
+  'LearningSession',
+  learningSessionSchema,
 );
 
 module.exports = LearningSession;

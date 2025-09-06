@@ -1,5 +1,5 @@
 // models/OnboardingSession.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const onboardingAnswerSchema = new mongoose.Schema(
   {
@@ -20,7 +20,7 @@ const onboardingAnswerSchema = new mongoose.Schema(
 
     answerType: {
       type: String,
-      enum: ["multiple_choice", "multiple_select", "short_answer", "essay"],
+      enum: ['multiple_choice', 'multiple_select', 'short_answer', 'essay'],
       required: true,
     },
 
@@ -41,7 +41,7 @@ const onboardingAnswerSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const onboardingSessionSchema = new mongoose.Schema(
@@ -54,7 +54,7 @@ const onboardingSessionSchema = new mongoose.Schema(
 
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -66,8 +66,8 @@ const onboardingSessionSchema = new mongoose.Schema(
     // Session status
     status: {
       type: String,
-      enum: ["in_progress", "completed", "abandoned"],
-      default: "in_progress",
+      enum: ['in_progress', 'completed', 'abandoned'],
+      default: 'in_progress',
     },
 
     // User responses
@@ -103,7 +103,7 @@ const onboardingSessionSchema = new mongoose.Schema(
       {
         assessmentId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Assessment",
+          ref: 'Assessment',
         },
         title: String,
         description: String,
@@ -177,7 +177,7 @@ const onboardingSessionSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
@@ -187,13 +187,13 @@ onboardingSessionSchema.index({ clerkUserId: 1 });
 onboardingSessionSchema.index({ status: 1, createdAt: -1 });
 
 // Virtual for completion percentage
-onboardingSessionSchema.virtual("completionPercentage").get(function () {
+onboardingSessionSchema.virtual('completionPercentage').get(function () {
   if (this.totalQuestions === 0) return 0;
   return Math.round((this.questionsAnswered / this.totalQuestions) * 100);
 });
 
 // Virtual for session duration
-onboardingSessionSchema.virtual("duration").get(function () {
+onboardingSessionSchema.virtual('duration').get(function () {
   if (this.completedAt) {
     return Math.round((this.completedAt - this.startTime) / 1000);
   }
@@ -229,7 +229,7 @@ onboardingSessionSchema.methods.addAnswer = function (questionId, question, answ
 };
 
 onboardingSessionSchema.methods.complete = function () {
-  this.status = "completed";
+  this.status = 'completed';
   this.completedAt = new Date();
   this.totalTime = this.duration;
   return this.save();
@@ -254,17 +254,17 @@ onboardingSessionSchema.methods.getProgress = function () {
 
 // Static methods
 onboardingSessionSchema.statics.findByClerkUserId = function (clerkUserId) {
-  return this.findOne({ clerkUserId, status: { $ne: "abandoned" } });
+  return this.findOne({ clerkUserId, status: { $ne: 'abandoned' } });
 };
 
 onboardingSessionSchema.statics.findActiveSession = function (userId) {
-  return this.findOne({ userId, status: "in_progress" });
+  return this.findOne({ userId, status: 'in_progress' });
 };
 
 onboardingSessionSchema.statics.getUserOnboardingHistory = function (userId) {
   return this.find({ userId }).sort({ createdAt: -1 });
 };
 
-const OnboardingSession = mongoose.model("OnboardingSession", onboardingSessionSchema);
+const OnboardingSession = mongoose.model('OnboardingSession', onboardingSessionSchema);
 
 module.exports = OnboardingSession;

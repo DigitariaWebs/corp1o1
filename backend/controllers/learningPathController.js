@@ -1,15 +1,15 @@
-const LearningPath = require("../models/LearningPath");
-const UserProgress = require("../models/UserProgress");
-const User = require("../models/User");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const LearningPath = require('../models/LearningPath');
+const UserProgress = require('../models/UserProgress');
+const User = require('../models/User');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 // Get all learning paths with filtering and search
 const getAllLearningPaths = catchAsync(async (req, res) => {
   const {
     page = 1,
     limit = 12,
-    sort = "rating",
-    order = "desc",
+    sort = 'rating',
+    order = 'desc',
     category,
     difficulty,
     search,
@@ -22,19 +22,19 @@ const getAllLearningPaths = catchAsync(async (req, res) => {
 
   // Build query
   const query = {
-    status: "published",
+    status: 'published',
     isActive: true,
   };
 
   // Apply filters
   if (category) query.category = category;
   if (difficulty) query.difficulty = difficulty;
-  if (minRating) query["metadata.rating"] = { $gte: parseFloat(minRating) };
+  if (minRating) query['metadata.rating'] = { $gte: parseFloat(minRating) };
   if (maxHours) query.estimatedHours = { $lte: parseInt(maxHours) };
-  if (featured === "true") query["metadata.featured"] = true;
-  if (trending === "true") query["metadata.trending"] = true;
+  if (featured === 'true') query['metadata.featured'] = true;
+  if (trending === 'true') query['metadata.trending'] = true;
   if (skills) {
-    const skillsArray = skills.split(",");
+    const skillsArray = skills.split(',');
     query.skills = { $in: skillsArray };
   }
 
@@ -46,20 +46,20 @@ const getAllLearningPaths = catchAsync(async (req, res) => {
   // Build sort object
   const sortOptions = {};
   switch (sort) {
-    case "rating":
-      sortOptions["metadata.rating"] = order === "asc" ? 1 : -1;
-      break;
-    case "popularity":
-      sortOptions["metadata.studentsEnrolled"] = order === "asc" ? 1 : -1;
-      break;
-    case "newest":
-      sortOptions.createdAt = order === "asc" ? 1 : -1;
-      break;
-    case "duration":
-      sortOptions.estimatedHours = order === "asc" ? 1 : -1;
-      break;
-    default:
-      sortOptions["metadata.rating"] = -1;
+  case 'rating':
+    sortOptions['metadata.rating'] = order === 'asc' ? 1 : -1;
+    break;
+  case 'popularity':
+    sortOptions['metadata.studentsEnrolled'] = order === 'asc' ? 1 : -1;
+    break;
+  case 'newest':
+    sortOptions.createdAt = order === 'asc' ? 1 : -1;
+    break;
+  case 'duration':
+    sortOptions.estimatedHours = order === 'asc' ? 1 : -1;
+    break;
+  default:
+    sortOptions['metadata.rating'] = -1;
   }
 
   // Calculate pagination
@@ -69,7 +69,7 @@ const getAllLearningPaths = catchAsync(async (req, res) => {
 
   // Execute query with pagination
   const paths = await LearningPath.find(query)
-    .populate("modules", "title duration difficulty")
+    .populate('modules', 'title duration difficulty')
     .sort(sortOptions)
     .skip(skip)
     .limit(limitNum)
@@ -129,23 +129,23 @@ const getLearningPath = catchAsync(async (req, res) => {
 
   const path = await LearningPath.findById(pathId)
     .populate(
-      "modules",
-      "title description duration difficulty order prerequisites hasAssessment"
+      'modules',
+      'title description duration difficulty order prerequisites hasAssessment',
     )
-    .populate("prerequisites.pathId", "title difficulty")
+    .populate('prerequisites.pathId', 'title difficulty')
     .lean();
 
   if (!path) {
-    throw new AppError("Learning path not found", 404);
+    throw new AppError('Learning path not found', 404);
   }
 
-  if (path.status !== "published" || !path.isActive) {
-    throw new AppError("Learning path is not available", 403);
+  if (path.status !== 'published' || !path.isActive) {
+    throw new AppError('Learning path is not available', 403);
   }
 
   // Increment view count
   await LearningPath.findByIdAndUpdate(pathId, {
-    $inc: { "analytics.viewCount": 1 },
+    $inc: { 'analytics.viewCount': 1 },
   });
 
   // Get user's progress if authenticated
@@ -161,17 +161,17 @@ const getLearningPath = catchAsync(async (req, res) => {
     // Check prerequisites
     const userCompletedPaths = await UserProgress.find({
       userId: req.user._id,
-      "progress.completed": true,
-    }).distinct("pathId");
+      'progress.completed': true,
+    }).distinct('pathId');
 
     prerequisites = {
       met: path.prerequisites.every(
         (prereq) =>
-          !prereq.required || userCompletedPaths.includes(prereq.pathId._id)
+          !prereq.required || userCompletedPaths.includes(prereq.pathId._id),
       ),
       missing: path.prerequisites.filter(
         (prereq) =>
-          prereq.required && !userCompletedPaths.includes(prereq.pathId._id)
+          prereq.required && !userCompletedPaths.includes(prereq.pathId._id),
       ),
     };
   }
@@ -180,11 +180,11 @@ const getLearningPath = catchAsync(async (req, res) => {
   const relatedPaths = await LearningPath.find({
     _id: { $ne: pathId },
     $or: [{ category: path.category }, { skills: { $in: path.skills } }],
-    status: "published",
+    status: 'published',
     isActive: true,
   })
     .select(
-      "title difficulty estimatedHours metadata.rating metadata.studentsEnrolled"
+      'title difficulty estimatedHours metadata.rating metadata.studentsEnrolled',
     )
     .limit(4)
     .lean();
@@ -286,7 +286,7 @@ const getPathsByCategory = catchAsync(async (req, res) => {
       data: {
         paths: [],
         category,
-        message: "No paths found in this category",
+        message: 'No paths found in this category',
       },
     });
   }
@@ -328,11 +328,11 @@ const enrollInPath = catchAsync(async (req, res) => {
   // Check if path exists and is available
   const path = await LearningPath.findById(pathId);
   if (!path) {
-    throw new AppError("Learning path not found", 404);
+    throw new AppError('Learning path not found', 404);
   }
 
-  if (path.status !== "published" || !path.isActive) {
-    throw new AppError("Learning path is not available for enrollment", 403);
+  if (path.status !== 'published' || !path.isActive) {
+    throw new AppError('Learning path is not available for enrollment', 403);
   }
 
   // Check if user is already enrolled
@@ -344,7 +344,7 @@ const enrollInPath = catchAsync(async (req, res) => {
   if (existingProgress) {
     return res.status(200).json({
       success: true,
-      message: "Already enrolled in this learning path",
+      message: 'Already enrolled in this learning path',
       data: {
         progress: existingProgress,
         alreadyEnrolled: true,
@@ -355,26 +355,26 @@ const enrollInPath = catchAsync(async (req, res) => {
   // Check prerequisites
   const userCompletedPaths = await UserProgress.find({
     userId,
-    "progress.completed": true,
-  }).distinct("pathId");
+    'progress.completed': true,
+  }).distinct('pathId');
 
   const prerequisites = path.prerequisites || [];
   const unmetPrerequisites = prerequisites.filter(
-    (prereq) => prereq.required && !userCompletedPaths.includes(prereq.pathId)
+    (prereq) => prereq.required && !userCompletedPaths.includes(prereq.pathId),
   );
 
   if (unmetPrerequisites.length > 0) {
     const prereqPaths = await LearningPath.find({
       _id: { $in: unmetPrerequisites.map((prereq) => prereq.pathId) },
     })
-      .select("title")
+      .select('title')
       .lean();
 
     throw new AppError(
       `Prerequisites not met. Please complete: ${prereqPaths
         .map((p) => p.title)
-        .join(", ")}`,
-      400
+        .join(', ')}`,
+      400,
     );
   }
 
@@ -382,7 +382,7 @@ const enrollInPath = catchAsync(async (req, res) => {
   const userProgress = new UserProgress({
     userId,
     pathId,
-    status: "in_progress",
+    status: 'in_progress',
     enrollmentDate: new Date(),
     goals: {
       dailyTimeGoal: req.user.learningProfile.optimalSessionDuration || 30,
@@ -394,19 +394,19 @@ const enrollInPath = catchAsync(async (req, res) => {
 
   // Update path enrollment statistics
   await LearningPath.findByIdAndUpdate(pathId, {
-    $inc: { "metadata.studentsEnrolled": 1 },
+    $inc: { 'metadata.studentsEnrolled': 1 },
   });
 
   // Update user statistics
   await User.findByIdAndUpdate(userId, {
-    $inc: { "statistics.pathsEnrolled": 1 },
+    $inc: { 'statistics.pathsEnrolled': 1 },
   });
 
   console.log(`✅ User ${req.user.email} enrolled in path: ${path.title}`);
 
   res.status(201).json({
     success: true,
-    message: "Successfully enrolled in learning path",
+    message: 'Successfully enrolled in learning path',
     data: {
       progress: userProgress,
       path: {
@@ -431,51 +431,51 @@ const unenrollFromPath = catchAsync(async (req, res) => {
   });
 
   if (!userProgress) {
-    throw new AppError("You are not enrolled in this learning path", 404);
+    throw new AppError('You are not enrolled in this learning path', 404);
   }
 
   if (userProgress.progress.completed) {
-    throw new AppError("Cannot unenroll from a completed learning path", 400);
+    throw new AppError('Cannot unenroll from a completed learning path', 400);
   }
 
   // Update status instead of deleting (for analytics)
-  userProgress.status = "abandoned";
+  userProgress.status = 'abandoned';
   userProgress.lastActivityDate = new Date();
   await userProgress.save();
 
   // Update path enrollment statistics
   await LearningPath.findByIdAndUpdate(pathId, {
-    $inc: { "metadata.studentsEnrolled": -1 },
+    $inc: { 'metadata.studentsEnrolled': -1 },
   });
 
   // Update user statistics
   await User.findByIdAndUpdate(userId, {
-    $inc: { "statistics.pathsEnrolled": -1 },
+    $inc: { 'statistics.pathsEnrolled': -1 },
   });
 
   res.status(200).json({
     success: true,
-    message: "Successfully unenrolled from learning path",
+    message: 'Successfully unenrolled from learning path',
   });
 });
 
 // Get user's enrolled learning paths
 const getEnrolledPaths = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { status = "all" } = req.query;
+  const { status = 'all' } = req.query;
 
   // Build query
   const query = { userId };
-  if (status !== "all") {
+  if (status !== 'all') {
     query.status = status;
   }
 
   const enrolledPaths = await UserProgress.find(query)
     .populate(
-      "pathId",
-      "title description category difficulty estimatedHours metadata modules"
+      'pathId',
+      'title description category difficulty estimatedHours metadata modules',
     )
-    .sort({ "progress.lastAccessed": -1 })
+    .sort({ 'progress.lastAccessed': -1 })
     .lean();
 
   // Filter out paths that no longer exist
@@ -533,16 +533,16 @@ const getRecommendations = catchAsync(async (req, res) => {
     const userProgress = await UserProgress.find({
       userId: req.user._id,
     })
-      .populate("pathId", "category skills difficulty")
+      .populate('pathId', 'category skills difficulty')
       .lean();
 
     userProfile = {
       skillLevel:
-        user.learningProfile.preferredPace === "fast"
-          ? "advanced"
-          : user.learningProfile.preferredPace === "slow"
-          ? "beginner"
-          : "intermediate",
+        user.learningProfile.preferredPace === 'fast'
+          ? 'advanced'
+          : user.learningProfile.preferredPace === 'slow'
+            ? 'beginner'
+            : 'intermediate',
       interestedCategories: [
         ...new Set(userProgress.map((p) => p.pathId?.category).filter(Boolean)),
       ],
@@ -555,7 +555,7 @@ const getRecommendations = catchAsync(async (req, res) => {
 
   const recommendations = await LearningPath.getRecommendations(
     userProfile,
-    limit
+    limit,
   );
 
   // Get user progress for recommendations
@@ -585,10 +585,10 @@ const getRecommendations = catchAsync(async (req, res) => {
       recommendations: recommendationsWithProgress,
       userProfile: req.user
         ? {
-            learningStyle: req.user.learningProfile.learningStyle,
-            preferredPace: req.user.learningProfile.preferredPace,
-            skillLevel: userProfile.skillLevel,
-          }
+          learningStyle: req.user.learningProfile.learningStyle,
+          preferredPace: req.user.learningProfile.preferredPace,
+          skillLevel: userProfile.skillLevel,
+        }
         : null,
     },
   });
@@ -602,11 +602,11 @@ const searchPaths = catchAsync(async (req, res) => {
   const skip = (page - 1) * limit;
 
   if (!query || query.trim().length === 0) {
-    throw new AppError("Search query is required", 400);
+    throw new AppError('Search query is required', 400);
   }
 
   const searchResults = await LearningPath.searchPaths(query, filters)
-    .populate("modules", "title duration")
+    .populate('modules', 'title duration')
     .skip(skip)
     .limit(limit)
     .lean();

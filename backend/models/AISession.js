@@ -5,56 +5,56 @@ const messageSchema = new mongoose.Schema({
   messageId: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   role: {
     type: String,
     enum: ['user', 'assistant', 'system'],
-    required: true
+    required: true,
   },
   content: {
     type: String,
     required: true,
-    maxlength: [4000, 'Message content cannot exceed 4000 characters']
+    maxlength: [4000, 'Message content cannot exceed 4000 characters'],
   },
   timestamp: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   // Metadata about the message
   metadata: {
     promptId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AIPrompt',
-      default: null
+      default: null,
     },
     responseTime: {
       type: Number, // milliseconds
-      default: 0
+      default: 0,
     },
     tokenCount: {
       type: Number,
-      default: 0
+      default: 0,
     },
     confidence: {
       type: Number,
       min: 0,
       max: 100,
-      default: 0
+      default: 0,
     },
     intent: {
       type: String,
       enum: ['help', 'motivation', 'clarification', 'assessment', 'general', 'feedback'],
-      default: 'general'
+      default: 'general',
     },
     topics: [{
       type: String,
-      trim: true
+      trim: true,
     }],
     urgency: {
       type: String,
       enum: ['low', 'medium', 'high'],
-      default: 'low'
+      default: 'low',
     },
     // User feedback on AI response
     feedback: {
@@ -62,29 +62,29 @@ const messageSchema = new mongoose.Schema({
         type: Number,
         min: 1,
         max: 5,
-        default: null
+        default: null,
       },
       helpful: {
         type: Boolean,
-        default: null
+        default: null,
       },
       comment: {
         type: String,
-        maxlength: 500
+        maxlength: 500,
       },
-      timestamp: Date
+      timestamp: Date,
     },
     // Error information if message failed
     error: {
       occurred: {
         type: Boolean,
-        default: false
+        default: false,
       },
       message: String,
       code: String,
-      timestamp: Date
-    }
-  }
+      timestamp: Date,
+    },
+  },
 }, { _id: true });
 
 // Session context schema
@@ -93,32 +93,32 @@ const sessionContextSchema = new mongoose.Schema({
   currentModule: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningModule',
-    default: null
+    default: null,
   },
   currentPath: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningPath',
-    default: null
+    default: null,
   },
   learningSession: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningSession',
-    default: null
+    default: null,
   },
   
   // Session characteristics
   sessionDuration: {
     type: Number, // minutes since session start
-    default: 0
+    default: 0,
   },
   userState: {
     type: String,
     enum: ['focused', 'struggling', 'motivated', 'fatigued', 'confused', 'engaged'],
-    default: 'focused'
+    default: 'focused',
   },
   lastActivity: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   // Learning progress context
@@ -127,13 +127,13 @@ const sessionContextSchema = new mongoose.Schema({
       type: Number,
       min: 0,
       max: 100,
-      default: 0
+      default: 0,
     },
     recentPerformance: {
       type: Number,
       min: 0,
       max: 100,
-      default: 0
+      default: 0,
     },
     strugglingAreas: [String],
     strengths: [String],
@@ -141,18 +141,18 @@ const sessionContextSchema = new mongoose.Schema({
       type: Number,
       min: 0,
       max: 100,
-      default: null
-    }
+      default: null,
+    },
   },
   
   // Environmental context
   deviceType: {
     type: String,
     enum: ['desktop', 'tablet', 'mobile', 'unknown'],
-    default: 'unknown'
+    default: 'unknown',
   },
   platform: String,
-  timezone: String
+  timezone: String,
 }, { _id: false });
 
 // Conversation analytics schema
@@ -160,33 +160,33 @@ const conversationAnalyticsSchema = new mongoose.Schema({
   // Message statistics
   totalMessages: {
     type: Number,
-    default: 0
+    default: 0,
   },
   userMessages: {
     type: Number,
-    default: 0
+    default: 0,
   },
   assistantMessages: {
     type: Number,
-    default: 0
+    default: 0,
   },
   
   // Response quality metrics
   averageResponseTime: {
     type: Number, // milliseconds
-    default: 0
+    default: 0,
   },
   averageConfidence: {
     type: Number,
     min: 0,
     max: 100,
-    default: 0
+    default: 0,
   },
   averageRating: {
     type: Number,
     min: 0,
     max: 5,
-    default: 0
+    default: 0,
   },
   
   // Engagement metrics
@@ -194,13 +194,13 @@ const conversationAnalyticsSchema = new mongoose.Schema({
     type: Number,
     min: 0,
     max: 100,
-    default: 0
+    default: 0,
   },
   helpfulnessScore: {
     type: Number,
     min: 0,
     max: 100,
-    default: 0
+    default: 0,
   },
   
   // Topic analysis
@@ -211,8 +211,8 @@ const conversationAnalyticsSchema = new mongoose.Schema({
   adaptationsApplied: [{
     type: String,
     timestamp: Date,
-    effectiveness: Number
-  }]
+    effectiveness: Number,
+  }],
 }, { _id: false });
 
 // AI Session schema
@@ -221,43 +221,43 @@ const aiSessionSchema = new mongoose.Schema({
   sessionId: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   
   // User and AI configuration
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User ID is required']
+    required: [true, 'User ID is required'],
   },
   
   aiPersonality: {
     type: String,
     enum: ['ARIA', 'SAGE', 'COACH'],
-    required: [true, 'AI personality is required']
+    required: [true, 'AI personality is required'],
   },
   
   // Session timing
   startTime: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   endTime: {
     type: Date,
-    default: null
+    default: null,
   },
   
   lastInteraction: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   // Session status
   status: {
     type: String,
     enum: ['active', 'paused', 'completed', 'timeout', 'error'],
-    default: 'active'
+    default: 'active',
   },
   
   // Complete conversation history
@@ -274,31 +274,31 @@ const aiSessionSchema = new mongoose.Schema({
     modelType: {
       type: String,
       enum: ['openai-gpt4', 'openai-gpt35', 'claude', 'local'],
-      default: 'openai-gpt4'
+      default: 'openai-gpt4',
     },
     maxMessages: {
       type: Number,
-      default: 100
+      default: 100,
     },
     sessionTimeout: {
       type: Number, // minutes
-      default: 30
+      default: 30,
     },
     adaptiveMode: {
       type: Boolean,
-      default: true
+      default: true,
     },
     contextAware: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   
   // Session outcomes and summary
   outcomes: {
     problemsSolved: {
       type: Number,
-      default: 0
+      default: 0,
     },
     conceptsClarified: [String],
     recommendationsGiven: [String],
@@ -306,10 +306,10 @@ const aiSessionSchema = new mongoose.Schema({
       type: Number,
       min: 1,
       max: 5,
-      default: null
+      default: null,
     },
-    sessionNotes: String
-  }
+    sessionNotes: String,
+  },
 }, {
   timestamps: true,
   toJSON: {
@@ -318,8 +318,8 @@ const aiSessionSchema = new mongoose.Schema({
       delete ret._id;
       delete ret.__v;
       return ret;
-    }
-  }
+    },
+  },
 });
 
 // Indexes for performance optimization
@@ -381,7 +381,7 @@ aiSessionSchema.methods.updateAnalytics = function() {
   
   // Extract topics discussed
   this.analytics.topicsDiscussed = [
-    ...new Set(this.messages.flatMap(m => m.metadata.topics || []))
+    ...new Set(this.messages.flatMap(m => m.metadata.topics || [])),
   ];
   
   // Find most common intent
@@ -399,12 +399,12 @@ aiSessionSchema.methods.updateAnalytics = function() {
     ratedMessages.filter(m => m.metadata.feedback.rating >= 4).length / ratedMessages.length : 0.5;
   
   this.analytics.engagementScore = Math.round(
-    (messageFrequency * 20) + (feedbackPositivity * 80)
+    (messageFrequency * 20) + (feedbackPositivity * 80),
   );
   
   // Calculate helpfulness score
   const helpfulMessages = assistantMessages.filter(m => 
-    m.metadata.feedback?.helpful === true
+    m.metadata.feedback?.helpful === true,
   );
   this.analytics.helpfulnessScore = assistantMessages.length > 0 ? 
     Math.round((helpfulMessages.length / assistantMessages.length) * 100) : 0;
@@ -424,8 +424,8 @@ aiSessionSchema.methods.addMessage = function(role, content, metadata = {}) {
       confidence: metadata.confidence || 0,
       intent: metadata.intent || 'general',
       topics: metadata.topics || [],
-      urgency: metadata.urgency || 'low'
-    }
+      urgency: metadata.urgency || 'low',
+    },
   };
   
   this.messages.push(message);
@@ -443,7 +443,7 @@ aiSessionSchema.methods.updateContext = function(contextUpdates) {
   this.context = {
     ...this.context.toObject(),
     ...contextUpdates,
-    lastActivity: new Date()
+    lastActivity: new Date(),
   };
   
   return this;
@@ -455,7 +455,7 @@ aiSessionSchema.methods.addMessageFeedback = function(messageId, feedback) {
   if (message) {
     message.metadata.feedback = {
       ...feedback,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
     return true;
   }
@@ -475,7 +475,7 @@ aiSessionSchema.methods.endSession = function(reason = 'completed') {
   
   // Calculate final outcomes
   this.outcomes.problemsSolved = this.messages.filter(m => 
-    m.role === 'user' && m.content.includes('?')
+    m.role === 'user' && m.content.includes('?'),
   ).length;
   
   this.outcomes.conceptsClarified = this.analytics.topicsDiscussed;
@@ -497,8 +497,8 @@ aiSessionSchema.methods.getConversationSummary = function() {
     recentMessages: recentMessages.map(m => ({
       role: m.role,
       content: m.content.substring(0, 100) + '...',
-      timestamp: m.timestamp
-    }))
+      timestamp: m.timestamp,
+    })),
   };
 };
 
@@ -507,7 +507,7 @@ aiSessionSchema.statics.findActiveSessions = function(userId) {
   return this.find({
     userId,
     status: 'active',
-    lastInteraction: { $gte: new Date(Date.now() - 30 * 60 * 1000) } // 30 minutes
+    lastInteraction: { $gte: new Date(Date.now() - 30 * 60 * 1000) }, // 30 minutes
   });
 };
 
@@ -515,23 +515,23 @@ aiSessionSchema.statics.findActiveSessions = function(userId) {
 aiSessionSchema.statics.getUserSessionAnalytics = function(userId, timeRange = '30d') {
   const dateThreshold = new Date();
   switch (timeRange) {
-    case '7d':
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case '30d':
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case '90d':
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
   }
   
   return this.aggregate([
     {
       $match: {
         userId: new mongoose.Types.ObjectId(userId),
-        startTime: { $gte: dateThreshold }
-      }
+        startTime: { $gte: dateThreshold },
+      },
     },
     {
       $group: {
@@ -542,9 +542,9 @@ aiSessionSchema.statics.getUserSessionAnalytics = function(userId, timeRange = '
         avgEngagement: { $avg: '$analytics.engagementScore' },
         avgHelpfulness: { $avg: '$analytics.helpfulnessScore' },
         avgRating: { $avg: '$analytics.averageRating' },
-        totalTopics: { $push: '$analytics.topicsDiscussed' }
-      }
-    }
+        totalTopics: { $push: '$analytics.topicsDiscussed' },
+      },
+    },
   ]);
 };
 
@@ -555,7 +555,7 @@ aiSessionSchema.statics.cleanupOldSessions = async function(daysOld = 90) {
   
   const result = await this.deleteMany({
     startTime: { $lt: cutoffDate },
-    status: { $in: ['completed', 'timeout', 'error'] }
+    status: { $in: ['completed', 'timeout', 'error'] },
   });
   
   return result.deletedCount;

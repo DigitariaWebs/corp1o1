@@ -1,18 +1,18 @@
 // services/onboardingService.js
-const OnboardingQuestion = require("../models/OnboardingQuestion");
-const OnboardingSession = require("../models/OnboardingSession");
-const Assessment = require("../models/Assessment");
-const User = require("../models/User");
-const { openAIService } = require("./openaiService");
-const { v4: uuidv4 } = require("uuid");
-const { AppError } = require("../middleware/errorHandler");
+const OnboardingQuestion = require('../models/OnboardingQuestion');
+const OnboardingSession = require('../models/OnboardingSession');
+const Assessment = require('../models/Assessment');
+const User = require('../models/User');
+const { openAIService } = require('./openaiService');
+const { v4: uuidv4 } = require('uuid');
+const { AppError } = require('../middleware/errorHandler');
 
 class OnboardingService {
   constructor() {
     this.aiModels = {
       analysis: process.env.OPENAI_ANALYSIS_MODEL || 'gpt-4o',
       assessmentGeneration: process.env.OPENAI_ASSESSMENT_MODEL || 'gpt-4o',
-      questionGeneration: process.env.OPENAI_QUESTION_MODEL || 'gpt-4o'
+      questionGeneration: process.env.OPENAI_QUESTION_MODEL || 'gpt-4o',
     };
   }
 
@@ -30,7 +30,7 @@ class OnboardingService {
       const questions = await OnboardingQuestion.getOnboardingFlow();
       
       if (questions.length === 0) {
-        throw new AppError("No onboarding questions available", 500);
+        throw new AppError('No onboarding questions available', 500);
       }
 
       // Create onboarding session
@@ -40,9 +40,9 @@ class OnboardingService {
         clerkUserId,
         totalQuestions: questions.length,
         aiProcessingStatus: {
-          profileAnalysis: { status: "pending" },
-          assessmentGeneration: { status: "pending" }
-        }
+          profileAnalysis: { status: 'pending' },
+          assessmentGeneration: { status: 'pending' },
+        },
       });
 
       await session.save();
@@ -59,13 +59,13 @@ class OnboardingService {
           category: q.category,
           options: q.options,
           expectedLength: q.expectedLength,
-          flow: q.flow
+          flow: q.flow,
         })),
-        progress: session.getProgress()
+        progress: session.getProgress(),
       };
 
     } catch (error) {
-      console.error("❌ Error starting onboarding session:", error);
+      console.error('❌ Error starting onboarding session:', error);
       throw error;
     }
   }
@@ -85,15 +85,15 @@ class OnboardingService {
       // Get session and question
       const [session, question] = await Promise.all([
         OnboardingSession.findOne({ sessionId }),
-        OnboardingQuestion.getQuestionWithAnalysis(questionId)
+        OnboardingQuestion.getQuestionWithAnalysis(questionId),
       ]);
 
       if (!session) {
-        throw new AppError("Onboarding session not found", 404);
+        throw new AppError('Onboarding session not found', 404);
       }
 
       if (!question) {
-        throw new AppError("Question not found", 404);
+        throw new AppError('Question not found', 404);
       }
 
       // Analyze answer with AI
@@ -105,7 +105,7 @@ class OnboardingService {
         question.question,
         answer,
         question.type,
-        timeSpent
+        timeSpent,
       );
 
       // Update AI analysis
@@ -125,11 +125,11 @@ class OnboardingService {
         sessionId: session.sessionId,
         progress: session.getProgress(),
         nextQuestion: this.getNextQuestion(session, question),
-        aiAnalysis: aiAnalysis
+        aiAnalysis: aiAnalysis,
       };
 
     } catch (error) {
-      console.error("❌ Error submitting answer:", error);
+      console.error('❌ Error submitting answer:', error);
       throw error;
     }
   }
@@ -149,18 +149,18 @@ class OnboardingService {
 
       const response = await openAIService.createChatCompletion([
         {
-          role: "system",
-          content: "You are an expert educational psychologist and career counselor analyzing user responses to understand their learning profile, career goals, and skill levels."
+          role: 'system',
+          content: 'You are an expert educational psychologist and career counselor analyzing user responses to understand their learning profile, career goals, and skill levels.',
         },
         {
-          role: "user",
-          content: prompt
-        }
+          role: 'user',
+          content: prompt,
+        },
       ], {
         model: this.aiModels.analysis,
         temperature: 0.3,
         max_tokens: 500,
-        response_format: { type: "json_object" }
+        response_format: { type: 'json_object' },
       });
 
       const analysis = this.parseAnalysisResponse(response.content);
@@ -170,16 +170,16 @@ class OnboardingService {
       return analysis;
 
     } catch (error) {
-      console.error("❌ AI analysis failed:", error);
+      console.error('❌ AI analysis failed:', error);
       
       // Return fallback analysis
       return {
         score: 70,
         confidence: 60,
-        insights: ["Analysis could not be completed"],
-        categories: ["general"],
-        recommendations: ["Continue with onboarding"],
-        requiresFollowUp: false
+        insights: ['Analysis could not be completed'],
+        categories: ['general'],
+        recommendations: ['Continue with onboarding'],
+        requiresFollowUp: false,
       };
     }
   }
@@ -232,19 +232,19 @@ Focus on extracting meaningful insights about the user's learning style, experie
         insights: analysis.insights || [],
         categories: analysis.categories || [],
         recommendations: analysis.recommendations || [],
-        requiresFollowUp: analysis.requiresFollowUp || false
+        requiresFollowUp: analysis.requiresFollowUp || false,
       };
 
     } catch (error) {
-      console.error("Failed to parse AI analysis:", error);
+      console.error('Failed to parse AI analysis:', error);
       
       return {
         score: 70,
         confidence: 60,
-        insights: ["Analysis parsing failed"],
-        categories: ["general"],
-        recommendations: ["Continue with onboarding"],
-        requiresFollowUp: false
+        insights: ['Analysis parsing failed'],
+        categories: ['general'],
+        recommendations: ['Continue with onboarding'],
+        requiresFollowUp: false,
       };
     }
   }
@@ -259,28 +259,28 @@ Focus on extracting meaningful insights about the user's learning style, experie
       console.log(`🎯 Completing onboarding for session: ${session.sessionId}`);
 
       // Update AI processing status
-      session.aiProcessingStatus.profileAnalysis.status = "processing";
+      session.aiProcessingStatus.profileAnalysis.status = 'processing';
       session.aiProcessingStatus.profileAnalysis.startedAt = new Date();
       await session.save();
 
       // Generate AI profile
       const aiProfile = await this.generateAIProfile(session.answers);
       session.aiProfile = aiProfile;
-      session.aiProcessingStatus.profileAnalysis.status = "completed";
+      session.aiProcessingStatus.profileAnalysis.status = 'completed';
       session.aiProcessingStatus.profileAnalysis.completedAt = new Date();
 
       // Update AI processing status for assessment generation
-      session.aiProcessingStatus.assessmentGeneration.status = "processing";
+      session.aiProcessingStatus.assessmentGeneration.status = 'processing';
       session.aiProcessingStatus.assessmentGeneration.startedAt = new Date();
       await session.save();
 
       // Generate personalized assessments
       const generatedAssessments = await this.generatePersonalizedAssessments(
         session.answers,
-        aiProfile
+        aiProfile,
       );
       session.generatedAssessments = generatedAssessments;
-      session.aiProcessingStatus.assessmentGeneration.status = "completed";
+      session.aiProcessingStatus.assessmentGeneration.status = 'completed';
       session.aiProcessingStatus.assessmentGeneration.completedAt = new Date();
 
       // Complete session
@@ -295,14 +295,14 @@ Focus on extracting meaningful insights about the user's learning style, experie
         sessionId: session.sessionId,
         aiProfile,
         generatedAssessments,
-        recommendedAssessments: await this.getRecommendedPrebuiltAssessments(aiProfile)
+        recommendedAssessments: await this.getRecommendedPrebuiltAssessments(aiProfile),
       };
 
     } catch (error) {
-      console.error("❌ Error completing onboarding:", error);
+      console.error('❌ Error completing onboarding:', error);
       
       // Mark as failed
-      session.aiProcessingStatus.profileAnalysis.status = "failed";
+      session.aiProcessingStatus.profileAnalysis.status = 'failed';
       session.aiProcessingStatus.profileAnalysis.error = error.message;
       await session.save();
       
@@ -317,34 +317,34 @@ Focus on extracting meaningful insights about the user's learning style, experie
    */
   async generateAIProfile(answers) {
     try {
-      console.log("🤖 Generating AI profile from onboarding answers");
+      console.log('🤖 Generating AI profile from onboarding answers');
 
       const prompt = this.buildProfileGenerationPrompt(answers);
 
       const response = await openAIService.createChatCompletion([
         {
-          role: "system",
-          content: "You are an expert educational psychologist and career counselor. Analyze user responses to create a comprehensive learning and career profile."
+          role: 'system',
+          content: 'You are an expert educational psychologist and career counselor. Analyze user responses to create a comprehensive learning and career profile.',
         },
         {
-          role: "user",
-          content: prompt
-        }
+          role: 'user',
+          content: prompt,
+        },
       ], {
         model: this.aiModels.analysis,
         temperature: 0.4,
         max_tokens: 800,
-        response_format: { type: "json_object" }
+        response_format: { type: 'json_object' },
       });
 
       const profile = this.parseProfileResponse(response.content);
       
-      console.log("✅ AI profile generated successfully");
+      console.log('✅ AI profile generated successfully');
 
       return profile;
 
     } catch (error) {
-      console.error("❌ AI profile generation failed:", error);
+      console.error('❌ AI profile generation failed:', error);
       throw error;
     }
   }
@@ -355,7 +355,7 @@ Focus on extracting meaningful insights about the user's learning style, experie
    * @returns {string} Profile generation prompt
    */
   buildProfileGenerationPrompt(answers) {
-    let prompt = "Based on these user responses to onboarding questions, create a comprehensive profile:\n\n";
+    let prompt = 'Based on these user responses to onboarding questions, create a comprehensive profile:\n\n';
 
     answers.forEach((answer, index) => {
       prompt += `Question ${index + 1}: ${answer.question}\n`;
@@ -405,31 +405,31 @@ Focus on extracting clear patterns and providing actionable insights.`;
 
       return {
         learningStyle: {
-          primary: profile.learningStyle?.primary || "adaptive",
-          secondary: profile.learningStyle?.secondary || "visual",
+          primary: profile.learningStyle?.primary || 'adaptive',
+          secondary: profile.learningStyle?.secondary || 'visual',
           confidence: Math.max(0, Math.min(100, profile.learningStyle?.confidence || 70)),
-          reasoning: profile.learningStyle?.reasoning || "Based on user responses"
+          reasoning: profile.learningStyle?.reasoning || 'Based on user responses',
         },
         experienceLevel: {
-          overall: profile.experienceLevel?.overall || "intermediate",
-          technical: profile.experienceLevel?.technical || "intermediate",
-          business: profile.experienceLevel?.business || "intermediate",
+          overall: profile.experienceLevel?.overall || 'intermediate',
+          technical: profile.experienceLevel?.technical || 'intermediate',
+          business: profile.experienceLevel?.business || 'intermediate',
           confidence: Math.max(0, Math.min(100, profile.experienceLevel?.confidence || 70)),
-          reasoning: profile.experienceLevel?.reasoning || "Based on user responses"
+          reasoning: profile.experienceLevel?.reasoning || 'Based on user responses',
         },
-        careerGoals: profile.careerGoals || ["Professional development"],
-        interests: profile.interests || ["Learning and growth"],
-        motivation: profile.motivation || "Skill development",
-        timeAvailability: profile.timeAvailability || "moderate",
-        preferredFormat: profile.preferredFormat || "interactive",
-        strengths: profile.strengths || ["Adaptability"],
-        areasForGrowth: profile.areasForGrowth || ["Technical skills"],
-        recommendedPaths: profile.recommendedPaths || ["General development"]
+        careerGoals: profile.careerGoals || ['Professional development'],
+        interests: profile.interests || ['Learning and growth'],
+        motivation: profile.motivation || 'Skill development',
+        timeAvailability: profile.timeAvailability || 'moderate',
+        preferredFormat: profile.preferredFormat || 'interactive',
+        strengths: profile.strengths || ['Adaptability'],
+        areasForGrowth: profile.areasForGrowth || ['Technical skills'],
+        recommendedPaths: profile.recommendedPaths || ['General development'],
       };
 
     } catch (error) {
-      console.error("Failed to parse AI profile:", error);
-      throw new AppError("Failed to generate user profile", 500);
+      console.error('Failed to parse AI profile:', error);
+      throw new AppError('Failed to generate user profile', 500);
     }
   }
 
@@ -441,24 +441,24 @@ Focus on extracting clear patterns and providing actionable insights.`;
    */
   async generatePersonalizedAssessments(answers, aiProfile) {
     try {
-      console.log("🤖 Generating personalized assessments");
+      console.log('🤖 Generating personalized assessments');
 
       const prompt = this.buildAssessmentGenerationPrompt(answers, aiProfile);
 
       const response = await openAIService.createChatCompletion([
         {
-          role: "system",
-          content: "You are an expert assessment designer and educational content creator. Create personalized assessments based on user profiles and responses."
+          role: 'system',
+          content: 'You are an expert assessment designer and educational content creator. Create personalized assessments based on user profiles and responses.',
         },
         {
-          role: "user",
-          content: prompt
-        }
+          role: 'user',
+          content: prompt,
+        },
       ], {
         model: this.aiModels.assessmentGeneration,
         temperature: 0.5,
         max_tokens: 1000,
-        response_format: { type: "json_object" }
+        response_format: { type: 'json_object' },
       });
 
       const assessments = this.parseAssessmentGenerationResponse(response.content);
@@ -468,7 +468,7 @@ Focus on extracting clear patterns and providing actionable insights.`;
       return assessments;
 
     } catch (error) {
-      console.error("❌ Assessment generation failed:", error);
+      console.error('❌ Assessment generation failed:', error);
       throw error;
     }
   }
@@ -524,63 +524,63 @@ Make assessments challenging but appropriate for the user's level.`;
       const data = JSON.parse(cleaned);
 
       if (!data.assessments || !Array.isArray(data.assessments)) {
-        throw new Error("Invalid assessment format");
+        throw new Error('Invalid assessment format');
       }
 
       return data.assessments.map((assessment, index) => ({
         title: assessment.title || `Personalized Assessment ${index + 1}`,
-        description: assessment.description || "AI-generated personalized assessment",
-        category: assessment.category || "Personal Development",
-        difficulty: assessment.difficulty || "intermediate",
-        reason: assessment.reason || "Based on your profile and responses",
+        description: assessment.description || 'AI-generated personalized assessment',
+        category: assessment.category || 'Personal Development',
+        difficulty: assessment.difficulty || 'intermediate',
+        reason: assessment.reason || 'Based on your profile and responses',
         priority: Math.max(1, Math.min(3, assessment.priority || index + 1)),
         questionCount: assessment.questionCount || 15,
         estimatedDuration: assessment.estimatedDuration || 30,
-        focusAreas: assessment.focusAreas || ["Personal development"],
-        questions: [] // Will be populated later
+        focusAreas: assessment.focusAreas || ['Personal development'],
+        questions: [], // Will be populated later
       }));
 
     } catch (error) {
-      console.error("Failed to parse assessment generation:", error);
+      console.error('Failed to parse assessment generation:', error);
       
       // Return fallback assessments
       return [
         {
-          title: "Technical Skills Assessment",
-          description: "Evaluate your current technical capabilities",
-          category: "Technical Skills",
-          difficulty: "intermediate",
-          reason: "Based on your technical background",
+          title: 'Technical Skills Assessment',
+          description: 'Evaluate your current technical capabilities',
+          category: 'Technical Skills',
+          difficulty: 'intermediate',
+          reason: 'Based on your technical background',
           priority: 1,
           questionCount: 15,
           estimatedDuration: 30,
-          focusAreas: ["Programming", "Problem solving"],
-          questions: []
+          focusAreas: ['Programming', 'Problem solving'],
+          questions: [],
         },
         {
-          title: "Learning Style Assessment",
-          description: "Understand your preferred learning methods",
-          category: "Personal Development",
-          difficulty: "beginner",
-          reason: "Based on your learning preferences",
+          title: 'Learning Style Assessment',
+          description: 'Understand your preferred learning methods',
+          category: 'Personal Development',
+          difficulty: 'beginner',
+          reason: 'Based on your learning preferences',
           priority: 2,
           questionCount: 12,
           estimatedDuration: 25,
-          focusAreas: ["Learning methods", "Study habits"],
-          questions: []
+          focusAreas: ['Learning methods', 'Study habits'],
+          questions: [],
         },
         {
-          title: "Career Goals Assessment",
-          description: "Evaluate your career readiness and goals",
-          category: "Career Development",
-          difficulty: "intermediate",
-          reason: "Based on your career aspirations",
+          title: 'Career Goals Assessment',
+          description: 'Evaluate your career readiness and goals',
+          category: 'Career Development',
+          difficulty: 'intermediate',
+          reason: 'Based on your career aspirations',
           priority: 3,
           questionCount: 18,
           estimatedDuration: 35,
-          focusAreas: ["Career planning", "Professional skills"],
-          questions: []
-        }
+          focusAreas: ['Career planning', 'Professional skills'],
+          questions: [],
+        },
       ];
     }
   }
@@ -592,12 +592,12 @@ Make assessments challenging but appropriate for the user's level.`;
    */
   async getRecommendedPrebuiltAssessments(aiProfile) {
     try {
-      console.log("🔍 Finding recommended prebuilt assessments");
+      console.log('🔍 Finding recommended prebuilt assessments');
 
       // Get all available assessments
       const allAssessments = await Assessment.find({ 
         isActive: true, 
-        isPublished: true 
+        isPublished: true, 
       }).select('title description category difficulty tags');
 
       // Score assessments based on user profile
@@ -606,7 +606,7 @@ Make assessments challenging but appropriate for the user's level.`;
         
         // Category match
         if (aiProfile.interests.some(interest => 
-          assessment.category.toLowerCase().includes(interest.toLowerCase())
+          assessment.category.toLowerCase().includes(interest.toLowerCase()),
         )) {
           score += 30;
         }
@@ -616,9 +616,9 @@ Make assessments challenging but appropriate for the user's level.`;
         if (assessment.difficulty === userLevel) {
           score += 25;
         } else if (
-          (userLevel === "beginner" && assessment.difficulty === "intermediate") ||
-          (userLevel === "intermediate" && ["beginner", "advanced"].includes(assessment.difficulty)) ||
-          (userLevel === "advanced" && ["intermediate", "expert"].includes(assessment.difficulty))
+          (userLevel === 'beginner' && assessment.difficulty === 'intermediate') ||
+          (userLevel === 'intermediate' && ['beginner', 'advanced'].includes(assessment.difficulty)) ||
+          (userLevel === 'advanced' && ['intermediate', 'expert'].includes(assessment.difficulty))
         ) {
           score += 15;
         }
@@ -627,8 +627,8 @@ Make assessments challenging but appropriate for the user's level.`;
         if (assessment.tags) {
           const tagMatches = assessment.tags.filter(tag => 
             aiProfile.interests.some(interest => 
-              tag.toLowerCase().includes(interest.toLowerCase())
-            )
+              tag.toLowerCase().includes(interest.toLowerCase()),
+            ),
           ).length;
           score += tagMatches * 5;
         }
@@ -647,11 +647,11 @@ Make assessments challenging but appropriate for the user's level.`;
           category: assessment.category,
           difficulty: assessment.difficulty,
           score: score,
-          reason: this.getAssessmentReason(score, assessment, aiProfile)
+          reason: this.getAssessmentReason(score, assessment, aiProfile),
         }));
 
     } catch (error) {
-      console.error("❌ Error getting recommended assessments:", error);
+      console.error('❌ Error getting recommended assessments:', error);
       return [];
     }
   }
@@ -669,9 +669,9 @@ Make assessments challenging but appropriate for the user's level.`;
     } else if (score >= 60) {
       return `Good match for your background in ${assessment.category.toLowerCase()}`;
     } else if (score >= 40) {
-      return `Relevant to your learning goals and current skill level`;
+      return 'Relevant to your learning goals and current skill level';
     } else {
-      return `General assessment to broaden your skills`;
+      return 'General assessment to broaden your skills';
     }
   }
 
@@ -687,7 +687,7 @@ Make assessments challenging but appropriate for the user's level.`;
 
       const user = await User.findById(userId);
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError('User not found', 404);
       }
 
       // Update learning profile
@@ -697,7 +697,7 @@ Make assessments challenging but appropriate for the user's level.`;
         learningStyle: aiProfile.learningStyle.primary,
         goals: aiProfile.careerGoals,
         interests: aiProfile.interests,
-        aiPersonality: this.mapLearningStyleToAIPersonality(aiProfile.learningStyle.primary)
+        aiPersonality: this.mapLearningStyleToAIPersonality(aiProfile.learningStyle.primary),
       };
 
       // Add AI insights to user profile
@@ -707,15 +707,15 @@ Make assessments challenging but appropriate for the user's level.`;
         experienceLevel: aiProfile.experienceLevel,
         strengths: aiProfile.strengths,
         areasForGrowth: aiProfile.areasForGrowth,
-        recommendedPaths: aiProfile.recommendedPaths
+        recommendedPaths: aiProfile.recommendedPaths,
       };
 
       await user.save();
 
-      console.log(`✅ User profile updated successfully`);
+      console.log('✅ User profile updated successfully');
 
     } catch (error) {
-      console.error("❌ Error updating user profile:", error);
+      console.error('❌ Error updating user profile:', error);
       // Don't throw error as this is not critical for onboarding completion
     }
   }
@@ -731,7 +731,7 @@ Make assessments challenging but appropriate for the user's level.`;
       'auditory': 'SAGE',
       'kinesthetic': 'COACH',
       'reading': 'SAGE',
-      'adaptive': 'ARIA'
+      'adaptive': 'ARIA',
     };
     
     return mapping[learningStyle] || 'ARIA';
@@ -752,7 +752,7 @@ Make assessments challenging but appropriate for the user's level.`;
     // In the future, this could implement adaptive questioning based on answers
     return {
       questionIndex: session.currentQuestionIndex,
-      isLast: session.currentQuestionIndex === session.totalQuestions - 1
+      isLast: session.currentQuestionIndex === session.totalQuestions - 1,
     };
   }
 
@@ -766,7 +766,7 @@ Make assessments challenging but appropriate for the user's level.`;
       const session = await OnboardingSession.findOne({ sessionId });
       
       if (!session) {
-        throw new AppError("Onboarding session not found", 404);
+        throw new AppError('Onboarding session not found', 404);
       }
 
       return {
@@ -775,11 +775,11 @@ Make assessments challenging but appropriate for the user's level.`;
         progress: session.getProgress(),
         aiProcessingStatus: session.aiProcessingStatus,
         generatedAssessments: session.generatedAssessments || [],
-        aiProfile: session.aiProfile || null
+        aiProfile: session.aiProfile || null,
       };
 
     } catch (error) {
-      console.error("❌ Error getting session status:", error);
+      console.error('❌ Error getting session status:', error);
       throw error;
     }
   }
@@ -794,11 +794,11 @@ Make assessments challenging but appropriate for the user's level.`;
       const session = await OnboardingSession.findOne({ sessionId });
       
       if (!session) {
-        throw new AppError("Onboarding session not found", 404);
+        throw new AppError('Onboarding session not found', 404);
       }
 
-      if (session.status === "completed") {
-        throw new AppError("Onboarding session already completed", 400);
+      if (session.status === 'completed') {
+        throw new AppError('Onboarding session already completed', 400);
       }
 
       // Get remaining questions
@@ -815,14 +815,14 @@ Make assessments challenging but appropriate for the user's level.`;
           category: q.category,
           options: q.options,
           expectedLength: q.expectedLength,
-          flow: q.flow
+          flow: q.flow,
         })),
         progress: session.getProgress(),
-        answers: session.answers
+        answers: session.answers,
       };
 
     } catch (error) {
-      console.error("❌ Error resuming session:", error);
+      console.error('❌ Error resuming session:', error);
       throw error;
     }
   }
@@ -833,5 +833,5 @@ const onboardingService = new OnboardingService();
 
 module.exports = {
   onboardingService,
-  OnboardingService
+  OnboardingService,
 };

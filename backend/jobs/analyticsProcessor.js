@@ -1,7 +1,7 @@
 // jobs/analyticsProcessor.js
-const { analyticsService } = require("../services/analyticsService");
-const User = require("../models/User");
-const LearningAnalytics = require("../models/LearningAnalytics");
+const { analyticsService } = require('../services/analyticsService');
+const User = require('../models/User');
+const LearningAnalytics = require('../models/LearningAnalytics');
 
 class AnalyticsProcessor {
   constructor() {
@@ -16,12 +16,12 @@ class AnalyticsProcessor {
    */
   async start() {
     if (this.isRunning) {
-      console.log("Analytics processor is already running");
+      console.log('Analytics processor is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log("🔄 Starting analytics processor...");
+    console.log('🔄 Starting analytics processor...');
 
     // Process immediately on startup
     await this.processAnalytics();
@@ -34,7 +34,7 @@ class AnalyticsProcessor {
     // Set up daily comprehensive processing
     this.setupDailyProcessing();
 
-    console.log("✅ Analytics processor started");
+    console.log('✅ Analytics processor started');
   }
 
   /**
@@ -42,7 +42,7 @@ class AnalyticsProcessor {
    */
   async stop() {
     if (!this.isRunning) {
-      console.log("Analytics processor is not running");
+      console.log('Analytics processor is not running');
       return;
     }
 
@@ -58,7 +58,7 @@ class AnalyticsProcessor {
       this.dailyTimeoutId = null;
     }
 
-    console.log("🛑 Analytics processor stopped");
+    console.log('🛑 Analytics processor stopped');
   }
 
   /**
@@ -66,13 +66,13 @@ class AnalyticsProcessor {
    */
   async processAnalytics() {
     try {
-      console.log("📊 Processing user analytics...");
+      console.log('📊 Processing user analytics...');
 
       // Get users who have had recent activity
       const activeUsers = await this.getActiveUsers();
 
       if (activeUsers.length === 0) {
-        console.log("No active users to process");
+        console.log('No active users to process');
         return;
       }
 
@@ -87,20 +87,20 @@ class AnalyticsProcessor {
         } catch (error) {
           console.error(
             `Error processing analytics for user ${user._id}:`,
-            error
+            error,
           );
           errors++;
         }
       }
 
       console.log(
-        `📈 Analytics processing complete: ${processed} users processed, ${errors} errors`
+        `📈 Analytics processing complete: ${processed} users processed, ${errors} errors`,
       );
 
       // Cleanup old analytics data
       await this.cleanupOldAnalytics();
     } catch (error) {
-      console.error("Error in analytics processing:", error);
+      console.error('Error in analytics processing:', error);
     }
   }
 
@@ -110,16 +110,16 @@ class AnalyticsProcessor {
   async processUserAnalytics(userId) {
     try {
       // Calculate daily analytics
-      await analyticsService.calculateUserAnalytics(userId, "daily");
+      await analyticsService.calculateUserAnalytics(userId, 'daily');
 
       // Calculate weekly analytics if it's a new week
       if (this.shouldCalculateWeekly()) {
-        await analyticsService.calculateUserAnalytics(userId, "weekly");
+        await analyticsService.calculateUserAnalytics(userId, 'weekly');
       }
 
       // Calculate monthly analytics if it's a new month
       if (this.shouldCalculateMonthly()) {
-        await analyticsService.calculateUserAnalytics(userId, "monthly");
+        await analyticsService.calculateUserAnalytics(userId, 'monthly');
       }
 
       // Generate insights and recommendations
@@ -136,18 +136,18 @@ class AnalyticsProcessor {
   async generateUserInsights(userId) {
     try {
       // Check if user needs new recommendations
-      const RecommendationEngine = require("../models/RecommendationEngine");
+      const RecommendationEngine = require('../models/RecommendationEngine');
       const activeRecommendations = await RecommendationEngine.countDocuments({
         user: userId,
-        "userInteraction.status": { $in: ["pending", "viewed"] },
-        "timing.validUntil": { $gt: new Date() },
+        'userInteraction.status': { $in: ['pending', 'viewed'] },
+        'timing.validUntil': { $gt: new Date() },
       });
 
       // Generate new recommendations if user has fewer than 3 active ones
       if (activeRecommendations < 3) {
         const {
           recommendationService,
-        } = require("../services/recommendationService");
+        } = require('../services/recommendationService');
         const analytics = await LearningAnalytics.getLatestAnalytics(userId);
 
         if (analytics) {
@@ -156,7 +156,7 @@ class AnalyticsProcessor {
             {
               analytics,
               maxRecommendations: 5 - activeRecommendations,
-            }
+            },
           );
         }
       }
@@ -173,7 +173,7 @@ class AnalyticsProcessor {
    */
   async checkAdaptationRules(userId) {
     try {
-      const AdaptationRule = require("../models/AdaptationRule");
+      const AdaptationRule = require('../models/AdaptationRule');
       const analytics = await LearningAnalytics.getLatestAnalytics(userId);
 
       if (!analytics) return;
@@ -181,7 +181,7 @@ class AnalyticsProcessor {
       // Get applicable adaptation rules
       const rules = await AdaptationRule.getApplicableRules({
         userId,
-        category: "General", // Would be more specific in real implementation
+        category: 'General', // Would be more specific in real implementation
       });
 
       for (const rule of rules) {
@@ -197,7 +197,7 @@ class AnalyticsProcessor {
     } catch (error) {
       console.error(
         `Error checking adaptation rules for user ${userId}:`,
-        error
+        error,
       );
     }
   }
@@ -253,13 +253,13 @@ class AnalyticsProcessor {
    * Apply AI personality adaptations
    */
   async applyAIAdaptations(userId, aiActions) {
-    if (aiActions.switchTo && aiActions.switchTo !== "auto") {
-      const User = require("../models/User");
+    if (aiActions.switchTo && aiActions.switchTo !== 'auto') {
+      const User = require('../models/User');
       await User.findByIdAndUpdate(userId, {
-        "learningProfile.aiPersonality": aiActions.switchTo,
+        'learningProfile.aiPersonality': aiActions.switchTo,
       });
       console.log(
-        `Switched AI personality to ${aiActions.switchTo} for user ${userId}`
+        `Switched AI personality to ${aiActions.switchTo} for user ${userId}`,
       );
     }
   }
@@ -293,13 +293,13 @@ class AnalyticsProcessor {
   async applyRecommendationActions(userId, recommendationActions) {
     const {
       recommendationService,
-    } = require("../services/recommendationService");
+    } = require('../services/recommendationService');
 
     if (recommendationActions.suggestNewPath) {
       // Generate learning path recommendations
       await recommendationService.generatePersonalizedRecommendations(userId, {
         maxRecommendations: 2,
-        type: "learning_path",
+        type: 'learning_path',
       });
     }
   }
@@ -311,14 +311,14 @@ class AnalyticsProcessor {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
     // Get users who have had sessions or progress updates in the last 24 hours
-    const LearningSession = require("../models/LearningSession");
-    const UserProgress = require("../models/UserProgress");
+    const LearningSession = require('../models/LearningSession');
+    const UserProgress = require('../models/UserProgress');
 
-    const recentSessionUsers = await LearningSession.distinct("user", {
+    const recentSessionUsers = await LearningSession.distinct('user', {
       startTime: { $gte: twentyFourHoursAgo },
     });
 
-    const recentProgressUsers = await UserProgress.distinct("user", {
+    const recentProgressUsers = await UserProgress.distinct('user', {
       updatedAt: { $gte: twentyFourHoursAgo },
     });
 
@@ -330,7 +330,7 @@ class AnalyticsProcessor {
     // Get user documents
     return await User.find({
       _id: { $in: allActiveUserIds },
-    }).select("_id email learningProfile");
+    }).select('_id email learningProfile');
   }
 
   /**
@@ -359,17 +359,17 @@ class AnalyticsProcessor {
    */
   async runDailyProcessing() {
     try {
-      console.log("🌅 Running daily analytics processing...");
+      console.log('🌅 Running daily analytics processing...');
 
       // Process all users for daily analytics
-      const allUsers = await User.find({}).select("_id");
+      const allUsers = await User.find({}).select('_id');
 
       for (const user of allUsers) {
-        await analyticsService.calculateUserAnalytics(user._id, "daily");
+        await analyticsService.calculateUserAnalytics(user._id, 'daily');
       }
 
       // Clean up expired recommendations
-      const RecommendationEngine = require("../models/RecommendationEngine");
+      const RecommendationEngine = require('../models/RecommendationEngine');
       const expiredCount = await RecommendationEngine.cleanupExpired();
       console.log(`🧹 Cleaned up ${expiredCount} expired recommendations`);
 
@@ -377,9 +377,9 @@ class AnalyticsProcessor {
       const deletedCount = await LearningAnalytics.cleanupOldAnalytics(365);
       console.log(`🧹 Cleaned up ${deletedCount} old analytics records`);
 
-      console.log("✅ Daily analytics processing complete");
+      console.log('✅ Daily analytics processing complete');
     } catch (error) {
-      console.error("Error in daily analytics processing:", error);
+      console.error('Error in daily analytics processing:', error);
     }
   }
 
@@ -394,7 +394,7 @@ class AnalyticsProcessor {
         console.log(`🧹 Cleaned up ${deleted} old analytics records`);
       }
     } catch (error) {
-      console.error("Error cleaning up analytics:", error);
+      console.error('Error cleaning up analytics:', error);
     }
   }
 

@@ -1,28 +1,28 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Skill category schema for organizing different types of skills
 const skillCategorySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Category name is required"],
+      required: [true, 'Category name is required'],
       unique: true,
       trim: true,
-      maxlength: [100, "Category name cannot exceed 100 characters"],
+      maxlength: [100, 'Category name cannot exceed 100 characters'],
     },
 
     displayName: {
       type: String,
-      required: [true, "Display name is required"],
+      required: [true, 'Display name is required'],
       trim: true,
-      maxlength: [100, "Display name cannot exceed 100 characters"],
+      maxlength: [100, 'Display name cannot exceed 100 characters'],
     },
 
     description: {
       type: String,
-      required: [true, "Category description is required"],
+      required: [true, 'Category description is required'],
       trim: true,
-      maxlength: [500, "Description cannot exceed 500 characters"],
+      maxlength: [500, 'Description cannot exceed 500 characters'],
     },
 
     slug: {
@@ -35,19 +35,19 @@ const skillCategorySchema = new mongoose.Schema(
 
     icon: {
       type: String,
-      default: "Code", // Lucide icon name
+      default: 'Code', // Lucide icon name
     },
 
     color: {
       type: String,
-      default: "#22d3ee", // Revolutionary cyan
-      match: [/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Please provide a valid hex color"],
+      default: '#22d3ee', // Revolutionary cyan
+      match: [/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Please provide a valid hex color'],
     },
 
     // Category type for organization
     type: {
       type: String,
-      enum: ["technical", "creative", "business", "soft-skills", "language", "certification"],
+      enum: ['technical', 'creative', 'business', 'soft-skills', 'language', 'certification'],
       required: true,
     },
 
@@ -56,7 +56,7 @@ const skillCategorySchema = new mongoose.Schema(
       {
         level: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
           required: true,
         },
         name: {
@@ -101,11 +101,11 @@ const skillCategorySchema = new mongoose.Schema(
       {
         categoryId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "SkillCategory",
+          ref: 'SkillCategory',
         },
         minLevel: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
         },
         description: String,
       },
@@ -145,12 +145,12 @@ const skillCategorySchema = new mongoose.Schema(
         },
         provider: {
           type: String,
-          enum: ["openai", "anthropic", "gemini"],
-          default: "openai",
+          enum: ['openai', 'anthropic', 'gemini'],
+          default: 'openai',
         },
         model: {
           type: String,
-          default: "gpt-4",
+          default: 'gpt-4',
         },
         promptTemplate: String,
       },
@@ -224,18 +224,18 @@ const skillCategorySchema = new mongoose.Schema(
     // Meta information
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
 
     version: {
       type: String,
-      default: "1.0.0",
+      default: '1.0.0',
     },
 
     tags: [String],
@@ -245,7 +245,7 @@ const skillCategorySchema = new mongoose.Schema(
       jobRoles: [String], // Job roles that require this skill
       certificationBodies: [String], // External certification providers
       averageSalary: {
-        currency: { type: String, default: "EUR" },
+        currency: { type: String, default: 'EUR' },
         range: {
           min: Number,
           max: Number,
@@ -261,7 +261,7 @@ const skillCategorySchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
@@ -269,45 +269,45 @@ const skillCategorySchema = new mongoose.Schema(
 skillCategorySchema.index({ type: 1 });
 skillCategorySchema.index({ isActive: 1, isPublic: 1 });
 skillCategorySchema.index({ isFeatured: 1, sortOrder: 1 });
-skillCategorySchema.index({ "skills.name": 1 });
+skillCategorySchema.index({ 'skills.name': 1 });
 skillCategorySchema.index({ tags: 1 });
 skillCategorySchema.index({ createdAt: -1 });
 
 // Virtual for assessment count
-skillCategorySchema.virtual("assessmentCount", {
-  ref: "Assessment",
-  localField: "_id",
-  foreignField: "categoryId",
+skillCategorySchema.virtual('assessmentCount', {
+  ref: 'Assessment',
+  localField: '_id',
+  foreignField: 'categoryId',
   count: true,
 });
 
 // Virtual for question count
-skillCategorySchema.virtual("questionCount", {
-  ref: "Question",
-  localField: "_id",
-  foreignField: "categoryId",
+skillCategorySchema.virtual('questionCount', {
+  ref: 'Question',
+  localField: '_id',
+  foreignField: 'categoryId',
   count: true,
 });
 
 // Pre-save middleware to generate slug
-skillCategorySchema.pre("save", function (next) {
-  if (this.isModified("name")) {
+skillCategorySchema.pre('save', function (next) {
+  if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim("-");
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim('-');
   }
   next();
 });
 
 // Pre-save middleware to validate difficulty levels
-skillCategorySchema.pre("save", function (next) {
+skillCategorySchema.pre('save', function (next) {
   if (this.difficultyLevels && this.difficultyLevels.length > 0) {
     for (let level of this.difficultyLevels) {
       if (level.minScore >= level.maxScore) {
-        next(new Error("Minimum score must be less than maximum score"));
+        next(new Error('Minimum score must be less than maximum score'));
         return;
       }
     }
@@ -341,11 +341,11 @@ skillCategorySchema.statics.search = function (query, options = {}) {
       { isActive: true, isPublic: true },
       {
         $or: [
-          { name: { $regex: query, $options: "i" } },
-          { displayName: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { "skills.name": { $regex: query, $options: "i" } },
-          { tags: { $regex: query, $options: "i" } },
+          { name: { $regex: query, $options: 'i' } },
+          { displayName: { $regex: query, $options: 'i' } },
+          { description: { $regex: query, $options: 'i' } },
+          { 'skills.name': { $regex: query, $options: 'i' } },
+          { tags: { $regex: query, $options: 'i' } },
         ],
       },
     ],
@@ -368,7 +368,7 @@ skillCategorySchema.methods.canUserTakeAssessment = function (userSkills = []) {
 
   for (let prerequisite of this.prerequisites) {
     const userSkill = userSkills.find(
-      (skill) => skill.categoryId.toString() === prerequisite.categoryId.toString()
+      (skill) => skill.categoryId.toString() === prerequisite.categoryId.toString(),
     );
 
     if (!userSkill || !this.meetsLevelRequirement(userSkill.level, prerequisite.minLevel)) {
@@ -385,14 +385,14 @@ skillCategorySchema.methods.canUserTakeAssessment = function (userSkills = []) {
 
 // Helper method to compare skill levels
 skillCategorySchema.methods.meetsLevelRequirement = function (userLevel, requiredLevel) {
-  const levels = ["beginner", "intermediate", "advanced", "expert"];
+  const levels = ['beginner', 'intermediate', 'advanced', 'expert'];
   return levels.indexOf(userLevel) >= levels.indexOf(requiredLevel);
 };
 
 // Instance method to get recommended difficulty for user
 skillCategorySchema.methods.getRecommendedDifficulty = function (userHistory = []) {
   if (userHistory.length === 0) {
-    return "beginner";
+    return 'beginner';
   }
 
   // Calculate average score from recent assessments
@@ -400,12 +400,12 @@ skillCategorySchema.methods.getRecommendedDifficulty = function (userHistory = [
   const averageScore = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
 
   // Recommend based on performance
-  if (averageScore >= 90) return "expert";
-  if (averageScore >= 80) return "advanced";
-  if (averageScore >= 70) return "intermediate";
-  return "beginner";
+  if (averageScore >= 90) return 'expert';
+  if (averageScore >= 80) return 'advanced';
+  if (averageScore >= 70) return 'intermediate';
+  return 'beginner';
 };
 
-const SkillCategory = mongoose.model("SkillCategory", skillCategorySchema);
+const SkillCategory = mongoose.model('SkillCategory', skillCategorySchema);
 
 module.exports = SkillCategory;

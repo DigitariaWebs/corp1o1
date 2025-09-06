@@ -1,4 +1,4 @@
-const { getPasswordValidationRules } = require("../config/auth");
+const { getPasswordValidationRules } = require('../config/auth');
 
 // Email validation
 const isValidEmail = (email) => {
@@ -22,45 +22,45 @@ const validatePassword = (password) => {
 
   // Check pattern requirements
   if (rules.pattern.uppercase && !rules.pattern.uppercase.test(password)) {
-    errors.push("Password must contain at least one uppercase letter");
+    errors.push('Password must contain at least one uppercase letter');
   }
 
   if (rules.pattern.lowercase && !rules.pattern.lowercase.test(password)) {
-    errors.push("Password must contain at least one lowercase letter");
+    errors.push('Password must contain at least one lowercase letter');
   }
 
   if (rules.pattern.numbers && !rules.pattern.numbers.test(password)) {
-    errors.push("Password must contain at least one number");
+    errors.push('Password must contain at least one number');
   }
 
   if (
     rules.pattern.specialChars &&
     !rules.pattern.specialChars.test(password)
   ) {
-    errors.push("Password must contain at least one special character");
+    errors.push('Password must contain at least one special character');
   }
 
   // Check for common weak passwords
   const commonPasswords = [
-    "password",
-    "123456",
-    "12345678",
-    "qwerty",
-    "abc123",
-    "password123",
-    "admin",
-    "letmein",
-    "welcome",
-    "monkey",
+    'password',
+    '123456',
+    '12345678',
+    'qwerty',
+    'abc123',
+    'password123',
+    'admin',
+    'letmein',
+    'welcome',
+    'monkey',
   ];
 
   if (commonPasswords.includes(password.toLowerCase())) {
-    errors.push("Password is too common. Please choose a more secure password");
+    errors.push('Password is too common. Please choose a more secure password');
   }
 
   // Check for sequential characters
   if (hasSequentialChars(password)) {
-    errors.push("Password should not contain sequential characters");
+    errors.push('Password should not contain sequential characters');
   }
 
   return {
@@ -83,28 +83,28 @@ const calculatePasswordStrength = (password) => {
   // Character variety scoring
   if (/[a-z]/.test(password)) {
     score += 1;
-    feedback.push("Contains lowercase letters");
+    feedback.push('Contains lowercase letters');
   }
   if (/[A-Z]/.test(password)) {
     score += 1;
-    feedback.push("Contains uppercase letters");
+    feedback.push('Contains uppercase letters');
   }
   if (/\d/.test(password)) {
     score += 1;
-    feedback.push("Contains numbers");
+    feedback.push('Contains numbers');
   }
   if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
     score += 2;
-    feedback.push("Contains special characters");
+    feedback.push('Contains special characters');
   }
 
   // Pattern complexity
   if (!/(.)\1{2,}/.test(password)) {
     score += 1;
-    feedback.push("No repeated characters");
+    feedback.push('No repeated characters');
   }
 
-  const strength = score <= 3 ? "weak" : score <= 6 ? "medium" : "strong";
+  const strength = score <= 3 ? 'weak' : score <= 6 ? 'medium' : 'strong';
 
   return {
     score,
@@ -115,7 +115,7 @@ const calculatePasswordStrength = (password) => {
 
 // Check for sequential characters
 const hasSequentialChars = (password) => {
-  const sequences = ["0123456789", "abcdefghijklmnopqrstuvwxyz", "qwertyuiop"];
+  const sequences = ['0123456789', 'abcdefghijklmnopqrstuvwxyz', 'qwertyuiop'];
 
   for (let seq of sequences) {
     for (let i = 0; i < seq.length - 2; i++) {
@@ -129,7 +129,7 @@ const hasSequentialChars = (password) => {
 };
 
 // Name validation
-const validateName = (name, fieldName = "Name") => {
+const validateName = (name, fieldName = 'Name') => {
   const errors = [];
 
   if (!name || name.trim().length === 0) {
@@ -150,7 +150,7 @@ const validateName = (name, fieldName = "Name") => {
   // Allow letters, spaces, hyphens, and apostrophes
   if (!/^[a-zA-Z\s\-']+$/.test(trimmedName)) {
     errors.push(
-      `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`
+      `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`,
     );
   }
 
@@ -162,7 +162,7 @@ const validateName = (name, fieldName = "Name") => {
   return {
     isValid: errors.length === 0,
     errors,
-    sanitized: trimmedName.replace(/\s+/g, " "), // Replace multiple spaces with single space
+    sanitized: trimmedName.replace(/\s+/g, ' '), // Replace multiple spaces with single space
   };
 };
 
@@ -174,7 +174,7 @@ const isValidObjectId = (id) => {
 // URL validation
 const isValidUrl = (url) => {
   try {
-    new URL(url);
+    new globalThis.URL(url);
     return true;
   } catch (error) {
     return false;
@@ -184,17 +184,17 @@ const isValidUrl = (url) => {
 // Phone number validation (international format)
 const validatePhoneNumber = (phone) => {
   const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  const sanitized = phone.replace(/[\s\-\(\)]/g, "");
+  const sanitized = phone.replace(/[\s\-()]/g, '');
 
   return {
     isValid: phoneRegex.test(sanitized),
     sanitized,
-    error: phoneRegex.test(sanitized) ? null : "Invalid phone number format",
+    error: phoneRegex.test(sanitized) ? null : 'Invalid phone number format',
   };
 };
 
 // Date validation
-const validateDate = (dateString, fieldName = "Date") => {
+const validateDate = (dateString, fieldName = 'Date') => {
   const date = new Date(dateString);
   const errors = [];
 
@@ -245,21 +245,21 @@ const validateFile = (file, options = {}) => {
   // Check file size
   if (file.size > maxSize) {
     errors.push(
-      `File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`
+      `File size must be less than ${Math.round(maxSize / (1024 * 1024))}MB`,
     );
   }
 
   // Check MIME type
   if (allowedTypes.length > 0 && !allowedTypes.includes(file.mimetype)) {
-    errors.push(`File type must be one of: ${allowedTypes.join(", ")}`);
+    errors.push(`File type must be one of: ${allowedTypes.join(', ')}`);
   }
 
   // Check file extension
   if (allowedExtensions.length > 0) {
-    const fileExtension = file.originalname.split(".").pop().toLowerCase();
+    const fileExtension = file.originalname.split('.').pop().toLowerCase();
     if (!allowedExtensions.includes(fileExtension)) {
       errors.push(
-        `File extension must be one of: ${allowedExtensions.join(", ")}`
+        `File extension must be one of: ${allowedExtensions.join(', ')}`,
       );
     }
   }
@@ -276,11 +276,11 @@ const validateTextContent = (text, options = {}) => {
     minLength = 0,
     maxLength = 1000,
     allowEmpty = true,
-    fieldName = "Text",
+    fieldName = 'Text',
   } = options;
 
   const errors = [];
-  const trimmed = text ? text.trim() : "";
+  const trimmed = text ? text.trim() : '';
 
   if (!allowEmpty && trimmed.length === 0) {
     errors.push(`${fieldName} is required`);
@@ -320,17 +320,17 @@ const validateTextContent = (text, options = {}) => {
 // Learning style validation
 const validateLearningStyle = (style) => {
   const validStyles = [
-    "visual",
-    "auditory",
-    "kinesthetic",
-    "reading",
-    "balanced",
+    'visual',
+    'auditory',
+    'kinesthetic',
+    'reading',
+    'balanced',
   ];
   return {
     isValid: validStyles.includes(style),
     error: validStyles.includes(style)
       ? null
-      : `Learning style must be one of: ${validStyles.join(", ")}`,
+      : `Learning style must be one of: ${validStyles.join(', ')}`,
   };
 };
 
@@ -339,7 +339,7 @@ const validateTimeFormat = (time) => {
   const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
   return {
     isValid: timeRegex.test(time),
-    error: timeRegex.test(time) ? null : "Time must be in HH:MM format",
+    error: timeRegex.test(time) ? null : 'Time must be in HH:MM format',
   };
 };
 
@@ -347,36 +347,36 @@ const validateTimeFormat = (time) => {
 const sanitizeHtml = (html) => {
   // Basic HTML sanitization - remove script tags and dangerous attributes
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/javascript:/gi, "")
-    .replace(/vbscript:/gi, "")
-    .replace(/on\w+\s*=/gi, "");
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/vbscript:/gi, '')
+    .replace(/on\w+\s*=/gi, '');
 };
 
 // Validate and sanitize user input
-const sanitizeUserInput = (input, type = "text") => {
-  if (typeof input !== "string") {
+const sanitizeUserInput = (input, type = 'text') => {
+  if (typeof input !== 'string') {
     return input;
   }
 
   let sanitized = input.trim();
 
   switch (type) {
-    case "email":
-      sanitized = sanitized.toLowerCase();
-      break;
-    case "name":
-      sanitized = sanitized.replace(/\s+/g, " ");
-      break;
-    case "html":
-      sanitized = sanitizeHtml(sanitized);
-      break;
-    case "alphanumeric":
-      sanitized = sanitized.replace(/[^a-zA-Z0-9]/g, "");
-      break;
-    default:
-      // Basic text sanitization
-      sanitized = sanitized.replace(/[<>]/g, "");
+  case 'email':
+    sanitized = sanitized.toLowerCase();
+    break;
+  case 'name':
+    sanitized = sanitized.replace(/\s+/g, ' ');
+    break;
+  case 'html':
+    sanitized = sanitizeHtml(sanitized);
+    break;
+  case 'alphanumeric':
+    sanitized = sanitized.replace(/[^a-zA-Z0-9]/g, '');
+    break;
+  default:
+    // Basic text sanitization
+    sanitized = sanitized.replace(/[<>]/g, '');
   }
 
   return sanitized;

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Question schema for individual assessment questions
 const questionSchema = new mongoose.Schema(
@@ -12,61 +12,61 @@ const questionSchema = new mongoose.Schema(
 
     title: {
       type: String,
-      required: [true, "Question title is required"],
+      required: [true, 'Question title is required'],
       trim: true,
-      maxlength: [200, "Title cannot exceed 200 characters"],
+      maxlength: [200, 'Title cannot exceed 200 characters'],
     },
 
     // Question content
     question: {
       type: String,
-      required: [true, "Question text is required"],
-      maxlength: [2000, "Question cannot exceed 2000 characters"],
+      required: [true, 'Question text is required'],
+      maxlength: [2000, 'Question cannot exceed 2000 characters'],
     },
 
     description: {
       type: String,
-      maxlength: [500, "Description cannot exceed 500 characters"],
+      maxlength: [500, 'Description cannot exceed 500 characters'],
     },
 
     // Question type and format
     type: {
       type: String,
       enum: [
-        "multiple_choice",
-        "multiple_select", 
-        "true_false",
-        "short_answer",
-        "essay",
-        "code_review",
-        "coding_challenge",
-        "scenario_analysis",
-        "practical_task",
-        "ai_evaluation",
-        "file_upload",
-        "matching",
-        "ordering",
-        "fill_blank",
+        'multiple_choice',
+        'multiple_select', 
+        'true_false',
+        'short_answer',
+        'essay',
+        'code_review',
+        'coding_challenge',
+        'scenario_analysis',
+        'practical_task',
+        'ai_evaluation',
+        'file_upload',
+        'matching',
+        'ordering',
+        'fill_blank',
       ],
       required: true,
     },
 
     format: {
       type: String,
-      enum: ["text", "html", "markdown", "code", "image", "video", "interactive"],
-      default: "text",
+      enum: ['text', 'html', 'markdown', 'code', 'image', 'video', 'interactive'],
+      default: 'text',
     },
 
     // References
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: 'Assessment',
       required: false, // Questions can exist independently
     },
 
     categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "SkillCategory",
+      ref: 'SkillCategory',
       required: true,
     },
 
@@ -165,13 +165,13 @@ const questionSchema = new mongoose.Schema(
 
       provider: {
         type: String,
-        enum: ["openai", "anthropic", "gemini", "custom"],
-        default: "openai",
+        enum: ['openai', 'anthropic', 'gemini', 'custom'],
+        default: 'openai',
       },
 
       model: {
         type: String,
-        default: "gpt-4",
+        default: 'gpt-4',
       },
 
       // Evaluation criteria for AI
@@ -253,7 +253,7 @@ const questionSchema = new mongoose.Schema(
           explanation: String,
           quality: {
             type: String,
-            enum: ["excellent", "good", "average", "poor"],
+            enum: ['excellent', 'good', 'average', 'poor'],
           },
         },
       ],
@@ -262,20 +262,20 @@ const questionSchema = new mongoose.Schema(
     // Question metadata
     difficulty: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
       required: true,
     },
 
     complexity: {
       type: String,
-      enum: ["low", "medium", "high", "very_high"],
-      default: "medium",
+      enum: ['low', 'medium', 'high', 'very_high'],
+      default: 'medium',
     },
 
     cognitiveLevel: {
       type: String,
-      enum: ["remember", "understand", "apply", "analyze", "evaluate", "create"],
-      default: "understand",
+      enum: ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'],
+      default: 'understand',
     },
 
     // Scoring configuration
@@ -349,7 +349,7 @@ const questionSchema = new mongoose.Schema(
         },
         level: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
           required: true,
         },
         weight: {
@@ -365,7 +365,7 @@ const questionSchema = new mongoose.Schema(
         objective: String,
         bloomsLevel: {
           type: String,
-          enum: ["remember", "understand", "apply", "analyze", "evaluate", "create"],
+          enum: ['remember', 'understand', 'apply', 'analyze', 'evaluate', 'create'],
         },
       },
     ],
@@ -375,21 +375,21 @@ const questionSchema = new mongoose.Schema(
       prerequisites: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Question",
+          ref: 'Question',
         },
       ],
       
       followUpQuestions: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Question",
+          ref: 'Question',
         },
       ],
       
       relatedQuestions: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Question",
+          ref: 'Question',
         },
       ],
 
@@ -491,12 +491,12 @@ const questionSchema = new mongoose.Schema(
     feedback: {
       correctFeedback: {
         type: String,
-        maxlength: [500, "Feedback cannot exceed 500 characters"],
+        maxlength: [500, 'Feedback cannot exceed 500 characters'],
       },
       
       incorrectFeedback: {
         type: String,
-        maxlength: [500, "Feedback cannot exceed 500 characters"],
+        maxlength: [500, 'Feedback cannot exceed 500 characters'],
       },
       
       hints: [
@@ -509,7 +509,7 @@ const questionSchema = new mongoose.Schema(
       
       explanation: {
         type: String,
-        maxlength: [1000, "Explanation cannot exceed 1000 characters"],
+        maxlength: [1000, 'Explanation cannot exceed 1000 characters'],
       },
       
       references: [
@@ -518,7 +518,7 @@ const questionSchema = new mongoose.Schema(
           url: String,
           type: {
             type: String,
-            enum: ["article", "book", "video", "course", "documentation"],
+            enum: ['article', 'book', 'video', 'course', 'documentation'],
           },
         },
       ],
@@ -539,8 +539,8 @@ const questionSchema = new mongoose.Schema(
       },
       languageLevel: {
         type: String,
-        enum: ["basic", "intermediate", "advanced"],
-        default: "intermediate",
+        enum: ['basic', 'intermediate', 'advanced'],
+        default: 'intermediate',
       },
     },
 
@@ -548,7 +548,7 @@ const questionSchema = new mongoose.Schema(
     localization: {
       language: {
         type: String,
-        default: "en",
+        default: 'en',
       },
       
       translations: [
@@ -568,7 +568,7 @@ const questionSchema = new mongoose.Schema(
     // Version control and history
     version: {
       type: String,
-      default: "1.0.0",
+      default: '1.0.0',
     },
     
     previousVersions: [
@@ -578,7 +578,7 @@ const questionSchema = new mongoose.Schema(
         modifiedAt: Date,
         modifiedBy: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
+          ref: 'User',
         },
       },
     ],
@@ -586,8 +586,8 @@ const questionSchema = new mongoose.Schema(
     // Status and lifecycle
     status: {
       type: String,
-      enum: ["draft", "review", "approved", "published", "archived", "deprecated"],
-      default: "draft",
+      enum: ['draft', 'review', 'approved', 'published', 'archived', 'deprecated'],
+      default: 'draft',
     },
 
     isActive: {
@@ -604,13 +604,13 @@ const questionSchema = new mongoose.Schema(
     qualityReview: {
       reviewStatus: {
         type: String,
-        enum: ["pending", "in_progress", "approved", "rejected", "needs_revision"],
-        default: "pending",
+        enum: ['pending', 'in_progress', 'approved', 'rejected', 'needs_revision'],
+        default: 'pending',
       },
       
       reviewedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
       
       reviewedAt: Date,
@@ -634,18 +634,18 @@ const questionSchema = new mongoose.Schema(
     // Creation and modification tracking
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     
     lastModifiedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     
     approvedAt: Date,
@@ -666,7 +666,7 @@ const questionSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance optimization
@@ -675,29 +675,29 @@ questionSchema.index({ assessmentId: 1, isActive: 1 });
 questionSchema.index({ categoryId: 1, difficulty: 1 });
 questionSchema.index({ type: 1, status: 1 });
 questionSchema.index({ difficulty: 1, cognitiveLevel: 1 });
-questionSchema.index({ "skills.name": 1, "skills.level": 1 });
+questionSchema.index({ 'skills.name': 1, 'skills.level': 1 });
 questionSchema.index({ tags: 1 });
 questionSchema.index({ isActive: 1, isPublic: 1, status: 1 });
 questionSchema.index({ createdAt: -1 });
-questionSchema.index({ "analytics.correctPercentage": -1 });
-questionSchema.index({ "analytics.averageScore": -1 });
+questionSchema.index({ 'analytics.correctPercentage': -1 });
+questionSchema.index({ 'analytics.averageScore': -1 });
 
 // Compound indexes for common queries
 questionSchema.index({ categoryId: 1, difficulty: 1, type: 1 });
 questionSchema.index({ assessmentId: 1, difficulty: 1, isActive: 1 });
-questionSchema.index({ "skills.name": 1, difficulty: 1, status: 1 });
+questionSchema.index({ 'skills.name': 1, difficulty: 1, status: 1 });
 
 // Text index for search functionality
 questionSchema.index({
-  title: "text",
-  question: "text",
-  description: "text",
-  tags: "text",
-  keywords: "text",
+  title: 'text',
+  question: 'text',
+  description: 'text',
+  tags: 'text',
+  keywords: 'text',
 });
 
 // Pre-save middleware to generate questionId
-questionSchema.pre("save", function (next) {
+questionSchema.pre('save', function (next) {
   if (!this.questionId) {
     // Generate unique question ID
     const timestamp = Date.now().toString(36);
@@ -708,8 +708,8 @@ questionSchema.pre("save", function (next) {
 });
 
 // Pre-save middleware to validate question type and options
-questionSchema.pre("save", function (next) {
-  const choiceTypes = ["multiple_choice", "multiple_select", "true_false", "matching"];
+questionSchema.pre('save', function (next) {
+  const choiceTypes = ['multiple_choice', 'multiple_select', 'true_false', 'matching'];
   
   if (choiceTypes.includes(this.type)) {
     if (!this.options || this.options.length === 0) {
@@ -717,7 +717,7 @@ questionSchema.pre("save", function (next) {
       return;
     }
     
-    if (this.type === "multiple_choice" || this.type === "true_false") {
+    if (this.type === 'multiple_choice' || this.type === 'true_false') {
       const correctOptions = this.options.filter(opt => opt.isCorrect);
       if (correctOptions.length !== 1) {
         next(new Error(`Questions of type '${this.type}' must have exactly one correct option`));
@@ -730,20 +730,20 @@ questionSchema.pre("save", function (next) {
 });
 
 // Virtual for estimated difficulty based on analytics
-questionSchema.virtual("estimatedDifficulty").get(function () {
+questionSchema.virtual('estimatedDifficulty').get(function () {
   if (this.analytics.timesAnswered < 10) {
     return this.difficulty; // Not enough data, use assigned difficulty
   }
   
   const correctRate = this.analytics.correctPercentage;
-  if (correctRate >= 80) return "beginner";
-  if (correctRate >= 60) return "intermediate";
-  if (correctRate >= 40) return "advanced";
-  return "expert";
+  if (correctRate >= 80) return 'beginner';
+  if (correctRate >= 60) return 'intermediate';
+  if (correctRate >= 40) return 'advanced';
+  return 'expert';
 });
 
 // Virtual for quality score
-questionSchema.virtual("qualityScore").get(function () {
+questionSchema.virtual('qualityScore').get(function () {
   let score = 50; // Base score
   
   // Factor in usage statistics
@@ -774,7 +774,7 @@ questionSchema.virtual("qualityScore").get(function () {
 // Check if question is suitable for user level
 questionSchema.methods.isSuitableForUser = function (userLevel, userSkills = []) {
   // Check difficulty match
-  const levelOrder = ["beginner", "intermediate", "advanced", "expert"];
+  const levelOrder = ['beginner', 'intermediate', 'advanced', 'expert'];
   const userLevelIndex = levelOrder.indexOf(userLevel);
   const questionLevelIndex = levelOrder.indexOf(this.difficulty);
   
@@ -802,55 +802,57 @@ questionSchema.methods.evaluateAnswer = function (userAnswer, options = {}) {
     isCorrect: false,
     score: 0,
     maxScore: this.scoring.points,
-    feedback: "",
-    explanation: this.feedback.explanation || "",
+    feedback: '',
+    explanation: this.feedback.explanation || '',
   };
   
   switch (this.type) {
-    case "multiple_choice":
-    case "true_false":
-      const correctOption = this.options.find(opt => opt.isCorrect);
-      result.isCorrect = userAnswer === correctOption.id;
+  case 'multiple_choice':
+  case 'true_false': {
+    const correctOption = this.options.find(opt => opt.isCorrect);
+    result.isCorrect = userAnswer === correctOption.id;
+    result.score = result.isCorrect ? this.scoring.points : 0;
+    result.feedback = result.isCorrect ? 
+      this.feedback.correctFeedback : 
+      this.feedback.incorrectFeedback;
+    break;
+  }
+      
+  case 'multiple_select': {
+    const correctOptions = this.options.filter(opt => opt.isCorrect).map(opt => opt.id);
+    const userSelections = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
+      
+    const correctSelections = userSelections.filter(sel => correctOptions.includes(sel));
+    const incorrectSelections = userSelections.filter(sel => !correctOptions.includes(sel));
+      
+    if (this.scoring.partialCredit.enabled) {
+      const partialScore = (correctSelections.length - incorrectSelections.length) / correctOptions.length;
+      result.score = Math.max(0, partialScore * this.scoring.points);
+      result.isCorrect = partialScore >= 0.7; // 70% threshold for "correct"
+    } else {
+      result.isCorrect = correctSelections.length === correctOptions.length && incorrectSelections.length === 0;
       result.score = result.isCorrect ? this.scoring.points : 0;
-      result.feedback = result.isCorrect ? 
-        this.feedback.correctFeedback : 
-        this.feedback.incorrectFeedback;
-      break;
+    }
+    break;
+  }
       
-    case "multiple_select":
-      const correctOptions = this.options.filter(opt => opt.isCorrect).map(opt => opt.id);
-      const userSelections = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-      
-      const correctSelections = userSelections.filter(sel => correctOptions.includes(sel));
-      const incorrectSelections = userSelections.filter(sel => !correctOptions.includes(sel));
-      
-      if (this.scoring.partialCredit.enabled) {
-        const partialScore = (correctSelections.length - incorrectSelections.length) / correctOptions.length;
-        result.score = Math.max(0, partialScore * this.scoring.points);
-        result.isCorrect = partialScore >= 0.7; // 70% threshold for "correct"
-      } else {
-        result.isCorrect = correctSelections.length === correctOptions.length && incorrectSelections.length === 0;
-        result.score = result.isCorrect ? this.scoring.points : 0;
-      }
-      break;
-      
-    case "short_answer":
-      if (this.acceptableAnswers && this.acceptableAnswers.length > 0) {
-        result.isCorrect = this.acceptableAnswers.some(answer => 
-          answer.toLowerCase().trim() === userAnswer.toLowerCase().trim()
-        );
-        result.score = result.isCorrect ? this.scoring.points : 0;
-      } else {
-        // Requires manual or AI evaluation
-        result.score = 0;
-        result.requiresManualReview = true;
-      }
-      break;
-      
-    default:
-      // For complex question types, mark for AI/manual evaluation
+  case 'short_answer':
+    if (this.acceptableAnswers && this.acceptableAnswers.length > 0) {
+      result.isCorrect = this.acceptableAnswers.some(answer => 
+        answer.toLowerCase().trim() === userAnswer.toLowerCase().trim(),
+      );
+      result.score = result.isCorrect ? this.scoring.points : 0;
+    } else {
+      // Requires manual or AI evaluation
+      result.score = 0;
       result.requiresManualReview = true;
-      result.requiresAIEvaluation = this.aiConfig.enabled;
+    }
+    break;
+      
+  default:
+    // For complex question types, mark for AI/manual evaluation
+    result.requiresManualReview = true;
+    result.requiresAIEvaluation = this.aiConfig.enabled;
   }
   
   // Apply negative marking if enabled and answer is wrong
@@ -894,7 +896,7 @@ questionSchema.methods.getAIEvaluationPrompt = function (userAnswer) {
   }
   
   const basePrompt = this.aiConfig.evaluationCriteria.evaluationPrompt || 
-    `Evaluate the following answer to this question and provide a score and feedback.`;
+    'Evaluate the following answer to this question and provide a score and feedback.';
   
   const questionContext = `
 Question: ${this.question}
@@ -904,8 +906,8 @@ Evaluation Criteria: ${JSON.stringify(this.aiConfig.evaluationCriteria.keyPoints
 `;
   
   return {
-    systemPrompt: this.aiConfig.evaluationCriteria.systemPrompt || "You are an expert evaluator.",
-    evaluationPrompt: basePrompt + "\n\n" + questionContext,
+    systemPrompt: this.aiConfig.evaluationCriteria.systemPrompt || 'You are an expert evaluator.',
+    evaluationPrompt: basePrompt + '\n\n' + questionContext,
     maxPoints: this.scoring.points,
     criteria: this.aiConfig.evaluationCriteria,
   };
@@ -915,18 +917,18 @@ Evaluation Criteria: ${JSON.stringify(this.aiConfig.evaluationCriteria.keyPoints
 
 // Find questions by criteria
 questionSchema.statics.findByCriteria = function (criteria = {}) {
-  const query = { isActive: true, status: "published" };
+  const query = { isActive: true, status: 'published' };
   
   if (criteria.category) query.categoryId = criteria.category;
   if (criteria.difficulty) query.difficulty = criteria.difficulty;
   if (criteria.type) query.type = criteria.type;
   if (criteria.skills) {
-    query["skills.name"] = { $in: criteria.skills };
+    query['skills.name'] = { $in: criteria.skills };
   }
   
   return this.find(query)
-    .populate("categoryId", "name displayName icon")
-    .sort({ "analytics.qualityScore": -1, createdAt: -1 });
+    .populate('categoryId', 'name displayName icon')
+    .sort({ 'analytics.qualityScore': -1, createdAt: -1 });
 };
 
 // Search questions by text
@@ -934,15 +936,15 @@ questionSchema.statics.searchQuestions = function (searchTerm, options = {}) {
   const query = {
     $text: { $search: searchTerm },
     isActive: true,
-    status: "published",
+    status: 'published',
   };
   
   if (options.category) query.categoryId = options.category;
   if (options.difficulty) query.difficulty = options.difficulty;
   
   return this.find(query)
-    .populate("categoryId", "name displayName")
-    .sort({ score: { $meta: "textScore" } })
+    .populate('categoryId', 'name displayName')
+    .sort({ score: { $meta: 'textScore' } })
     .limit(options.limit || 20);
 };
 
@@ -953,7 +955,7 @@ questionSchema.statics.getAdaptiveQuestions = function (userLevel, userSkills, c
       $match: {
         categoryId: new mongoose.Types.ObjectId(categoryId),
         isActive: true,
-        status: "published",
+        status: 'published',
       },
     },
     {
@@ -961,9 +963,9 @@ questionSchema.statics.getAdaptiveQuestions = function (userLevel, userSkills, c
         suitabilityScore: {
           $switch: {
             branches: [
-              { case: { $eq: ["$difficulty", userLevel] }, then: 3 },
-              { case: { $eq: ["$difficulty", "intermediate"] }, then: 2 },
-              { case: { $eq: ["$difficulty", "beginner"] }, then: 1 },
+              { case: { $eq: ['$difficulty', userLevel] }, then: 3 },
+              { case: { $eq: ['$difficulty', 'intermediate'] }, then: 2 },
+              { case: { $eq: ['$difficulty', 'beginner'] }, then: 1 },
             ],
             default: 1,
           },
@@ -973,8 +975,8 @@ questionSchema.statics.getAdaptiveQuestions = function (userLevel, userSkills, c
     {
       $sort: {
         suitabilityScore: -1,
-        "analytics.qualityScore": -1,
-        "analytics.discriminationIndex": -1,
+        'analytics.qualityScore': -1,
+        'analytics.discriminationIndex': -1,
       },
     },
     { $limit: count * 2 }, // Get more than needed for randomization
@@ -982,6 +984,6 @@ questionSchema.statics.getAdaptiveQuestions = function (userLevel, userSkills, c
   ]);
 };
 
-const Question = mongoose.model("Question", questionSchema);
+const Question = mongoose.model('Question', questionSchema);
 
 module.exports = Question;

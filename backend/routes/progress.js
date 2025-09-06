@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 // Import middleware
-const { authenticate } = require("../middleware/auth");
+const { authenticate } = require('../middleware/auth');
 const {
   validateMongoId,
   validatePagination,
-} = require("../middleware/validation");
+} = require('../middleware/validation');
 
 // Import controllers
 const {
@@ -16,32 +16,32 @@ const {
   recordSessionData,
   getLearningAnalytics,
   getMilestones,
-} = require("../controllers/progressController");
+} = require('../controllers/progressController');
 
 // Import validation schemas
-const Joi = require("joi");
-const { validate } = require("../middleware/validation");
+const Joi = require('joi');
+const { validate } = require('../middleware/validation');
 
 // Custom validation schemas
 const sessionDataSchema = Joi.object({
   sessionId: Joi.string().required(),
   activityType: Joi.string()
     .valid(
-      "session_start",
-      "session_pause",
-      "session_resume",
-      "session_end",
-      "content_view",
-      "content_skip",
-      "content_replay",
-      "content_bookmark",
-      "assessment_start",
-      "assessment_submit",
-      "assessment_review",
-      "note_create",
-      "note_update",
-      "help_request",
-      "feedback_submit"
+      'session_start',
+      'session_pause',
+      'session_resume',
+      'session_end',
+      'content_view',
+      'content_skip',
+      'content_replay',
+      'content_bookmark',
+      'assessment_start',
+      'assessment_submit',
+      'assessment_review',
+      'note_create',
+      'note_update',
+      'help_request',
+      'feedback_submit',
     )
     .required(),
   data: Joi.object().optional(),
@@ -49,7 +49,7 @@ const sessionDataSchema = Joi.object({
 });
 
 const analyticsQuerySchema = Joi.object({
-  timeRange: Joi.string().valid("7d", "30d", "90d").optional(),
+  timeRange: Joi.string().valid('7d', '30d', '90d').optional(),
 });
 
 const sessionsQuerySchema = Joi.object({
@@ -64,7 +64,7 @@ const sessionsQuerySchema = Joi.object({
   startDate: Joi.date().optional(),
   endDate: Joi.date().optional(),
   status: Joi.string()
-    .valid("active", "paused", "completed", "abandoned", "interrupted")
+    .valid('active', 'paused', 'completed', 'abandoned', 'interrupted')
     .optional(),
 });
 
@@ -76,14 +76,14 @@ router.use(authenticate);
  * @desc    Get user's overall learning progress overview
  * @access  Private
  */
-router.get("/overview", getProgressOverview);
+router.get('/overview', getProgressOverview);
 
 /**
  * @route   GET /api/progress/path/:pathId
  * @desc    Get detailed progress for specific learning path
  * @access  Private
  */
-router.get("/path/:pathId", validateMongoId, getPathProgress);
+router.get('/path/:pathId', validateMongoId, getPathProgress);
 
 /**
  * @route   GET /api/progress/sessions
@@ -92,9 +92,9 @@ router.get("/path/:pathId", validateMongoId, getPathProgress);
  * @query   page, limit, pathId, moduleId, startDate, endDate, status
  */
 router.get(
-  "/sessions",
-  validate(sessionsQuerySchema, "query"),
-  getSessionsHistory
+  '/sessions',
+  validate(sessionsQuerySchema, 'query'),
+  getSessionsHistory,
 );
 
 /**
@@ -102,7 +102,7 @@ router.get(
  * @desc    Record real-time session activity data
  * @access  Private
  */
-router.post("/session-data", validate(sessionDataSchema), recordSessionData);
+router.post('/session-data', validate(sessionDataSchema), recordSessionData);
 
 /**
  * @route   GET /api/progress/analytics
@@ -111,9 +111,9 @@ router.post("/session-data", validate(sessionDataSchema), recordSessionData);
  * @query   timeRange (7d, 30d, 90d)
  */
 router.get(
-  "/analytics",
-  validate(analyticsQuerySchema, "query"),
-  getLearningAnalytics
+  '/analytics',
+  validate(analyticsQuerySchema, 'query'),
+  getLearningAnalytics,
 );
 
 /**
@@ -121,7 +121,7 @@ router.get(
  * @desc    Get user achievements and milestones
  * @access  Private
  */
-router.get("/milestones", getMilestones);
+router.get('/milestones', getMilestones);
 
 // Additional analytics endpoints
 
@@ -130,14 +130,14 @@ router.get("/milestones", getMilestones);
  * @desc    Get dashboard-specific progress data (alias for overview)
  * @access  Private
  */
-router.get("/dashboard", getProgressOverview);
+router.get('/dashboard', getProgressOverview);
 
 /**
  * @route   GET /api/progress/summary
  * @desc    Get condensed progress summary (alias for overview)
  * @access  Private
  */
-router.get("/summary", getProgressOverview);
+router.get('/summary', getProgressOverview);
 
 /**
  * @route   GET /api/progress/stats
@@ -145,16 +145,16 @@ router.get("/summary", getProgressOverview);
  * @access  Private
  */
 router.get(
-  "/stats",
-  validate(analyticsQuerySchema, "query"),
-  getLearningAnalytics
+  '/stats',
+  validate(analyticsQuerySchema, 'query'),
+  getLearningAnalytics,
 );
 
 // Health check for progress routes
-router.get("/health/check", (req, res) => {
+router.get('/health/check', (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Progress service is healthy",
+    message: 'Progress service is healthy',
     timestamp: new Date().toISOString(),
     user: {
       id: req.userId,
@@ -162,25 +162,25 @@ router.get("/health/check", (req, res) => {
     },
     endpoints: {
       overview: [
-        "GET /api/progress/overview",
-        "GET /api/progress/dashboard",
-        "GET /api/progress/summary",
+        'GET /api/progress/overview',
+        'GET /api/progress/dashboard',
+        'GET /api/progress/summary',
       ],
       detailed: [
-        "GET /api/progress/path/:pathId",
-        "GET /api/progress/sessions",
+        'GET /api/progress/path/:pathId',
+        'GET /api/progress/sessions',
       ],
-      analytics: ["GET /api/progress/analytics", "GET /api/progress/stats"],
-      achievements: ["GET /api/progress/milestones"],
-      tracking: ["POST /api/progress/session-data"],
+      analytics: ['GET /api/progress/analytics', 'GET /api/progress/stats'],
+      achievements: ['GET /api/progress/milestones'],
+      tracking: ['POST /api/progress/session-data'],
     },
     features: [
-      "Real-time progress tracking",
-      "Comprehensive learning analytics",
-      "Session history and insights",
-      "Achievement and milestone tracking",
-      "Performance metrics",
-      "Learning pattern analysis",
+      'Real-time progress tracking',
+      'Comprehensive learning analytics',
+      'Session history and insights',
+      'Achievement and milestone tracking',
+      'Performance metrics',
+      'Learning pattern analysis',
     ],
   });
 });

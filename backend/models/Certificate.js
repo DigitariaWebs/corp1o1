@@ -1,5 +1,5 @@
 // models/Certificate.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Skill verification schema for certificates
 const skillVerificationSchema = new mongoose.Schema(
@@ -11,7 +11,7 @@ const skillVerificationSchema = new mongoose.Schema(
 
     level: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert", "master"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert', 'master'],
       required: true,
     },
 
@@ -24,7 +24,7 @@ const skillVerificationSchema = new mongoose.Schema(
 
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: 'Assessment',
       required: true,
     },
 
@@ -41,16 +41,16 @@ const skillVerificationSchema = new mongoose.Schema(
     verificationMethod: {
       type: String,
       enum: [
-        "assessment",
-        "project",
-        "peer_review",
-        "instructor_review",
-        "portfolio",
+        'assessment',
+        'project',
+        'peer_review',
+        'instructor_review',
+        'portfolio',
       ],
-      default: "assessment",
+      default: 'assessment',
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Blockchain integration schema
@@ -63,7 +63,7 @@ const blockchainSchema = new mongoose.Schema(
 
     network: {
       type: String,
-      enum: ["ethereum", "polygon", "binance", "solana", "cardano"],
+      enum: ['ethereum', 'polygon', 'binance', 'solana', 'cardano'],
       default: null,
     },
 
@@ -112,7 +112,7 @@ const blockchainSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Achievement requirements schema
@@ -123,7 +123,7 @@ const achievementRequirementsSchema = new mongoose.Schema(
       {
         pathId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "LearningPath",
+          ref: 'LearningPath',
           required: true,
         },
         minimumScore: {
@@ -144,7 +144,7 @@ const achievementRequirementsSchema = new mongoose.Schema(
       {
         assessmentId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Assessment",
+          ref: 'Assessment',
           required: true,
         },
         minimumScore: {
@@ -166,7 +166,7 @@ const achievementRequirementsSchema = new mongoose.Schema(
         skillName: String,
         minimumLevel: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert", "master"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert', 'master'],
         },
         minimumScore: Number,
       },
@@ -196,12 +196,12 @@ const achievementRequirementsSchema = new mongoose.Schema(
         required: Boolean,
         verificationMethod: {
           type: String,
-          enum: ["automatic", "manual", "peer_review", "portfolio"],
+          enum: ['automatic', 'manual', 'peer_review', 'portfolio'],
         },
       },
     ],
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Main Certificate schema
@@ -211,34 +211,34 @@ const certificateSchema = new mongoose.Schema(
     certificateId: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
     },
 
     title: {
       type: String,
-      required: [true, "Certificate title is required"],
+      required: [true, 'Certificate title is required'],
       trim: true,
-      maxlength: [200, "Title cannot exceed 200 characters"],
+      maxlength: [200, 'Title cannot exceed 200 characters'],
     },
 
     description: {
       type: String,
-      required: [true, "Certificate description is required"],
-      maxlength: [1000, "Description cannot exceed 1000 characters"],
+      required: [true, 'Certificate description is required'],
+      maxlength: [1000, 'Description cannot exceed 1000 characters'],
     },
 
     // Certificate type and category
     type: {
       type: String,
       enum: [
-        "completion",
-        "mastery",
-        "specialization",
-        "certification",
-        "achievement",
-        "micro_credential",
-        "professional",
-        "expert",
+        'completion',
+        'mastery',
+        'specialization',
+        'certification',
+        'achievement',
+        'micro_credential',
+        'professional',
+        'expert',
       ],
       required: true,
     },
@@ -246,27 +246,27 @@ const certificateSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "Communication & Leadership",
-        "Innovation & Creativity",
-        "Technical Skills",
-        "Business Strategy",
-        "Personal Development",
-        "Data & Analytics",
-        "General",
+        'Communication & Leadership',
+        'Innovation & Creativity',
+        'Technical Skills',
+        'Business Strategy',
+        'Personal Development',
+        'Data & Analytics',
+        'General',
       ],
       required: true,
     },
 
     level: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert", "master"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert', 'master'],
       required: true,
     },
 
     // Recipient information
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -284,7 +284,7 @@ const certificateSchema = new mongoose.Schema(
     issuedBy: {
       organization: {
         type: String,
-        default: "Sokol Learning Platform",
+        default: 'Sokol Learning Platform',
       },
       issuerName: {
         type: String,
@@ -292,7 +292,7 @@ const certificateSchema = new mongoose.Schema(
       },
       issuerId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
         default: null,
       },
       digitalSignature: {
@@ -345,7 +345,7 @@ const certificateSchema = new mongoose.Schema(
         {
           pathId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "LearningPath",
+            ref: 'LearningPath',
           },
           title: String,
           completionDate: Date,
@@ -357,7 +357,7 @@ const certificateSchema = new mongoose.Schema(
         {
           assessmentId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Assessment",
+            ref: 'Assessment',
           },
           title: String,
           score: Number,
@@ -380,22 +380,22 @@ const certificateSchema = new mongoose.Schema(
     design: {
       templateId: {
         type: String,
-        default: "default",
+        default: 'default',
       },
 
       backgroundColor: {
         type: String,
-        default: "#ffffff",
+        default: '#ffffff',
       },
 
       primaryColor: {
         type: String,
-        default: "#0066cc",
+        default: '#0066cc',
       },
 
       secondaryColor: {
         type: String,
-        default: "#f0f8ff",
+        default: '#f0f8ff',
       },
 
       logo: {
@@ -450,7 +450,7 @@ const certificateSchema = new mongoose.Schema(
       verificationCode: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
       },
 
       digitalFingerprint: {
@@ -508,8 +508,8 @@ const certificateSchema = new mongoose.Schema(
     // Status and lifecycle
     status: {
       type: String,
-      enum: ["draft", "issued", "revoked", "expired", "renewed"],
-      default: "issued",
+      enum: ['draft', 'issued', 'revoked', 'expired', 'renewed'],
+      default: 'issued',
     },
 
     revocationReason: {
@@ -524,7 +524,7 @@ const certificateSchema = new mongoose.Schema(
 
     revokedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: null,
     },
 
@@ -537,7 +537,7 @@ const certificateSchema = new mongoose.Schema(
       competencyFramework: String,
       version: {
         type: String,
-        default: "1.0.0",
+        default: '1.0.0',
       },
     },
   },
@@ -551,7 +551,7 @@ const certificateSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance and lookups
@@ -564,22 +564,22 @@ certificateSchema.index({ validUntil: 1 }, { sparse: true });
 certificateSchema.index({ tags: 1 });
 
 // Virtual for expiration status
-certificateSchema.virtual("isExpired").get(function () {
+certificateSchema.virtual('isExpired').get(function () {
   if (!this.validUntil) return false;
   return new Date() > this.validUntil;
 });
 
 // Virtual for validity status
-certificateSchema.virtual("isValid").get(function () {
+certificateSchema.virtual('isValid').get(function () {
   return (
-    this.status === "issued" && this.verification.isVerified && !this.isExpired
+    this.status === 'issued' && this.verification.isVerified && !this.isExpired
   );
 });
 
 // Virtual for public verification URL
-certificateSchema.virtual("publicVerificationUrl").get(function () {
+certificateSchema.virtual('publicVerificationUrl').get(function () {
   return `${
-    process.env.FRONTEND_URL || "https://app.sokol.ai"
+    process.env.FRONTEND_URL || 'https://app.sokol.ai'
   }/certificates/verify/${this.verification.verificationCode}`;
 });
 
@@ -587,7 +587,7 @@ certificateSchema.virtual("publicVerificationUrl").get(function () {
 
 // Generate verification assets (QR code, etc.)
 certificateSchema.methods.generateVerificationAssets = async function () {
-  const QRCode = require("qrcode"); // Will need to add this dependency
+  const QRCode = require('qrcode'); // Will need to add this dependency
 
   try {
     // Generate QR code for verification
@@ -595,22 +595,22 @@ certificateSchema.methods.generateVerificationAssets = async function () {
       width: 200,
       margin: 2,
       color: {
-        dark: "#000000",
-        light: "#ffffff",
+        dark: '#000000',
+        light: '#ffffff',
       },
     });
 
     this.assets.qrCodeUrl = qrCodeDataUrl;
     return this.save();
   } catch (error) {
-    console.error("Error generating verification assets:", error);
+    console.error('Error generating verification assets:', error);
     throw error;
   }
 };
 
 // Revoke certificate
 certificateSchema.methods.revoke = function (reason, revokedBy) {
-  this.status = "revoked";
+  this.status = 'revoked';
   this.revocationReason = reason;
   this.revokedAt = new Date();
   this.revokedBy = revokedBy;
@@ -621,7 +621,7 @@ certificateSchema.methods.revoke = function (reason, revokedBy) {
 
 // Renew certificate
 certificateSchema.methods.renew = function (newValidUntil = null) {
-  this.status = "renewed";
+  this.status = 'renewed';
   this.validFrom = new Date();
   this.validUntil = newValidUntil;
   this.verification.isVerified = true;
@@ -641,8 +641,8 @@ certificateSchema.methods.trackShare = function (platform, postId = null) {
 };
 
 // Track view/download
-certificateSchema.methods.trackAccess = function (type = "view") {
-  if (type === "download") {
+certificateSchema.methods.trackAccess = function (type = 'view') {
+  if (type === 'download') {
     this.sharing.downloadCount += 1;
   } else {
     this.sharing.viewCount += 1;
@@ -674,12 +674,12 @@ certificateSchema.methods.getSummary = function () {
 
 // Check if user meets requirements for this certificate
 certificateSchema.methods.checkUserEligibility = async function (userId) {
-  const User = require("./User");
-  const UserProgress = require("./UserProgress");
-  const AssessmentSession = require("./AssessmentSession");
+  const User = require('./User');
+  const UserProgress = require('./UserProgress');
+  const AssessmentSession = require('./AssessmentSession');
 
   const user = await User.findById(userId);
-  if (!user) return { eligible: false, reasons: ["User not found"] };
+  if (!user) return { eligible: false, reasons: ['User not found'] };
 
   const reasons = [];
   let eligible = true;
@@ -689,7 +689,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
     const progress = await UserProgress.findOne({
       userId,
       pathId: pathReq.pathId,
-      "progress.completed": true,
+      'progress.completed': true,
     });
 
     if (!progress) {
@@ -698,7 +698,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
     } else if (progress.performance.averageScore < pathReq.minimumScore) {
       eligible = false;
       reasons.push(
-        `Path score too low: ${progress.performance.averageScore} < ${pathReq.minimumScore}`
+        `Path score too low: ${progress.performance.averageScore} < ${pathReq.minimumScore}`,
       );
     }
   }
@@ -707,7 +707,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
   for (const assessReq of this.requirements.requiredAssessments) {
     const bestAttempt = await AssessmentSession.findBestAttempt(
       userId,
-      assessReq.assessmentId
+      assessReq.assessmentId,
     );
 
     if (!bestAttempt || !bestAttempt.results.passed) {
@@ -716,7 +716,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
     } else if (bestAttempt.results.finalScore < assessReq.minimumScore) {
       eligible = false;
       reasons.push(
-        `Assessment score too low: ${bestAttempt.results.finalScore} < ${assessReq.minimumScore}`
+        `Assessment score too low: ${bestAttempt.results.finalScore} < ${assessReq.minimumScore}`,
       );
     }
   }
@@ -727,7 +727,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
     if (totalHours < this.requirements.timeRequirements.minimumLearningHours) {
       eligible = false;
       reasons.push(
-        `Insufficient learning hours: ${totalHours} < ${this.requirements.timeRequirements.minimumLearningHours}`
+        `Insufficient learning hours: ${totalHours} < ${this.requirements.timeRequirements.minimumLearningHours}`,
       );
     }
   }
@@ -740,7 +740,7 @@ certificateSchema.methods.checkUserEligibility = async function (userId) {
 // Find user's certificates
 certificateSchema.statics.findUserCertificates = function (
   userId,
-  options = {}
+  options = {},
 ) {
   const query = { userId };
 
@@ -749,8 +749,8 @@ certificateSchema.statics.findUserCertificates = function (
   if (options.status) query.status = options.status;
   if (options.isValid !== undefined) {
     // Complex query for validity
-    query.status = "issued";
-    query["verification.isVerified"] = true;
+    query.status = 'issued';
+    query['verification.isVerified'] = true;
     if (options.isValid) {
       query.$or = [{ validUntil: null }, { validUntil: { $gt: new Date() } }];
     }
@@ -762,28 +762,28 @@ certificateSchema.statics.findUserCertificates = function (
 // Verify certificate by verification code
 certificateSchema.statics.verifyByCode = function (verificationCode) {
   return this.findOne({
-    "verification.verificationCode": verificationCode,
-    "verification.isVerified": true,
-    status: "issued",
-  }).populate("userId", "firstName lastName email");
+    'verification.verificationCode': verificationCode,
+    'verification.isVerified': true,
+    status: 'issued',
+  }).populate('userId', 'firstName lastName email');
 };
 
 // Get certificate statistics
-certificateSchema.statics.getCertificateStats = function (timeRange = "30d") {
+certificateSchema.statics.getCertificateStats = function (timeRange = '30d') {
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "7d":
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
-    case "1y":
-      dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
+  case '1y':
+    dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
+    break;
   }
 
   return this.aggregate([
@@ -798,13 +798,13 @@ certificateSchema.statics.getCertificateStats = function (timeRange = "30d") {
         totalIssued: { $sum: 1 },
         byType: {
           $push: {
-            type: "$type",
-            category: "$category",
-            level: "$level",
+            type: '$type',
+            category: '$category',
+            level: '$level',
           },
         },
-        avgScore: { $avg: "$achievementData.finalScore" },
-        totalHours: { $sum: "$achievementData.totalTimeSpent" },
+        avgScore: { $avg: '$achievementData.finalScore' },
+        totalHours: { $sum: '$achievementData.totalTimeSpent' },
       },
     },
   ]);
@@ -812,18 +812,18 @@ certificateSchema.statics.getCertificateStats = function (timeRange = "30d") {
 
 // Find certificates expiring soon
 certificateSchema.statics.findExpiringCertificates = function (
-  daysBefore = 30
+  daysBefore = 30,
 ) {
   const thresholdDate = new Date();
   thresholdDate.setDate(thresholdDate.getDate() + daysBefore);
 
   return this.find({
-    status: "issued",
+    status: 'issued',
     validUntil: {
       $gte: new Date(),
       $lte: thresholdDate,
     },
-  }).populate("userId", "firstName lastName email");
+  }).populate('userId', 'firstName lastName email');
 };
 
 // Generate unique certificate ID
@@ -835,8 +835,8 @@ certificateSchema.statics.generateCertificateId = function () {
 
 // Generate unique verification code
 certificateSchema.statics.generateVerificationCode = function () {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "";
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
   for (let i = 0; i < 12; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -844,7 +844,7 @@ certificateSchema.statics.generateVerificationCode = function () {
 };
 
 // Pre-save middleware to generate IDs and codes
-certificateSchema.pre("save", function (next) {
+certificateSchema.pre('save', function (next) {
   if (this.isNew) {
     if (!this.certificateId) {
       this.certificateId = this.constructor.generateCertificateId();
@@ -860,22 +860,22 @@ certificateSchema.pre("save", function (next) {
     }
 
     if (!this.verification.digitalFingerprint) {
-      const crypto = require("crypto");
+      const crypto = require('crypto');
       const fingerprint = crypto
-        .createHash("sha256")
+        .createHash('sha256')
         .update(`${this.certificateId}-${this.userId}-${this.issueDate}`)
-        .digest("hex");
+        .digest('hex');
       this.verification.digitalFingerprint = fingerprint;
     }
 
     if (!this.verification.securityHash) {
-      const crypto = require("crypto");
+      const crypto = require('crypto');
       const hash = crypto
-        .createHash("sha256")
+        .createHash('sha256')
         .update(
-          `${this.verification.verificationCode}-${this.verification.digitalFingerprint}`
+          `${this.verification.verificationCode}-${this.verification.digitalFingerprint}`,
         )
-        .digest("hex");
+        .digest('hex');
       this.verification.securityHash = hash;
     }
   }
@@ -883,6 +883,6 @@ certificateSchema.pre("save", function (next) {
   next();
 });
 
-const Certificate = mongoose.model("Certificate", certificateSchema);
+const Certificate = mongoose.model('Certificate', certificateSchema);
 
 module.exports = Certificate;

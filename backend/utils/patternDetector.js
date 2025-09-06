@@ -1,8 +1,8 @@
 // utils/patternDetector.js
-const LearningSession = require("../models/LearningSession");
-const UserProgress = require("../models/UserProgress");
-const LearningAnalytics = require("../models/LearningAnalytics");
-const { dataAnalyzer } = require("./dataAnalyzer");
+const LearningSession = require('../models/LearningSession');
+const UserProgress = require('../models/UserProgress');
+const LearningAnalytics = require('../models/LearningAnalytics');
+// const { dataAnalyzer } = require('./dataAnalyzer');
 
 class PatternDetector {
 
@@ -10,7 +10,7 @@ class PatternDetector {
    * Detect various learning patterns for a user
    */
   async detectPatterns(userId, options = {}) {
-    const { timeRange = "30d", patternTypes = ["all"], minConfidence = 60 } = options;
+    const { timeRange = '30d', patternTypes = ['all'], minConfidence = 60 } = options;
 
     const patterns = {};
 
@@ -38,14 +38,14 @@ class PatternDetector {
     try {
       const sessions = await LearningSession.find({
         user: userId,
-        startTime: { $gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) } // Last 60 days
-      }).select("startTime duration engagementScore");
+        startTime: { $gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) }, // Last 60 days
+      }).select('startTime duration engagementScore');
 
       if (sessions.length < 3) {
         return {
-          type: "optimal_timing",
+          type: 'optimal_timing',
           confidence: 0,
-          message: "Need more session data to detect timing patterns"
+          message: 'Need more session data to detect timing patterns',
         };
       }
 
@@ -65,7 +65,7 @@ class PatternDetector {
             sessions: 0, 
             totalEngagement: 0, 
             totalDuration: 0,
-            scores: []
+            scores: [],
           };
         }
         hourlyData[hour].sessions++;
@@ -78,7 +78,7 @@ class PatternDetector {
           dailyData[day] = { 
             sessions: 0, 
             totalEngagement: 0, 
-            scores: []
+            scores: [],
           };
         }
         dailyData[day].sessions++;
@@ -109,7 +109,7 @@ class PatternDetector {
       // Find optimal day
       let bestDay = null;
       let bestDayScore = 0;
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
       Object.keys(dailyData).forEach(day => {
         const data = dailyData[day];
@@ -130,7 +130,7 @@ class PatternDetector {
       const confidence = Math.min(sessions.length * 5, 100);
 
       return {
-        type: "optimal_timing",
+        type: 'optimal_timing',
         bestHour,
         bestDay,
         bestDayName: bestDay !== null ? dayNames[bestDay] : null,
@@ -138,15 +138,15 @@ class PatternDetector {
         confidence,
         hourlyConsistency: bestHourConsistency,
         insights: this.generateTimingInsights(bestHour, bestDay, idealSessionLength),
-        dataPoints: sessions.length
+        dataPoints: sessions.length,
       };
 
     } catch (error) {
-      console.error("Error detecting optimal timing:", error);
+      console.error('Error detecting optimal timing:', error);
       return {
-        type: "optimal_timing",
+        type: 'optimal_timing',
         confidence: 0,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -157,14 +157,14 @@ class PatternDetector {
   async detectEngagementPatterns(userId) {
     try {
       const analytics = await LearningAnalytics.find({
-        user: userId
-      }).sort({ "period.startDate": -1 }).limit(12);
+        user: userId,
+      }).sort({ 'period.startDate': -1 }).limit(12);
 
       if (analytics.length < 3) {
         return {
-          type: "engagement_patterns",
+          type: 'engagement_patterns',
           confidence: 0,
-          message: "Need more analytics data to detect engagement patterns"
+          message: 'Need more analytics data to detect engagement patterns',
         };
       }
 
@@ -172,7 +172,7 @@ class PatternDetector {
         date: a.period.startDate,
         focusScore: a.engagement.focusScore,
         sessionCount: a.engagement.sessionCount,
-        averageDuration: a.engagement.averageSessionDuration
+        averageDuration: a.engagement.averageSessionDuration,
       }));
 
       // Detect trends
@@ -189,65 +189,65 @@ class PatternDetector {
       const focusConsistency = this.calculateConsistency(focusScores);
       if (focusConsistency > 80) {
         patterns.push({
-          pattern: "high_consistency",
-          description: "Your engagement levels are very consistent",
-          strength: focusConsistency
+          pattern: 'high_consistency',
+          description: 'Your engagement levels are very consistent',
+          strength: focusConsistency,
         });
       } else if (focusConsistency < 40) {
         patterns.push({
-          pattern: "inconsistent_engagement",
-          description: "Your engagement varies significantly",
-          strength: 100 - focusConsistency
+          pattern: 'inconsistent_engagement',
+          description: 'Your engagement varies significantly',
+          strength: 100 - focusConsistency,
         });
       }
 
       // Trend patterns
       if (focusTrend > 0.2) {
         patterns.push({
-          pattern: "improving_engagement",
-          description: "Your engagement is steadily improving",
-          strength: Math.min(focusTrend * 100, 100)
+          pattern: 'improving_engagement',
+          description: 'Your engagement is steadily improving',
+          strength: Math.min(focusTrend * 100, 100),
         });
       } else if (focusTrend < -0.2) {
         patterns.push({
-          pattern: "declining_engagement",
-          description: "Your engagement has been declining",
-          strength: Math.min(Math.abs(focusTrend) * 100, 100)
+          pattern: 'declining_engagement',
+          description: 'Your engagement has been declining',
+          strength: Math.min(Math.abs(focusTrend) * 100, 100),
         });
       }
 
       // Session frequency patterns
       if (sessionTrend > 0.2) {
         patterns.push({
-          pattern: "increasing_frequency",
-          description: "You're learning more frequently over time",
-          strength: Math.min(sessionTrend * 100, 100)
+          pattern: 'increasing_frequency',
+          description: 'You\'re learning more frequently over time',
+          strength: Math.min(sessionTrend * 100, 100),
         });
       }
 
       const confidence = Math.min(analytics.length * 12, 100);
 
       return {
-        type: "engagement_patterns",
+        type: 'engagement_patterns',
         patterns,
         trends: {
           focus: { direction: this.getTrendDirection(focusTrend), strength: Math.abs(focusTrend) },
-          sessions: { direction: this.getTrendDirection(sessionTrend), strength: Math.abs(sessionTrend) }
+          sessions: { direction: this.getTrendDirection(sessionTrend), strength: Math.abs(sessionTrend) },
         },
         consistency: {
           focus: focusConsistency,
-          sessions: this.calculateConsistency(sessionCounts)
+          sessions: this.calculateConsistency(sessionCounts),
         },
         confidence,
-        recommendations: this.generateEngagementRecommendations(patterns, focusTrend)
+        recommendations: this.generateEngagementRecommendations(patterns, focusTrend),
       };
 
     } catch (error) {
-      console.error("Error detecting engagement patterns:", error);
+      console.error('Error detecting engagement patterns:', error);
       return {
-        type: "engagement_patterns",
+        type: 'engagement_patterns',
         confidence: 0,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -259,14 +259,14 @@ class PatternDetector {
     try {
       const progress = await UserProgress.find({
         user: userId,
-        completionStatus: "completed"
-      }).sort({ completedAt: 1 }).select("completedAt learningModule learningPath");
+        completionStatus: 'completed',
+      }).sort({ completedAt: 1 }).select('completedAt learningModule learningPath');
 
       if (progress.length < 3) {
         return {
-          type: "learning_velocity",
+          type: 'learning_velocity',
           confidence: 0,
-          message: "Need more completed modules to detect velocity patterns"
+          message: 'Need more completed modules to detect velocity patterns',
         };
       }
 
@@ -283,16 +283,16 @@ class PatternDetector {
           const velocity = window.length / timeSpan; // modules per day
           velocityData.push({
             date: window[window.length - 1].completedAt,
-            velocity: velocity * 7 // convert to modules per week
+            velocity: velocity * 7, // convert to modules per week
           });
         }
       }
 
       if (velocityData.length === 0) {
         return {
-          type: "learning_velocity",
+          type: 'learning_velocity',
           confidence: 0,
-          message: "Insufficient time span data for velocity calculation"
+          message: 'Insufficient time span data for velocity calculation',
         };
       }
 
@@ -307,58 +307,58 @@ class PatternDetector {
 
       if (avgVelocity > 3) {
         patterns.push({
-          pattern: "high_velocity",
-          description: "You complete modules at a fast pace",
-          value: avgVelocity
+          pattern: 'high_velocity',
+          description: 'You complete modules at a fast pace',
+          value: avgVelocity,
         });
       } else if (avgVelocity < 1) {
         patterns.push({
-          pattern: "low_velocity",
-          description: "You take time to thoroughly complete modules",
-          value: avgVelocity
+          pattern: 'low_velocity',
+          description: 'You take time to thoroughly complete modules',
+          value: avgVelocity,
         });
       }
 
       if (velocityConsistency > 75) {
         patterns.push({
-          pattern: "consistent_pace",
-          description: "Your learning pace is very consistent",
-          value: velocityConsistency
+          pattern: 'consistent_pace',
+          description: 'Your learning pace is very consistent',
+          value: velocityConsistency,
         });
       }
 
       if (velocityTrend > 0.2) {
         patterns.push({
-          pattern: "accelerating",
-          description: "Your learning pace is accelerating",
-          value: velocityTrend
+          pattern: 'accelerating',
+          description: 'Your learning pace is accelerating',
+          value: velocityTrend,
         });
       } else if (velocityTrend < -0.2) {
         patterns.push({
-          pattern: "decelerating",
-          description: "Your learning pace is slowing down",
-          value: Math.abs(velocityTrend)
+          pattern: 'decelerating',
+          description: 'Your learning pace is slowing down',
+          value: Math.abs(velocityTrend),
         });
       }
 
       const confidence = Math.min(velocityData.length * 15, 100);
 
       return {
-        type: "learning_velocity",
+        type: 'learning_velocity',
         averageVelocity: Math.round(avgVelocity * 100) / 100,
         velocityTrend: Math.round(velocityTrend * 100) / 100,
         consistency: Math.round(velocityConsistency),
         patterns,
         confidence,
-        recommendations: this.generateVelocityRecommendations(avgVelocity, velocityTrend, patterns)
+        recommendations: this.generateVelocityRecommendations(avgVelocity, velocityTrend, patterns),
       };
 
     } catch (error) {
-      console.error("Error detecting learning velocity:", error);
+      console.error('Error detecting learning velocity:', error);
       return {
-        type: "learning_velocity",
+        type: 'learning_velocity',
         confidence: 0,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -369,15 +369,15 @@ class PatternDetector {
   async detectStrugglePatterns(userId) {
     try {
       const progress = await UserProgress.find({
-        user: userId
-      }).populate("learningModule", "title category difficulty")
+        user: userId,
+      }).populate('learningModule', 'title category difficulty')
         .sort({ createdAt: -1 });
 
       if (progress.length < 5) {
         return {
-          type: "struggle_patterns",
+          type: 'struggle_patterns',
           confidence: 0,
-          message: "Need more learning data to detect struggle patterns"
+          message: 'Need more learning data to detect struggle patterns',
         };
       }
 
@@ -392,12 +392,12 @@ class PatternDetector {
             total: 0,
             completed: 0,
             scores: [],
-            difficulties: []
+            difficulties: [],
           };
         }
         
         categoryData[category].total++;
-        if (p.completionStatus === "completed") {
+        if (p.completionStatus === 'completed') {
           categoryData[category].completed++;
           if (p.finalScore > 0) {
             categoryData[category].scores.push(p.finalScore);
@@ -416,12 +416,12 @@ class PatternDetector {
         if (completionRate < 0.6 || avgScore < 65) {
           struggles.push({
             category,
-            type: "category_struggle",
+            type: 'category_struggle',
             completionRate: Math.round(completionRate * 100),
             averageScore: Math.round(avgScore),
             severity: this.calculateStruggleSeverity(completionRate, avgScore),
             moduleCount: data.total,
-            commonDifficulty: this.getMostCommonElement(data.difficulties)
+            commonDifficulty: this.getMostCommonElement(data.difficulties),
           });
         }
       });
@@ -434,12 +434,12 @@ class PatternDetector {
           difficultyData[difficulty] = {
             total: 0,
             completed: 0,
-            scores: []
+            scores: [],
           };
         }
         
         difficultyData[difficulty].total++;
-        if (p.completionStatus === "completed") {
+        if (p.completionStatus === 'completed') {
           difficultyData[difficulty].completed++;
           if (p.finalScore > 0) {
             difficultyData[difficulty].scores.push(p.finalScore);
@@ -457,11 +457,11 @@ class PatternDetector {
         if (completionRate < 0.5 || avgScore < 60) {
           struggles.push({
             difficulty,
-            type: "difficulty_struggle",
+            type: 'difficulty_struggle',
             completionRate: Math.round(completionRate * 100),
             averageScore: Math.round(avgScore),
             severity: this.calculateStruggleSeverity(completionRate, avgScore),
-            moduleCount: data.total
+            moduleCount: data.total,
           });
         }
       });
@@ -469,19 +469,19 @@ class PatternDetector {
       const confidence = Math.min(progress.length * 8, 100);
 
       return {
-        type: "struggle_patterns",
+        type: 'struggle_patterns',
         struggles,
         overallStruggleLevel: this.calculateOverallStruggleLevel(struggles),
         confidence,
-        recommendations: this.generateStruggleRecommendations(struggles)
+        recommendations: this.generateStruggleRecommendations(struggles),
       };
 
     } catch (error) {
-      console.error("Error detecting struggle patterns:", error);
+      console.error('Error detecting struggle patterns:', error);
       return {
-        type: "struggle_patterns",
+        type: 'struggle_patterns',
         confidence: 0,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -490,21 +490,21 @@ class PatternDetector {
 
   getDetectionMethods(patternTypes) {
     const allMethods = [
-      "detectOptimalTiming",
-      "detectEngagementPatterns", 
-      "detectLearningVelocity",
-      "detectStrugglePatterns"
+      'detectOptimalTiming',
+      'detectEngagementPatterns', 
+      'detectLearningVelocity',
+      'detectStrugglePatterns',
     ];
 
-    if (patternTypes.includes("all")) {
+    if (patternTypes.includes('all')) {
       return allMethods;
     }
 
     const methodMap = {
-      "optimal_timing": "detectOptimalTiming",
-      "engagement_patterns": "detectEngagementPatterns",
-      "learning_velocity": "detectLearningVelocity", 
-      "struggle_patterns": "detectStrugglePatterns"
+      'optimal_timing': 'detectOptimalTiming',
+      'engagement_patterns': 'detectEngagementPatterns',
+      'learning_velocity': 'detectLearningVelocity', 
+      'struggle_patterns': 'detectStrugglePatterns',
     };
 
     return patternTypes
@@ -543,9 +543,9 @@ class PatternDetector {
   }
 
   getTrendDirection(trend) {
-    if (trend > 0.1) return "increasing";
-    if (trend < -0.1) return "decreasing";
-    return "stable";
+    if (trend > 0.1) return 'increasing';
+    if (trend < -0.1) return 'decreasing';
+    return 'stable';
   }
 
   calculateOptimalDuration(durations, sessions) {
@@ -582,20 +582,20 @@ class PatternDetector {
     
     const overallSeverity = (completionPenalty * completionWeight) + (scorePenalty * scoreWeight);
     
-    if (overallSeverity > 50) return "high";
-    if (overallSeverity > 25) return "medium";
-    return "low";
+    if (overallSeverity > 50) return 'high';
+    if (overallSeverity > 25) return 'medium';
+    return 'low';
   }
 
   calculateOverallStruggleLevel(struggles) {
-    if (struggles.length === 0) return "none";
+    if (struggles.length === 0) return 'none';
     
-    const highSeverityCount = struggles.filter(s => s.severity === "high").length;
-    const mediumSeverityCount = struggles.filter(s => s.severity === "medium").length;
+    const highSeverityCount = struggles.filter(s => s.severity === 'high').length;
+    const mediumSeverityCount = struggles.filter(s => s.severity === 'medium').length;
     
-    if (highSeverityCount > 0) return "high";
-    if (mediumSeverityCount > 1) return "medium";
-    return "low";
+    if (highSeverityCount > 0) return 'high';
+    if (mediumSeverityCount > 1) return 'medium';
+    return 'low';
   }
 
   getMostCommonElement(array) {
@@ -605,7 +605,7 @@ class PatternDetector {
     });
     
     return Object.keys(counts).reduce((most, current) => 
-      counts[current] > counts[most] ? current : most
+      counts[current] > counts[most] ? current : most,
     );
   }
 
@@ -613,7 +613,7 @@ class PatternDetector {
     const insights = [];
     
     if (bestHour !== null) {
-      const timeOfDay = bestHour < 12 ? "morning" : bestHour < 17 ? "afternoon" : "evening";
+      const timeOfDay = bestHour < 12 ? 'morning' : bestHour < 17 ? 'afternoon' : 'evening';
       insights.push(`You perform best during ${timeOfDay} hours around ${bestHour}:00`);
     }
     
@@ -629,36 +629,36 @@ class PatternDetector {
     
     patterns.forEach(pattern => {
       switch (pattern.pattern) {
-        case "declining_engagement":
-          recommendations.push("Consider taking a short break or changing your learning approach");
-          break;
-        case "inconsistent_engagement":
-          recommendations.push("Try to establish a more regular learning schedule");
-          break;
-        case "improving_engagement":
-          recommendations.push("Keep up your current learning strategies - they're working!");
-          break;
+      case 'declining_engagement':
+        recommendations.push('Consider taking a short break or changing your learning approach');
+        break;
+      case 'inconsistent_engagement':
+        recommendations.push('Try to establish a more regular learning schedule');
+        break;
+      case 'improving_engagement':
+        recommendations.push('Keep up your current learning strategies - they\'re working!');
+        break;
       }
     });
     
     if (trend < -0.2) {
-      recommendations.push("Your engagement is trending down - consider adjusting difficulty or content type");
+      recommendations.push('Your engagement is trending down - consider adjusting difficulty or content type');
     }
     
     return recommendations;
   }
 
-  generateVelocityRecommendations(avgVelocity, trend, patterns) {
+  generateVelocityRecommendations(avgVelocity, trend, _patterns) {
     const recommendations = [];
     
     if (avgVelocity < 1) {
-      recommendations.push("Consider setting aside more dedicated learning time to increase pace");
+      recommendations.push('Consider setting aside more dedicated learning time to increase pace');
     } else if (avgVelocity > 4) {
-      recommendations.push("You're learning quickly - ensure you're retaining information well");
+      recommendations.push('You\'re learning quickly - ensure you\'re retaining information well');
     }
     
     if (trend < -0.2) {
-      recommendations.push("Your learning pace is slowing - check if difficulty or motivation needs adjustment");
+      recommendations.push('Your learning pace is slowing - check if difficulty or motivation needs adjustment');
     }
     
     return recommendations;
@@ -668,9 +668,9 @@ class PatternDetector {
     const recommendations = [];
     
     struggles.forEach(struggle => {
-      if (struggle.type === "category_struggle") {
+      if (struggle.type === 'category_struggle') {
         recommendations.push(`Focus on strengthening ${struggle.category} fundamentals`);
-      } else if (struggle.type === "difficulty_struggle") {
+      } else if (struggle.type === 'difficulty_struggle') {
         recommendations.push(`Consider reviewing prerequisites for ${struggle.difficulty} level content`);
       }
     });

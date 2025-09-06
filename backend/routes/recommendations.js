@@ -1,11 +1,11 @@
 // routes/recommendations.js
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Joi = require("joi");
+const Joi = require('joi');
 
 // Import middleware
-const { authenticate } = require("../middleware/auth");
-const { validate } = require("../middleware/validation");
+const { authenticate } = require('../middleware/auth');
+const { validate } = require('../middleware/validation');
 
 // Import controllers
 const {
@@ -26,59 +26,59 @@ const {
   requestSpecificRecommendation,
   getOptimalLearningPath,
   getBatchRecommendations,
-} = require("../controllers/recommendationController");
+} = require('../controllers/recommendationController');
 
 // Validation schemas
 const recommendationQuerySchema = Joi.object({
   type: Joi.string()
     .valid(
-      "next_module",
-      "learning_path",
-      "review_content",
-      "skill_development",
-      "schedule_optimization",
-      "difficulty_adjustment",
-      "ai_personality",
-      "study_break",
-      "peer_collaboration",
-      "assessment_timing",
-      "all"
+      'next_module',
+      'learning_path',
+      'review_content',
+      'skill_development',
+      'schedule_optimization',
+      'difficulty_adjustment',
+      'ai_personality',
+      'study_break',
+      'peer_collaboration',
+      'assessment_timing',
+      'all',
     )
-    .default("all"),
+    .default('all'),
 
   category: Joi.string()
     .valid(
-      "Communication & Leadership",
-      "Innovation & Creativity",
-      "Technical Skills",
-      "Business Strategy",
-      "Personal Development",
-      "Data & Analytics",
-      "General",
-      "all"
+      'Communication & Leadership',
+      'Innovation & Creativity',
+      'Technical Skills',
+      'Business Strategy',
+      'Personal Development',
+      'Data & Analytics',
+      'General',
+      'all',
     )
-    .default("all"),
+    .default('all'),
 
   status: Joi.string()
-    .valid("pending", "viewed", "accepted", "declined", "dismissed", "all")
-    .default("pending"),
+    .valid('pending', 'viewed', 'accepted', 'declined', 'dismissed', 'all')
+    .default('pending'),
 
-  priority: Joi.string().valid("high", "medium", "low", "all").default("all"),
+  priority: Joi.string().valid('high', 'medium', 'low', 'all').default('all'),
 
   limit: Joi.number().integer().min(1).max(50).default(10),
 
   offset: Joi.number().integer().min(0).default(0),
 
   sortBy: Joi.string()
-    .valid("relevance", "date", "priority", "confidence")
-    .default("relevance"),
+    .valid('relevance', 'date', 'priority', 'confidence')
+    .default('relevance'),
 
   includeExpired: Joi.boolean().default(false),
 });
 
 const responseSchema = Joi.object({
   response: Joi.string()
-    .valid("accepted", "declined", "maybe_later", "not_interested")
+    .valid('accepted', 'declined', 'maybe_later', 'not_interested')
     .required(),
 
   feedback: Joi.object({
@@ -120,12 +120,12 @@ const generateRecommendationsSchema = Joi.object({
 
     category: Joi.string()
       .valid(
-        "Communication & Leadership",
-        "Innovation & Creativity",
-        "Technical Skills",
-        "Business Strategy",
-        "Personal Development",
-        "Data & Analytics"
+        'Communication & Leadership',
+        'Innovation & Creativity',
+        'Technical Skills',
+        'Business Strategy',
+        'Personal Development',
+        'Data & Analytics',
       )
       .optional(),
 
@@ -139,7 +139,7 @@ const generateRecommendationsSchema = Joi.object({
       .optional(),
 
     preferredDifficulty: Joi.string()
-      .valid("beginner", "intermediate", "advanced", "expert")
+      .valid('beginner', 'intermediate', 'advanced', 'expert')
       .optional(),
   }).required(),
 
@@ -153,24 +153,24 @@ const generateRecommendationsSchema = Joi.object({
 const specificRequestSchema = Joi.object({
   requestType: Joi.string()
     .valid(
-      "content_for_skill",
-      "learning_path_for_goal",
-      "schedule_optimization",
-      "difficulty_adjustment",
-      "ai_personality_match",
-      "peer_study_group"
+      'content_for_skill',
+      'learning_path_for_goal',
+      'schedule_optimization',
+      'difficulty_adjustment',
+      'ai_personality_match',
+      'peer_study_group',
     )
     .required(),
 
   details: Joi.object({
-    skill: Joi.string().when("..requestType", {
-      is: "content_for_skill",
+    skill: Joi.string().when('..requestType', {
+      is: 'content_for_skill',
       then: Joi.required(),
       otherwise: Joi.optional(),
     }),
 
-    goal: Joi.string().when("..requestType", {
-      is: "learning_path_for_goal",
+    goal: Joi.string().when('..requestType', {
+      is: 'learning_path_for_goal',
       then: Joi.required(),
       otherwise: Joi.optional(),
     }),
@@ -179,66 +179,66 @@ const specificRequestSchema = Joi.object({
       .items(
         Joi.object({
           day: Joi.string().valid(
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "saturday",
-            "sunday"
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday',
+            'sunday',
           ),
           timeSlots: Joi.array().items(
             Joi.object({
               start: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
               end: Joi.string().pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
-            })
+            }),
           ),
-        })
+        }),
       )
-      .when("..requestType", {
-        is: "schedule_optimization",
+      .when('..requestType', {
+        is: 'schedule_optimization',
         then: Joi.required(),
         otherwise: Joi.optional(),
       }),
 
     currentDifficulty: Joi.string()
-      .valid("too_easy", "appropriate", "too_hard")
-      .when("..requestType", {
-        is: "difficulty_adjustment",
+      .valid('too_easy', 'appropriate', 'too_hard')
+      .when('..requestType', {
+        is: 'difficulty_adjustment',
         then: Joi.required(),
         otherwise: Joi.optional(),
       }),
 
     personalityPreferences: Joi.object({
       communicationStyle: Joi.string().valid(
-        "direct",
-        "encouraging",
-        "detailed"
+        'direct',
+        'encouraging',
+        'detailed',
       ),
-      supportLevel: Joi.string().valid("minimal", "moderate", "high"),
+      supportLevel: Joi.string().valid('minimal', 'moderate', 'high'),
       explanationDepth: Joi.string().valid(
-        "brief",
-        "moderate",
-        "comprehensive"
+        'brief',
+        'moderate',
+        'comprehensive',
       ),
-    }).when("..requestType", {
-      is: "ai_personality_match",
+    }).when('..requestType', {
+      is: 'ai_personality_match',
       then: Joi.required(),
       otherwise: Joi.optional(),
     }),
   }).required(),
 
-  urgency: Joi.string().valid("low", "medium", "high").default("medium"),
+  urgency: Joi.string().valid('low', 'medium', 'high').default('medium'),
 });
 
 const statsQuerySchema = Joi.object({
-  timeRange: Joi.string().valid("7d", "30d", "90d", "1y", "all").default("30d"),
+  timeRange: Joi.string().valid('7d', '30d', '90d', '1y', 'all').default('30d'),
 
   includeComparison: Joi.boolean().default(false),
 
   groupBy: Joi.string()
-    .valid("type", "category", "week", "month")
-    .default("type"),
+    .valid('type', 'category', 'week', 'month')
+    .default('type'),
 });
 
 const batchRequestSchema = Joi.object({
@@ -249,7 +249,7 @@ const batchRequestSchema = Joi.object({
     .required(),
 
   action: Joi.string()
-    .valid("mark_viewed", "dismiss", "accept_batch", "decline_batch")
+    .valid('mark_viewed', 'dismiss', 'accept_batch', 'decline_batch')
     .required(),
 
   feedback: Joi.object({
@@ -268,9 +268,9 @@ router.use(authenticate);
  * @query   type, category, status, priority, limit, offset, sortBy
  */
 router.get(
-  "/",
-  validate(recommendationQuerySchema, "query"),
-  getRecommendations
+  '/',
+  validate(recommendationQuerySchema, 'query'),
+  getRecommendations,
 );
 
 /**
@@ -280,15 +280,15 @@ router.get(
  * @query   limit, category
  */
 router.get(
-  "/next-steps",
+  '/next-steps',
   validate(
     Joi.object({
       limit: Joi.number().integer().min(1).max(10).default(3),
       category: Joi.string().optional(),
     }),
-    "query"
+    'query',
   ),
-  getNextSteps
+  getNextSteps,
 );
 
 /**
@@ -298,16 +298,16 @@ router.get(
  * @param   moduleId
  */
 router.get(
-  "/content/:moduleId",
+  '/content/:moduleId',
   validate(
     Joi.object({
       moduleId: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
-  getContentRecommendations
+  getContentRecommendations,
 );
 
 /**
@@ -315,7 +315,7 @@ router.get(
  * @desc    Get optimal learning timing recommendations
  * @access  Private
  */
-router.get("/timing", getTimingRecommendations);
+router.get('/timing', getTimingRecommendations);
 
 /**
  * @route   GET /api/recommendations/skills
@@ -324,17 +324,17 @@ router.get("/timing", getTimingRecommendations);
  * @query   targetSkill, currentLevel
  */
 router.get(
-  "/skills",
+  '/skills',
   validate(
     Joi.object({
       targetSkill: Joi.string().optional(),
       currentLevel: Joi.string()
-        .valid("beginner", "intermediate", "advanced", "expert")
+        .valid('beginner', 'intermediate', 'advanced', 'expert')
         .optional(),
     }),
-    "query"
+    'query',
   ),
-  getSkillRecommendations
+  getSkillRecommendations,
 );
 
 /**
@@ -344,20 +344,20 @@ router.get(
  * @query   goal, timeframe, intensity
  */
 router.get(
-  "/learning-path",
+  '/learning-path',
   validate(
     Joi.object({
       goal: Joi.string().optional(),
       timeframe: Joi.string()
-        .valid("1month", "3months", "6months", "1year")
+        .valid('1month', '3months', '6months', '1year')
         .optional(),
       intensity: Joi.string()
-        .valid("light", "moderate", "intensive")
+        .valid('light', 'moderate', 'intensive')
         .optional(),
     }),
-    "query"
+    'query',
   ),
-  getOptimalLearningPath
+  getOptimalLearningPath,
 );
 
 /**
@@ -368,33 +368,33 @@ router.get(
  * @query   limit
  */
 router.get(
-  "/type/:type",
+  '/type/:type',
   validate(
     Joi.object({
       type: Joi.string()
         .valid(
-          "next_module",
-          "learning_path",
-          "review_content",
-          "skill_development",
-          "schedule_optimization",
-          "difficulty_adjustment",
-          "ai_personality",
-          "study_break",
-          "peer_collaboration",
-          "assessment_timing"
+          'next_module',
+          'learning_path',
+          'review_content',
+          'skill_development',
+          'schedule_optimization',
+          'difficulty_adjustment',
+          'ai_personality',
+          'study_break',
+          'peer_collaboration',
+          'assessment_timing',
         )
         .required(),
     }),
-    "params"
+    'params',
   ),
   validate(
     Joi.object({
       limit: Joi.number().integer().min(1).max(20).default(5),
     }),
-    "query"
+    'query',
   ),
-  getRecommendationsByType
+  getRecommendationsByType,
 );
 
 /**
@@ -404,16 +404,16 @@ router.get(
  * @param   id
  */
 router.get(
-  "/:id",
+  '/:id',
   validate(
     Joi.object({
       id: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
-  getRecommendationById
+  getRecommendationById,
 );
 
 /**
@@ -423,20 +423,20 @@ router.get(
  * @query   timeRange, status, limit
  */
 router.get(
-  "/history/user",
+  '/history/user',
   validate(
     Joi.object({
       timeRange: Joi.string()
-        .valid("7d", "30d", "90d", "1y", "all")
-        .default("30d"),
+        .valid('7d', '30d', '90d', '1y', 'all')
+        .default('30d'),
       status: Joi.string()
-        .valid("accepted", "declined", "dismissed", "all")
-        .default("all"),
+        .valid('accepted', 'declined', 'dismissed', 'all')
+        .default('all'),
       limit: Joi.number().integer().min(1).max(100).default(20),
     }),
-    "query"
+    'query',
   ),
-  getRecommendationHistory
+  getRecommendationHistory,
 );
 
 /**
@@ -446,9 +446,9 @@ router.get(
  * @query   timeRange, includeComparison, groupBy
  */
 router.get(
-  "/stats/user",
-  validate(statsQuerySchema, "query"),
-  getRecommendationStats
+  '/stats/user',
+  validate(statsQuerySchema, 'query'),
+  getRecommendationStats,
 );
 
 /**
@@ -458,9 +458,9 @@ router.get(
  * @body    context, maxRecommendations, includeScheduling
  */
 router.post(
-  "/generate",
+  '/generate',
   validate(generateRecommendationsSchema),
-  generatePersonalizedRecommendations
+  generatePersonalizedRecommendations,
 );
 
 /**
@@ -470,9 +470,9 @@ router.post(
  * @body    requestType, details, urgency
  */
 router.post(
-  "/request",
+  '/request',
   validate(specificRequestSchema),
-  requestSpecificRecommendation
+  requestSpecificRecommendation,
 );
 
 /**
@@ -482,9 +482,9 @@ router.post(
  * @body    recommendationIds, action, feedback
  */
 router.post(
-  "/batch-action",
+  '/batch-action',
   validate(batchRequestSchema),
-  getBatchRecommendations
+  getBatchRecommendations,
 );
 
 /**
@@ -495,17 +495,17 @@ router.post(
  * @body    response, feedback, reason
  */
 router.put(
-  "/:id/respond",
+  '/:id/respond',
   validate(
     Joi.object({
       id: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
   validate(responseSchema),
-  respondToRecommendation
+  respondToRecommendation,
 );
 
 /**
@@ -515,16 +515,16 @@ router.put(
  * @param   id
  */
 router.put(
-  "/:id/viewed",
+  '/:id/viewed',
   validate(
     Joi.object({
       id: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
-  markAsViewed
+  markAsViewed,
 );
 
 /**
@@ -535,17 +535,17 @@ router.put(
  * @body    helpfulness, relevance, timing, comment
  */
 router.put(
-  "/:id/feedback",
+  '/:id/feedback',
   validate(
     Joi.object({
       id: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
   validate(feedbackSchema),
-  provideFeedback
+  provideFeedback,
 );
 
 /**
@@ -555,16 +555,16 @@ router.put(
  * @param   id
  */
 router.delete(
-  "/:id",
+  '/:id',
   validate(
     Joi.object({
       id: Joi.string()
         .pattern(/^[0-9a-fA-F]{24}$/)
         .required(),
     }),
-    "params"
+    'params',
   ),
-  dismissRecommendation
+  dismissRecommendation,
 );
 
 /**
@@ -572,46 +572,46 @@ router.delete(
  * @desc    Health check for recommendation service
  * @access  Private
  */
-router.get("/health/check", (req, res) => {
+router.get('/health/check', (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      service: "recommendations",
-      status: "operational",
+      service: 'recommendations',
+      status: 'operational',
       timestamp: new Date().toISOString(),
       features: {
-        personalization: "active",
-        aiGeneration: "active",
-        realTimeAdaptation: "active",
-        feedbackLearning: "active",
-        batchProcessing: "active",
+        personalization: 'active',
+        aiGeneration: 'active',
+        realTimeAdaptation: 'active',
+        feedbackLearning: 'active',
+        batchProcessing: 'active',
       },
       endpoints: {
         core: [
-          "GET /api/recommendations",
-          "GET /api/recommendations/:id",
-          "POST /api/recommendations/generate",
-          "PUT /api/recommendations/:id/respond",
+          'GET /api/recommendations',
+          'GET /api/recommendations/:id',
+          'POST /api/recommendations/generate',
+          'PUT /api/recommendations/:id/respond',
         ],
         specialized: [
-          "GET /api/recommendations/next-steps",
-          "GET /api/recommendations/content/:moduleId",
-          "GET /api/recommendations/timing",
-          "GET /api/recommendations/skills",
+          'GET /api/recommendations/next-steps',
+          'GET /api/recommendations/content/:moduleId',
+          'GET /api/recommendations/timing',
+          'GET /api/recommendations/skills',
         ],
         management: [
-          "GET /api/recommendations/history/user",
-          "GET /api/recommendations/stats/user",
-          "POST /api/recommendations/batch-action",
-          "DELETE /api/recommendations/:id",
+          'GET /api/recommendations/history/user',
+          'GET /api/recommendations/stats/user',
+          'POST /api/recommendations/batch-action',
+          'DELETE /api/recommendations/:id',
         ],
       },
       algorithms: {
-        collaborative_filtering: "active",
-        content_based: "active",
-        hybrid: "active",
-        ai_driven: "active",
-        rule_based: "active",
+        collaborative_filtering: 'active',
+        content_based: 'active',
+        hybrid: 'active',
+        ai_driven: 'active',
+        rule_based: 'active',
       },
     },
   });
@@ -621,51 +621,51 @@ router.get("/health/check", (req, res) => {
  * Error handling middleware for recommendation routes
  */
 router.use((error, req, res, next) => {
-  console.error("Recommendation route error:", error);
+  console.error('Recommendation route error:', error);
 
   // Handle specific recommendation-related errors
-  if (error.message.includes("insufficient user data")) {
+  if (error.message.includes('insufficient user data')) {
     return res.status(400).json({
       success: false,
-      error: "Insufficient user data",
+      error: 'Insufficient user data',
       message:
-        "Not enough learning data to generate personalized recommendations",
+        'Not enough learning data to generate personalized recommendations',
       suggestion:
-        "Complete more learning activities to unlock personalized recommendations",
+        'Complete more learning activities to unlock personalized recommendations',
     });
   }
 
-  if (error.message.includes("recommendation not found")) {
+  if (error.message.includes('recommendation not found')) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
-      message: "The requested recommendation does not exist or has expired",
+      error: 'Recommendation not found',
+      message: 'The requested recommendation does not exist or has expired',
     });
   }
 
-  if (error.message.includes("generation failed")) {
+  if (error.message.includes('generation failed')) {
     return res.status(500).json({
       success: false,
-      error: "Recommendation generation failed",
-      message: "Unable to generate recommendations at this time",
+      error: 'Recommendation generation failed',
+      message: 'Unable to generate recommendations at this time',
       suggestion:
-        "Please try again later or use manual learning path selection",
+        'Please try again later or use manual learning path selection',
     });
   }
 
-  if (error.message.includes("already responded")) {
+  if (error.message.includes('already responded')) {
     return res.status(409).json({
       success: false,
-      error: "Already responded",
-      message: "You have already responded to this recommendation",
+      error: 'Already responded',
+      message: 'You have already responded to this recommendation',
     });
   }
 
-  if (error.message.includes("expired")) {
+  if (error.message.includes('expired')) {
     return res.status(410).json({
       success: false,
-      error: "Recommendation expired",
-      message: "This recommendation has expired and is no longer valid",
+      error: 'Recommendation expired',
+      message: 'This recommendation has expired and is no longer valid',
     });
   }
 

@@ -156,18 +156,18 @@ const createSampleSkillCategories = async () => {
           { level: 'beginner', name: 'Beginner', description: 'Basic syntax and concepts', minScore: 0, maxScore: 69 },
           { level: 'intermediate', name: 'Intermediate', description: 'Problem solving and frameworks', minScore: 70, maxScore: 84 },
           { level: 'advanced', name: 'Advanced', description: 'Complex algorithms and architecture', minScore: 85, maxScore: 94 },
-          { level: 'expert', name: 'Expert', description: 'System design and optimization', minScore: 95, maxScore: 100 }
+          { level: 'expert', name: 'Expert', description: 'System design and optimization', minScore: 95, maxScore: 100 },
         ],
         skills: [
           { name: 'JavaScript', description: 'Modern JavaScript programming', tags: ['frontend', 'backend', 'web'] },
           { name: 'Python', description: 'Python programming language', tags: ['backend', 'data-science', 'ai'] },
           { name: 'React', description: 'React.js framework', tags: ['frontend', 'ui', 'web'] },
-          { name: 'Node.js', description: 'Server-side JavaScript', tags: ['backend', 'api', 'web'] }
+          { name: 'Node.js', description: 'Server-side JavaScript', tags: ['backend', 'api', 'web'] },
         ],
         createdBy: sampleUserId,
         tags: ['coding', 'software', 'development', 'tech'],
         isFeatured: true,
-        sortOrder: 1
+        sortOrder: 1,
       },
       {
         name: 'Design',
@@ -180,18 +180,18 @@ const createSampleSkillCategories = async () => {
           { level: 'beginner', name: 'Beginner', description: 'Basic design principles', minScore: 0, maxScore: 69 },
           { level: 'intermediate', name: 'Intermediate', description: 'Tool proficiency and workflows', minScore: 70, maxScore: 84 },
           { level: 'advanced', name: 'Advanced', description: 'Advanced techniques and theory', minScore: 85, maxScore: 94 },
-          { level: 'expert', name: 'Expert', description: 'Design leadership and innovation', minScore: 95, maxScore: 100 }
+          { level: 'expert', name: 'Expert', description: 'Design leadership and innovation', minScore: 95, maxScore: 100 },
         ],
         skills: [
           { name: 'UI Design', description: 'User interface design', tags: ['ui', 'visual', 'web'] },
           { name: 'UX Research', description: 'User experience research', tags: ['ux', 'research', 'users'] },
           { name: 'Figma', description: 'Figma design tool', tags: ['tool', 'design', 'collaboration'] },
-          { name: 'Graphic Design', description: 'Visual communication design', tags: ['graphics', 'branding', 'visual'] }
+          { name: 'Graphic Design', description: 'Visual communication design', tags: ['graphics', 'branding', 'visual'] },
         ],
         createdBy: sampleUserId,
         tags: ['design', 'creative', 'visual', 'ui', 'ux'],
         isFeatured: true,
-        sortOrder: 2
+        sortOrder: 2,
       },
       {
         name: 'Business Strategy',
@@ -204,18 +204,18 @@ const createSampleSkillCategories = async () => {
           { level: 'beginner', name: 'Beginner', description: 'Basic business concepts', minScore: 0, maxScore: 69 },
           { level: 'intermediate', name: 'Intermediate', description: 'Strategy development', minScore: 70, maxScore: 84 },
           { level: 'advanced', name: 'Advanced', description: 'Complex business analysis', minScore: 85, maxScore: 94 },
-          { level: 'expert', name: 'Expert', description: 'Executive strategy and vision', minScore: 95, maxScore: 100 }
+          { level: 'expert', name: 'Expert', description: 'Executive strategy and vision', minScore: 95, maxScore: 100 },
         ],
         skills: [
           { name: 'Strategic Planning', description: 'Long-term business planning', tags: ['strategy', 'planning', 'growth'] },
           { name: 'Financial Analysis', description: 'Business financial analysis', tags: ['finance', 'analysis', 'metrics'] },
           { name: 'Project Management', description: 'Project planning and execution', tags: ['management', 'planning', 'execution'] },
-          { name: 'Market Research', description: 'Market analysis and insights', tags: ['research', 'market', 'analysis'] }
+          { name: 'Market Research', description: 'Market analysis and insights', tags: ['research', 'market', 'analysis'] },
         ],
         createdBy: sampleUserId,
         tags: ['business', 'strategy', 'management', 'leadership'],
         isFeatured: true,
-        sortOrder: 3
+        sortOrder: 3,
       },
       {
         name: 'Communication',
@@ -228,19 +228,19 @@ const createSampleSkillCategories = async () => {
           { level: 'beginner', name: 'Beginner', description: 'Basic communication skills', minScore: 0, maxScore: 69 },
           { level: 'intermediate', name: 'Intermediate', description: 'Team communication', minScore: 70, maxScore: 84 },
           { level: 'advanced', name: 'Advanced', description: 'Leadership communication', minScore: 85, maxScore: 94 },
-          { level: 'expert', name: 'Expert', description: 'Executive presence', minScore: 95, maxScore: 100 }
+          { level: 'expert', name: 'Expert', description: 'Executive presence', minScore: 95, maxScore: 100 },
         ],
         skills: [
           { name: 'Public Speaking', description: 'Presentation and speaking skills', tags: ['speaking', 'presentation', 'confidence'] },
           { name: 'Team Leadership', description: 'Leading and motivating teams', tags: ['leadership', 'teams', 'motivation'] },
           { name: 'Written Communication', description: 'Professional writing skills', tags: ['writing', 'documentation', 'clarity'] },
-          { name: 'Conflict Resolution', description: 'Managing conflicts and negotiations', tags: ['conflict', 'negotiation', 'resolution'] }
+          { name: 'Conflict Resolution', description: 'Managing conflicts and negotiations', tags: ['conflict', 'negotiation', 'resolution'] },
         ],
         createdBy: sampleUserId,
         tags: ['communication', 'leadership', 'soft-skills', 'teamwork'],
         isFeatured: true,
-        sortOrder: 4
-      }
+        sortOrder: 4,
+      },
     ];
     
     for (const categoryData of sampleCategories) {

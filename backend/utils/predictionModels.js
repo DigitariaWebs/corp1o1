@@ -9,8 +9,8 @@ class PredictionModels {
     if (!data || data.length < 3) {
       return {
         forecast: [],
-        confidence: "low",
-        method: "insufficient_data"
+        confidence: 'low',
+        method: 'insufficient_data',
       };
     }
 
@@ -37,20 +37,20 @@ class PredictionModels {
         predictedValue: Math.round(boundedValue * 100) / 100,
         confidence: this.calculateForecastConfidence(regression.correlation, i),
         upperBound: Math.min(100, boundedValue + regression.standardError),
-        lowerBound: Math.max(0, boundedValue - regression.standardError)
+        lowerBound: Math.max(0, boundedValue - regression.standardError),
       });
     }
 
     return {
       forecast,
-      trend: regression.slope > 0.1 ? "improving" : regression.slope < -0.1 ? "declining" : "stable",
+      trend: regression.slope > 0.1 ? 'improving' : regression.slope < -0.1 ? 'declining' : 'stable',
       confidence: this.overallConfidence(regression.correlation, data.length),
-      method: "linear_regression",
+      method: 'linear_regression',
       regression: {
         slope: Math.round(regression.slope * 1000) / 1000,
         intercept: Math.round(regression.intercept * 100) / 100,
-        correlation: Math.round(regression.correlation * 100) / 100
-      }
+        correlation: Math.round(regression.correlation * 100) / 100,
+      },
     };
   }
 
@@ -61,8 +61,8 @@ class PredictionModels {
     if (!engagementData || engagementData.length < 7) {
       return {
         forecast: [],
-        confidence: "low",
-        method: "insufficient_data"
+        confidence: 'low',
+        method: 'insufficient_data',
       };
     }
 
@@ -75,12 +75,12 @@ class PredictionModels {
     
     const sessionTrend = this.linearRegression(
       Array.from({ length: sessionCounts.length }, (_, i) => i),
-      sessionCounts
+      sessionCounts,
     );
     
     const focusTrend = this.linearRegression(
       Array.from({ length: focusScores.length }, (_, i) => i),
-      focusScores
+      focusScores,
     );
 
     // Generate forecast
@@ -101,17 +101,17 @@ class PredictionModels {
         predictedSessions: Math.round(predictedSessions * 10) / 10,
         predictedFocus: Math.round(predictedFocus),
         engagementLevel: this.categorizeEngagement(predictedSessions, predictedFocus),
-        confidence: this.calculateEngagementConfidence(i, sessionTrend.correlation, focusTrend.correlation)
+        confidence: this.calculateEngagementConfidence(i, sessionTrend.correlation, focusTrend.correlation),
       });
     }
 
     // Identify optimal days and risk periods
     const optimalDays = forecast
-      .filter(f => f.engagementLevel === "high")
+      .filter(f => f.engagementLevel === 'high')
       .map(f => f.dayOfWeek);
     
     const riskDays = forecast
-      .filter(f => f.engagementLevel === "low")
+      .filter(f => f.engagementLevel === 'low')
       .map(f => f.dayOfWeek);
 
     return {
@@ -122,8 +122,8 @@ class PredictionModels {
       weeklyPatterns,
       confidence: this.overallConfidence(
         (sessionTrend.correlation + focusTrend.correlation) / 2, 
-        engagementData.length
-      )
+        engagementData.length,
+      ),
     };
   }
 
@@ -138,7 +138,7 @@ class PredictionModels {
       engagementScore = 0,
       learningVelocity = 0,
       timeSpent = 0,
-      consistencyScore = 0
+      consistencyScore = 0,
     } = userMetrics;
 
     // Normalize inputs (0-1 scale)
@@ -148,7 +148,7 @@ class PredictionModels {
       engagement: engagementScore / 100,
       velocity: Math.min(learningVelocity / 3, 1), // Normalize velocity (3 modules/week = 1.0)
       time: Math.min(timeSpent / 60, 1), // Normalize time (60 hours = 1.0)
-      consistency: consistencyScore / 100
+      consistency: consistencyScore / 100,
     };
 
     // Weighted logistic model
@@ -158,7 +158,7 @@ class PredictionModels {
       engagement: 0.20,
       velocity: 0.15,
       time: 0.10,
-      consistency: 0.10
+      consistency: 0.10,
     };
 
     const weightedSum = Object.keys(weights).reduce((sum, key) => {
@@ -172,7 +172,7 @@ class PredictionModels {
       probability: Math.round(probability * 100),
       confidence: this.calculateModelConfidence(normalizedInputs),
       factors: this.identifyKeyFactors(normalizedInputs, weights),
-      recommendation: this.generateCompletionRecommendation(probability, normalizedInputs)
+      recommendation: this.generateCompletionRecommendation(probability, normalizedInputs),
     };
   }
 
@@ -184,7 +184,7 @@ class PredictionModels {
       return {
         recommendations: [],
         confidence: 0,
-        method: "insufficient_data"
+        method: 'insufficient_data',
       };
     }
 
@@ -201,7 +201,7 @@ class PredictionModels {
         categoryPreferences,
         difficultyProgression,
         timePreferences,
-        userHistory
+        userHistory,
       });
 
       recommendations.push({
@@ -211,7 +211,7 @@ class PredictionModels {
         difficulty: module.difficulty,
         score: Math.round(score * 100) / 100,
         reasons: score.reasons || [],
-        estimatedCompletionTime: this.estimateCompletionTime(module, userHistory)
+        estimatedCompletionTime: this.estimateCompletionTime(module, userHistory),
       });
     });
 
@@ -221,7 +221,7 @@ class PredictionModels {
     return {
       recommendations: recommendations.slice(0, 5),
       confidence: this.calculateRecommendationConfidence(userHistory.length),
-      method: "collaborative_preference_analysis"
+      method: 'collaborative_preference_analysis',
     };
   }
 
@@ -316,9 +316,9 @@ class PredictionModels {
   }
 
   categorizeEngagement(sessions, focus) {
-    if (sessions >= 2 && focus >= 70) return "high";
-    if (sessions >= 1 && focus >= 50) return "medium";
-    return "low";
+    if (sessions >= 2 && focus >= 70) return 'high';
+    if (sessions >= 1 && focus >= 50) return 'medium';
+    return 'low';
   }
 
   calculateEngagementConfidence(daysAhead, sessionCorr, focusCorr) {
@@ -329,36 +329,36 @@ class PredictionModels {
   }
 
   calculateEngagementRisk(forecast) {
-    const lowEngagementDays = forecast.filter(f => f.engagementLevel === "low").length;
+    const lowEngagementDays = forecast.filter(f => f.engagementLevel === 'low').length;
     const totalDays = forecast.length;
     const riskRatio = lowEngagementDays / totalDays;
 
-    if (riskRatio > 0.4) return "high";
-    if (riskRatio > 0.2) return "medium";
-    return "low";
+    if (riskRatio > 0.4) return 'high';
+    if (riskRatio > 0.2) return 'medium';
+    return 'low';
   }
 
   suggestEngagementInterventions(forecast, patterns) {
     const interventions = [];
     
-    const lowDays = forecast.filter(f => f.engagementLevel === "low");
+    const lowDays = forecast.filter(f => f.engagementLevel === 'low');
     if (lowDays.length > 0) {
       interventions.push({
-        type: "schedule_adjustment",
-        description: "Consider rescheduling learning sessions away from predicted low-engagement days",
-        targetDays: lowDays.map(d => d.dayOfWeek)
+        type: 'schedule_adjustment',
+        description: 'Consider rescheduling learning sessions away from predicted low-engagement days',
+        targetDays: lowDays.map(d => d.dayOfWeek),
       });
     }
 
     const consistentlyLow = Object.keys(patterns.dayAverages).filter(day => 
-      patterns.dayAverages[day].sessions < 1
+      patterns.dayAverages[day].sessions < 1,
     );
     
     if (consistentlyLow.length > 0) {
       interventions.push({
-        type: "motivation_boost",
-        description: "Schedule motivational content or rewards for historically low-activity days",
-        targetDays: consistentlyLow.map(d => parseInt(d))
+        type: 'motivation_boost',
+        description: 'Schedule motivational content or rewards for historically low-activity days',
+        targetDays: consistentlyLow.map(d => parseInt(d)),
       });
     }
 
@@ -377,7 +377,7 @@ class PredictionModels {
       factor: key,
       value: inputs[key],
       weight: weights[key],
-      impact: inputs[key] * weights[key]
+      impact: inputs[key] * weights[key],
     }));
 
     return factors
@@ -386,22 +386,22 @@ class PredictionModels {
       .map(f => ({
         factor: f.factor,
         impact: Math.round(f.impact * 100),
-        status: f.value > 0.6 ? "strong" : f.value > 0.3 ? "moderate" : "weak"
+        status: f.value > 0.6 ? 'strong' : f.value > 0.3 ? 'moderate' : 'weak',
       }));
   }
 
   generateCompletionRecommendation(probability, inputs) {
     if (probability > 0.8) {
-      return "High likelihood of completion - maintain current approach";
+      return 'High likelihood of completion - maintain current approach';
     } else if (probability > 0.6) {
-      return "Good completion prospects - consider small optimizations";
+      return 'Good completion prospects - consider small optimizations';
     } else if (probability > 0.4) {
       const weakestArea = Object.keys(inputs).reduce((worst, key) => 
-        inputs[key] < inputs[worst] ? key : worst
+        inputs[key] < inputs[worst] ? key : worst,
       );
       return `Moderate risk - focus on improving ${weakestArea}`;
     } else {
-      return "High risk of non-completion - significant intervention needed";
+      return 'High risk of non-completion - significant intervention needed';
     }
   }
 
@@ -436,7 +436,7 @@ class PredictionModels {
   analyzeDifficultyProgression(history) {
     const difficultyMap = { beginner: 1, intermediate: 2, advanced: 3, expert: 4 };
     const completedLevels = history
-      .filter(item => item.completionStatus === "completed")
+      .filter(item => item.completionStatus === 'completed')
       .map(item => difficultyMap[item.difficulty] || 1);
 
     const maxCompleted = Math.max(...completedLevels, 0);
@@ -445,7 +445,7 @@ class PredictionModels {
     return {
       currentLevel: maxCompleted,
       recommendedLevel,
-      readyForAdvancement: maxCompleted > 0
+      readyForAdvancement: maxCompleted > 0,
     };
   }
 
@@ -455,7 +455,7 @@ class PredictionModels {
       .map(item => item.estimatedDuration);
 
     if (durations.length === 0) {
-      return { preferredDuration: 30, flexibility: "medium" };
+      return { preferredDuration: 30, flexibility: 'medium' };
     }
 
     const avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
@@ -463,7 +463,7 @@ class PredictionModels {
     
     return {
       preferredDuration: Math.round(avgDuration),
-      flexibility: variance < 100 ? "low" : variance > 400 ? "high" : "medium"
+      flexibility: variance < 100 ? 'low' : variance > 400 ? 'high' : 'medium',
     };
   }
 
@@ -488,10 +488,10 @@ class PredictionModels {
     
     if (moduleDifficulty === userLevel + 1) {
       score += 0.3; // Perfect next step
-      reasons.push("Appropriate difficulty progression");
+      reasons.push('Appropriate difficulty progression');
     } else if (moduleDifficulty === userLevel) {
       score += 0.2; // Reinforcement
-      reasons.push("Reinforces current skill level");
+      reasons.push('Reinforces current skill level');
     } else if (moduleDifficulty < userLevel) {
       score += 0.1; // Review
     } else {
@@ -502,7 +502,7 @@ class PredictionModels {
     const timeDiff = Math.abs(module.estimatedDuration - userContext.timePreferences.preferredDuration);
     if (timeDiff < 10) {
       score += 0.2;
-      reasons.push("Matches preferred session length");
+      reasons.push('Matches preferred session length');
     }
 
     return Math.max(0, Math.min(1, score));
@@ -521,7 +521,7 @@ class PredictionModels {
   calculateUserVelocity(history) {
     if (history.length === 0) return 1;
     
-    const completedModules = history.filter(h => h.completionStatus === "completed");
+    const completedModules = history.filter(h => h.completionStatus === 'completed');
     const totalTime = history.reduce((sum, h) => sum + (h.timeSpent || 30), 0);
     
     return completedModules.length > 0 ? (completedModules.length / totalTime) * 30 : 1;

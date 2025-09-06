@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // External portfolio connection schema
 const externalConnectionSchema = new mongoose.Schema(
@@ -6,7 +6,7 @@ const externalConnectionSchema = new mongoose.Schema(
     platform: {
       type: String,
       required: true,
-      enum: ["github", "linkedin", "behance", "dribbble", "website", "codepen", "stackoverflow", "medium"],
+      enum: ['github', 'linkedin', 'behance', 'dribbble', 'website', 'codepen', 'stackoverflow', 'medium'],
     },
     username: {
       type: String,
@@ -28,8 +28,8 @@ const externalConnectionSchema = new mongoose.Schema(
     },
     syncStatus: {
       type: String,
-      enum: ["pending", "syncing", "success", "error"],
-      default: "pending",
+      enum: ['pending', 'syncing', 'success', 'error'],
+      default: 'pending',
     },
     syncError: {
       type: String,
@@ -44,7 +44,7 @@ const externalConnectionSchema = new mongoose.Schema(
       likes: { type: Number, default: 0 },
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Portfolio project schema
@@ -70,12 +70,12 @@ const portfolioProjectSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["web", "mobile", "desktop", "data", "design", "research", "writing", "other"],
+      enum: ['web', 'mobile', 'desktop', 'data', 'design', 'research', 'writing', 'other'],
     },
     status: {
       type: String,
-      enum: ["completed", "in_progress", "planned", "archived"],
-      default: "completed",
+      enum: ['completed', 'in_progress', 'planned', 'archived'],
+      default: 'completed',
     },
     startDate: {
       type: Date,
@@ -130,7 +130,7 @@ const portfolioProjectSchema = new mongoose.Schema(
       lastSync: { type: Date, default: null },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Experience/Work schema
@@ -193,7 +193,7 @@ const workExperienceSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Main portfolio schema
@@ -201,7 +201,7 @@ const portfolioSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       unique: true,
     },
@@ -242,7 +242,7 @@ const portfolioSchema = new mongoose.Schema(
         name: String,
         level: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
         },
         yearsOfExperience: Number,
         isVerified: { type: Boolean, default: false },
@@ -275,8 +275,8 @@ const portfolioSchema = new mongoose.Schema(
       },
       theme: {
         type: String,
-        enum: ["default", "minimal", "creative", "professional"],
-        default: "default",
+        enum: ['default', 'minimal', 'creative', 'professional'],
+        default: 'default',
       },
       customDomain: {
         type: String,
@@ -307,29 +307,29 @@ const portfolioSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for performance
 portfolioSchema.index({ userId: 1 });
-portfolioSchema.index({ "settings.isPublic": 1 });
-portfolioSchema.index({ "analytics.views": -1 });
-portfolioSchema.index({ "projects.category": 1 });
-portfolioSchema.index({ "projects.technologies": 1 });
-portfolioSchema.index({ "externalConnections.platform": 1 });
+portfolioSchema.index({ 'settings.isPublic': 1 });
+portfolioSchema.index({ 'analytics.views': -1 });
+portfolioSchema.index({ 'projects.category': 1 });
+portfolioSchema.index({ 'projects.technologies': 1 });
+portfolioSchema.index({ 'externalConnections.platform': 1 });
 
 // Virtual for portfolio URL
-portfolioSchema.virtual("portfolioUrl").get(function () {
+portfolioSchema.virtual('portfolioUrl').get(function () {
   return `${process.env.FRONTEND_URL}/portfolio/${this.userId}`;
 });
 
 // Virtual for total projects
-portfolioSchema.virtual("totalProjects").get(function () {
+portfolioSchema.virtual('totalProjects').get(function () {
   return this.projects.filter((p) => p.isPublic).length;
 });
 
 // Virtual for years of experience
-portfolioSchema.virtual("yearsOfExperience").get(function () {
+portfolioSchema.virtual('yearsOfExperience').get(function () {
   if (!this.workExperience || this.workExperience.length === 0) return 0;
   
   const earliestStart = this.workExperience.reduce((earliest, exp) => {
@@ -340,14 +340,14 @@ portfolioSchema.virtual("yearsOfExperience").get(function () {
 });
 
 // Instance methods
-portfolioSchema.methods.incrementViews = function (source = "direct") {
+portfolioSchema.methods.incrementViews = function (source = 'direct') {
   this.analytics.views += 1;
   this.analytics.lastViewed = new Date();
   
   // Add to view history
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().split('T')[0];
   const existingEntry = this.analytics.viewHistory.find(
-    (entry) => entry.date.toISOString().split("T")[0] === today
+    (entry) => entry.date.toISOString().split('T')[0] === today,
   );
   
   if (existingEntry) {
@@ -383,40 +383,40 @@ portfolioSchema.methods.syncExternalData = async function () {
 
 // Static methods
 portfolioSchema.statics.getPublicPortfolios = function (limit = 10) {
-  return this.find({ "settings.isPublic": true })
-    .populate("userId", "name avatar")
-    .sort({ "analytics.views": -1 })
+  return this.find({ 'settings.isPublic': true })
+    .populate('userId', 'name avatar')
+    .sort({ 'analytics.views': -1 })
     .limit(limit);
 };
 
 portfolioSchema.statics.searchPortfolios = function (query, filters = {}) {
   const searchQuery = {
-    "settings.isPublic": true,
+    'settings.isPublic': true,
     $text: { $search: query },
   };
   
   if (filters.skills) {
-    searchQuery["topSkills.name"] = { $in: filters.skills };
+    searchQuery['topSkills.name'] = { $in: filters.skills };
   }
   
   if (filters.technologies) {
-    searchQuery["projects.technologies"] = { $in: filters.technologies };
+    searchQuery['projects.technologies'] = { $in: filters.technologies };
   }
   
   return this.find(searchQuery)
-    .populate("userId", "name avatar")
-    .sort({ score: { $meta: "textScore" } });
+    .populate('userId', 'name avatar')
+    .sort({ score: { $meta: 'textScore' } });
 };
 
 // Text search index
 portfolioSchema.index({
-  headline: "text",
-  summary: "text",
-  "projects.title": "text",
-  "projects.description": "text",
-  "topSkills.name": "text",
+  headline: 'text',
+  summary: 'text',
+  'projects.title': 'text',
+  'projects.description': 'text',
+  'topSkills.name': 'text',
 });
 
-const Portfolio = mongoose.model("Portfolio", portfolioSchema);
+const Portfolio = mongoose.model('Portfolio', portfolioSchema);
 
 module.exports = Portfolio;

@@ -13,7 +13,7 @@ class PersonalizationService {
       temperature: 0.3, // Slightly more creative for personalization
       maxTokens: 2000,
       presencePenalty: 0.1,
-      frequencyPenalty: 0.1
+      frequencyPenalty: 0.1,
     };
   }
 
@@ -23,21 +23,21 @@ class PersonalizationService {
   async generatePersonalizedExperience(onboardingData, userId) {
     try {
       console.log(`🤖 Generating personalized experience for user: ${userId}`);
-      console.log(`🤖 Input data:`, JSON.stringify(onboardingData, null, 2));
+      console.log('🤖 Input data:', JSON.stringify(onboardingData, null, 2));
 
       // Generate all components in parallel for better performance
       const [personalizedContent, assessmentPlan, learningPath, motivationalProfile] = await Promise.all([
         this.generatePersonalizedContent(onboardingData),
         this.generateAssessmentPlan(onboardingData),
         this.generateLearningPath(onboardingData),
-        this.generateMotivationalProfile(onboardingData)
+        this.generateMotivationalProfile(onboardingData),
       ]);
 
-      console.log(`✅ All personalization components generated`);
-      console.log(`📊 personalizedContent keys:`, Object.keys(personalizedContent));
-      console.log(`📊 assessmentPlan keys:`, Object.keys(assessmentPlan));
-      console.log(`📊 learningPath keys:`, Object.keys(learningPath));
-      console.log(`📊 motivationalProfile keys:`, Object.keys(motivationalProfile));
+      console.log('✅ All personalization components generated');
+      console.log('📊 personalizedContent keys:', Object.keys(personalizedContent));
+      console.log('📊 assessmentPlan keys:', Object.keys(assessmentPlan));
+      console.log('📊 learningPath keys:', Object.keys(learningPath));
+      console.log('📊 motivationalProfile keys:', Object.keys(motivationalProfile));
 
       const result = {
         personalizedContent,
@@ -45,10 +45,10 @@ class PersonalizationService {
         learningPath,
         motivationalProfile,
         confidence: this.calculatePersonalizationConfidence(onboardingData),
-        generatedAt: new Date()
+        generatedAt: new Date(),
       };
 
-      console.log(`🎯 Final personalization structure:`, JSON.stringify(result, null, 2));
+      console.log('🎯 Final personalization structure:', JSON.stringify(result, null, 2));
       return result;
     } catch (error) {
       console.error('Personalization generation failed:', error);
@@ -66,18 +66,18 @@ class PersonalizationService {
       [
         {
           role: 'system',
-          content: `You are an expert learning experience designer and career coach. Generate personalized content recommendations based on user preferences. Return a JSON object with specific, actionable recommendations.`
+          content: 'You are an expert learning experience designer and career coach. Generate personalized content recommendations based on user preferences. Return a JSON object with specific, actionable recommendations.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       {
         model: this.model,
         ...this.settings,
-        response_format: { type: 'json_object' }
-      }
+        response_format: { type: 'json_object' },
+      },
     );
 
     return JSON.parse(response.content);
@@ -93,18 +93,18 @@ class PersonalizationService {
       [
         {
           role: 'system',
-          content: `You are an expert assessment designer. Create a personalized assessment strategy that matches the user's experience level and goals. Return a detailed JSON plan.`
+          content: 'You are an expert assessment designer. Create a personalized assessment strategy that matches the user\'s experience level and goals. Return a detailed JSON plan.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       {
         model: this.model,
         ...this.settings,
-        response_format: { type: 'json_object' }
-      }
+        response_format: { type: 'json_object' },
+      },
     );
 
     return JSON.parse(response.content);
@@ -120,18 +120,18 @@ class PersonalizationService {
       [
         {
           role: 'system',
-          content: `You are a learning path architect. Design a structured, progressive learning journey that aligns with the user's goals, time constraints, and learning style. Return a detailed JSON learning plan.`
+          content: 'You are a learning path architect. Design a structured, progressive learning journey that aligns with the user\'s goals, time constraints, and learning style. Return a detailed JSON learning plan.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       {
         model: this.model,
         ...this.settings,
-        response_format: { type: 'json_object' }
-      }
+        response_format: { type: 'json_object' },
+      },
     );
 
     return JSON.parse(response.content);
@@ -147,18 +147,18 @@ class PersonalizationService {
       [
         {
           role: 'system',
-          content: `You are a motivational psychology expert. Analyze the user's profile and create a personalized motivational strategy including communication style, feedback approach, and engagement tactics. Return a JSON profile.`
+          content: 'You are a motivational psychology expert. Analyze the user\'s profile and create a personalized motivational strategy including communication style, feedback approach, and engagement tactics. Return a JSON profile.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       {
         model: this.model,
         ...this.settings,
-        response_format: { type: 'json_object' }
-      }
+        response_format: { type: 'json_object' },
+      },
     );
 
     return JSON.parse(response.content);
@@ -181,8 +181,8 @@ User Profile:
     `.trim();
 
     switch (type) {
-      case 'content':
-        return `${baseContext}
+    case 'content':
+      return `${baseContext}
 
 Generate personalized content recommendations with this JSON structure:
 {
@@ -197,8 +197,8 @@ Generate personalized content recommendations with this JSON structure:
   "industryInsights": ["Relevant industry trends and opportunities"]
 }`;
 
-      case 'assessment':
-        return `${baseContext}
+    case 'assessment':
+      return `${baseContext}
 
 Create a personalized assessment strategy with this JSON structure:
 {
@@ -220,8 +220,8 @@ Create a personalized assessment strategy with this JSON structure:
   "certificationPath": "Path to earning certificates"
 }`;
 
-      case 'learning':
-        return `${baseContext}
+    case 'learning':
+      return `${baseContext}
 
 Design a learning path with this JSON structure:
 {
@@ -246,8 +246,8 @@ Design a learning path with this JSON structure:
   "careerAlignment": "How this supports their career goals"
 }`;
 
-      case 'motivation':
-        return `${baseContext}
+    case 'motivation':
+      return `${baseContext}
 
 Create a motivational profile with this JSON structure:
 {
@@ -265,8 +265,8 @@ Create a motivational profile with this JSON structure:
   "successStrategies": ["Specific strategies for their success"]
 }`;
 
-      default:
-        throw new Error(`Unknown personalization type: ${type}`);
+    default:
+      throw new Error(`Unknown personalization type: ${type}`);
     }
   }
 
@@ -276,11 +276,11 @@ Create a motivational profile with this JSON structure:
   calculatePersonalizationConfidence(data) {
     const requiredFields = [
       'primaryGoal', 'currentRole', 'experience', 
-      'timeCommitment', 'preferredLearningStyle', 'preferredDomains'
+      'timeCommitment', 'preferredLearningStyle', 'preferredDomains',
     ];
     
     const completedFields = requiredFields.filter(field => 
-      data[field] && (Array.isArray(data[field]) ? data[field].length > 0 : true)
+      data[field] && (Array.isArray(data[field]) ? data[field].length > 0 : true),
     );
     
     const completeness = completedFields.length / requiredFields.length;
@@ -317,18 +317,18 @@ Based on this user behavior and feedback, suggest adjustments to their personali
         [
           {
             role: 'system',
-            content: 'You are an adaptive learning system that updates personalization based on user behavior and feedback.'
+            content: 'You are an adaptive learning system that updates personalization based on user behavior and feedback.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         {
           model: this.model,
           ...this.settings,
-          response_format: { type: 'json_object' }
-        }
+          response_format: { type: 'json_object' },
+        },
       );
 
       return JSON.parse(response.content);
@@ -359,18 +359,18 @@ Generate contextual content that responds to the user's current situation. Retur
         [
           {
             role: 'system',
-            content: 'You are a contextual learning assistant that adapts to user\'s current progress and needs.'
+            content: 'You are a contextual learning assistant that adapts to user\'s current progress and needs.',
           },
           {
             role: 'user',
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         {
           model: this.model,
           ...this.settings,
-          response_format: { type: 'json_object' }
-        }
+          response_format: { type: 'json_object' },
+        },
       );
 
       return JSON.parse(response.content);
@@ -385,5 +385,5 @@ const personalizationService = new PersonalizationService();
 
 module.exports = {
   personalizationService,
-  PersonalizationService
+  PersonalizationService,
 };

@@ -1,5 +1,5 @@
 // models/Assessment.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Question schema for assessment questions
 const questionSchema = new mongoose.Schema(
@@ -13,15 +13,15 @@ const questionSchema = new mongoose.Schema(
     type: {
       type: String,
       enum: [
-        "multiple_choice",
-        "multiple_select",
-        "true_false",
-        "short_answer",
-        "essay",
-        "code_review",
-        "scenario_analysis",
-        "practical_task",
-        "ai_evaluation",
+        'multiple_choice',
+        'multiple_select',
+        'true_false',
+        'short_answer',
+        'essay',
+        'code_review',
+        'scenario_analysis',
+        'practical_task',
+        'ai_evaluation',
       ],
       required: true,
     },
@@ -74,7 +74,7 @@ const questionSchema = new mongoose.Schema(
     // Difficulty and metadata
     difficulty: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert'],
       required: true,
     },
 
@@ -98,7 +98,7 @@ const questionSchema = new mongoose.Schema(
         name: String,
         level: {
           type: String,
-          enum: ["beginner", "intermediate", "advanced", "expert"],
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
         },
         weight: Number,
       },
@@ -147,7 +147,7 @@ const questionSchema = new mongoose.Schema(
   {
     _id: true,
     timestamps: true,
-  }
+  },
 );
 
 // Main Assessment schema
@@ -155,28 +155,28 @@ const assessmentSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Assessment title is required"],
+      required: [true, 'Assessment title is required'],
       trim: true,
-      maxlength: [200, "Title cannot exceed 200 characters"],
+      maxlength: [200, 'Title cannot exceed 200 characters'],
     },
 
     description: {
       type: String,
-      required: [true, "Assessment description is required"],
-      maxlength: [1000, "Description cannot exceed 1000 characters"],
+      required: [true, 'Assessment description is required'],
+      maxlength: [1000, 'Description cannot exceed 1000 characters'],
     },
 
     // Assessment configuration
     type: {
       type: String,
       enum: [
-        "skill_check",
-        "module_completion",
-        "path_final",
-        "certification",
-        "placement",
-        "progress_check",
-        "ai_adaptive",
+        'skill_check',
+        'module_completion',
+        'path_final',
+        'certification',
+        'placement',
+        'progress_check',
+        'ai_adaptive',
       ],
       required: true,
     },
@@ -184,19 +184,19 @@ const assessmentSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "Communication & Leadership",
-        "Innovation & Creativity",
-        "Technical Skills",
-        "Business Strategy",
-        "Personal Development",
-        "Data & Analytics",
+        'Communication & Leadership',
+        'Innovation & Creativity',
+        'Technical Skills',
+        'Business Strategy',
+        'Personal Development',
+        'Data & Analytics',
       ],
       required: true,
     },
 
     difficulty: {
       type: String,
-      enum: ["beginner", "intermediate", "advanced", "expert", "mixed"],
+      enum: ['beginner', 'intermediate', 'advanced', 'expert', 'mixed'],
       required: true,
     },
 
@@ -204,14 +204,14 @@ const assessmentSchema = new mongoose.Schema(
     relatedPaths: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "LearningPath",
+        ref: 'LearningPath',
       },
     ],
 
     relatedModules: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "LearningModule",
+        ref: 'LearningModule',
       },
     ],
 
@@ -220,13 +220,13 @@ const assessmentSchema = new mongoose.Schema(
       completedPaths: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "LearningPath",
+          ref: 'LearningPath',
         },
       ],
       completedModules: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "LearningModule",
+          ref: 'LearningModule',
         },
       ],
       minimumLevel: {
@@ -259,8 +259,8 @@ const assessmentSchema = new mongoose.Schema(
       },
       weightingMethod: {
         type: String,
-        enum: ["equal", "difficulty_weighted", "skill_weighted", "custom"],
-        default: "equal",
+        enum: ['equal', 'difficulty_weighted', 'skill_weighted', 'custom'],
+        default: 'equal',
       },
       partialCredit: {
         type: Boolean,
@@ -303,8 +303,8 @@ const assessmentSchema = new mongoose.Schema(
       },
       showResults: {
         type: String,
-        enum: ["immediately", "after_completion", "after_review", "never"],
-        default: "immediately",
+        enum: ['immediately', 'after_completion', 'after_review', 'never'],
+        default: 'immediately',
       },
       allowReview: {
         type: Boolean,
@@ -382,8 +382,8 @@ const assessmentSchema = new mongoose.Schema(
 
     visibility: {
       type: String,
-      enum: ["public", "enrolled_only", "invitation_only", "private"],
-      default: "enrolled_only",
+      enum: ['public', 'enrolled_only', 'invitation_only', 'private'],
+      default: 'enrolled_only',
     },
 
     // Certification integration
@@ -394,7 +394,7 @@ const assessmentSchema = new mongoose.Schema(
       },
       certificateTemplate: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Certificate",
+        ref: 'Certificate',
         default: null,
       },
       requiredScore: {
@@ -408,7 +408,7 @@ const assessmentSchema = new mongoose.Schema(
     // Metadata
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
 
@@ -416,7 +416,7 @@ const assessmentSchema = new mongoose.Schema(
 
     version: {
       type: String,
-      default: "1.0.0",
+      default: '1.0.0',
     },
   },
   {
@@ -429,7 +429,7 @@ const assessmentSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
@@ -441,15 +441,15 @@ assessmentSchema.index({ tags: 1 });
 assessmentSchema.index({ createdAt: -1 });
 
 // Virtual for question count
-assessmentSchema.virtual("questionCount").get(function () {
+assessmentSchema.virtual('questionCount').get(function () {
   return this.questions.length;
 });
 
 // Virtual for estimated duration
-assessmentSchema.virtual("estimatedDuration").get(function () {
+assessmentSchema.virtual('estimatedDuration').get(function () {
   const questionTime = this.questions.reduce(
     (sum, q) => sum + (q.estimatedTimeMinutes || 2),
-    0
+    0,
   );
   return this.timeConstraints.totalTimeMinutes || questionTime;
 });
@@ -458,8 +458,8 @@ assessmentSchema.virtual("estimatedDuration").get(function () {
 
 // Get questions adapted for specific user
 assessmentSchema.methods.getAdaptiveQuestions = function (
-  userLevel = "intermediate",
-  userSkills = []
+  userLevel = 'intermediate',
+  userSkills = [],
 ) {
   let questions = this.questions.filter((q) => q.isActive);
 
@@ -469,7 +469,7 @@ assessmentSchema.methods.getAdaptiveQuestions = function (
 
   // Filter by user level and skills
   questions = questions.filter((q) => {
-    const levelOrder = ["beginner", "intermediate", "advanced", "expert"];
+    const levelOrder = ['beginner', 'intermediate', 'advanced', 'expert'];
     const userLevelIndex = levelOrder.indexOf(userLevel);
     const questionLevelIndex = levelOrder.indexOf(q.difficulty);
 
@@ -488,7 +488,7 @@ assessmentSchema.methods.getAdaptiveQuestions = function (
     }
 
     // Then by difficulty
-    const levelOrder = ["beginner", "intermediate", "advanced", "expert"];
+    const levelOrder = ['beginner', 'intermediate', 'advanced', 'expert'];
     return levelOrder.indexOf(a.difficulty) - levelOrder.indexOf(b.difficulty);
   });
 
@@ -497,10 +497,10 @@ assessmentSchema.methods.getAdaptiveQuestions = function (
 
 // Calculate user's readiness for this assessment
 assessmentSchema.methods.checkUserEligibility = async function (userId) {
-  const UserProgress = require("./UserProgress");
+  const UserProgress = require('./UserProgress');
 
   const userProgress = await UserProgress.find({ userId }).populate(
-    "pathId moduleId"
+    'pathId moduleId',
   );
 
   // Check completed paths
@@ -509,10 +509,10 @@ assessmentSchema.methods.checkUserEligibility = async function (userId) {
     .map((p) => p.pathId._id.toString());
 
   const requiredPaths = (this.prerequisites?.completedPaths || []).map((id) =>
-    id.toString()
+    id.toString(),
   );
   const hasRequiredPaths = requiredPaths.every((reqPath) =>
-    completedPaths.includes(reqPath)
+    completedPaths.includes(reqPath),
   );
 
   // Check completed modules
@@ -521,10 +521,10 @@ assessmentSchema.methods.checkUserEligibility = async function (userId) {
     .map((p) => p.moduleId._id.toString());
 
   const requiredModules = (this.prerequisites?.completedModules || []).map(
-    (id) => id.toString()
+    (id) => id.toString(),
   );
   const hasRequiredModules = requiredModules.every((reqMod) =>
-    completedModules.includes(reqMod)
+    completedModules.includes(reqMod),
   );
 
   // Check minimum level
@@ -548,7 +548,7 @@ assessmentSchema.methods.checkUserEligibility = async function (userId) {
 assessmentSchema.methods.updateQuestionAnalytics = function (
   questionId,
   isCorrect,
-  timeSpent
+  timeSpent,
 ) {
   const question = this.questions.id(questionId);
   if (!question) return;
@@ -579,7 +579,7 @@ assessmentSchema.statics.findEligibleAssessments = async function (
   userId,
   options = {},
   limit = 20,
-  offset = 0
+  offset = 0,
 ) {
   // Fetch a window of assessments first to avoid scanning entire collection
   const baseQuery = this.find({
@@ -590,7 +590,7 @@ assessmentSchema.statics.findEligibleAssessments = async function (
     .sort({ createdAt: -1 })
     .skip(parseInt(offset))
     .limit(parseInt(limit) * 3) // overfetch to account for ineligible ones
-    .populate("relatedPaths relatedModules")
+    .populate('relatedPaths relatedModules')
     .lean();
 
   const candidates = await baseQuery;
@@ -600,7 +600,7 @@ assessmentSchema.statics.findEligibleAssessments = async function (
       const model = new this(doc);
       const eligibility = await model.checkUserEligibility(userId);
       return eligibility.eligible ? { ...doc, eligibility } : null;
-    })
+    }),
   );
 
   return results.filter(Boolean).slice(0, parseInt(limit));
@@ -609,21 +609,21 @@ assessmentSchema.statics.findEligibleAssessments = async function (
 // Get assessment analytics
 assessmentSchema.statics.getAssessmentAnalytics = function (
   assessmentId,
-  timeRange = "30d"
+  timeRange = '30d',
 ) {
-  const AssessmentSession = require("./AssessmentSession");
+  const AssessmentSession = require('./AssessmentSession');
 
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "7d":
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
   }
 
   return AssessmentSession.aggregate([
@@ -631,19 +631,19 @@ assessmentSchema.statics.getAssessmentAnalytics = function (
       $match: {
         assessmentId: new mongoose.Types.ObjectId(assessmentId),
         startTime: { $gte: dateThreshold },
-        status: "completed",
+        status: 'completed',
       },
     },
     {
       $group: {
         _id: null,
         totalAttempts: { $sum: 1 },
-        averageScore: { $avg: "$results.finalScore" },
-        averageTime: { $avg: "$results.totalTimeSpent" },
+        averageScore: { $avg: '$results.finalScore' },
+        averageTime: { $avg: '$results.totalTimeSpent' },
         passCount: {
           $sum: {
             $cond: [
-              { $gte: ["$results.finalScore", "$results.passingScore"] },
+              { $gte: ['$results.finalScore', '$results.passingScore'] },
               1,
               0,
             ],
@@ -654,13 +654,13 @@ assessmentSchema.statics.getAssessmentAnalytics = function (
     {
       $addFields: {
         passRate: {
-          $multiply: [{ $divide: ["$passCount", "$totalAttempts"] }, 100],
+          $multiply: [{ $divide: ['$passCount', '$totalAttempts'] }, 100],
         },
       },
     },
   ]);
 };
 
-const Assessment = mongoose.model("Assessment", assessmentSchema);
+const Assessment = mongoose.model('Assessment', assessmentSchema);
 
 module.exports = Assessment;

@@ -15,26 +15,26 @@ class AIServiceManager {
         model: process.env.OPENAI_MODEL_ASSESSMENT || 'gpt-4o',
         temperature: parseFloat(process.env.OPENAI_TEMP_ASSESSMENT) || 0.5,
         maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 2000,
-        purpose: 'Complex assessment and question generation'
+        purpose: 'Complex assessment and question generation',
       },
       evaluation: {
         model: process.env.OPENAI_MODEL_EVALUATION || 'gpt-4o',
         temperature: 0.2, // Low temperature for consistent grading
         maxTokens: 1000,
-        purpose: 'Accurate evaluation and grading'
+        purpose: 'Accurate evaluation and grading',
       },
       conversation: {
         model: process.env.OPENAI_MODEL_CONVERSATION || 'gpt-4o-mini',
         temperature: 0.7,
         maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_CONVERSATION) || 500,
-        purpose: 'Quick conversational responses'
+        purpose: 'Quick conversational responses',
       },
       analysis: {
         model: process.env.OPENAI_MODEL_ANALYSIS || 'gpt-4o-mini',
         temperature: 0.4,
         maxTokens: 800,
-        purpose: 'Data analysis and insights'
-      }
+        purpose: 'Data analysis and insights',
+      },
     };
 
     // AI Personality configurations
@@ -51,8 +51,8 @@ class AIServiceManager {
         traits: {
           tone: 'warm and encouraging',
           focus: 'motivation and confidence building',
-          responseStyle: 'supportive with positive reinforcement'
-        }
+          responseStyle: 'supportive with positive reinforcement',
+        },
       },
       SAGE: {
         name: 'SAGE',
@@ -66,8 +66,8 @@ class AIServiceManager {
         traits: {
           tone: 'professional and informative',
           focus: 'deep understanding and mastery',
-          responseStyle: 'detailed with comprehensive explanations'
-        }
+          responseStyle: 'detailed with comprehensive explanations',
+        },
       },
       COACH: {
         name: 'COACH',
@@ -81,9 +81,9 @@ class AIServiceManager {
         traits: {
           tone: 'motivational and challenging',
           focus: 'achievement and goal completion',
-          responseStyle: 'direct with actionable challenges'
-        }
-      }
+          responseStyle: 'direct with actionable challenges',
+        },
+      },
     };
 
     // Cache for responses (simple in-memory cache)
@@ -161,15 +161,15 @@ Customize the skills and descriptions based on the specific domain and topics pr
         [
           { 
             role: 'system', 
-            content: 'You are an expert educational assessment designer specializing in creating personalized learning assessments. Generate detailed, relevant assessment plans tailored to the learner\'s needs. Return valid JSON.'
+            content: 'You are an expert educational assessment designer specializing in creating personalized learning assessments. Generate detailed, relevant assessment plans tailored to the learner\'s needs. Return valid JSON.',
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         {
           model: config.model,
           temperature: config.temperature,
-          max_tokens: config.maxTokens
-        }
+          max_tokens: config.maxTokens,
+        },
       );
 
       // Handle both direct content and nested response formats
@@ -269,15 +269,15 @@ Return ONLY a JSON array of ${count} questions. Start with [`;
         [
           { 
             role: 'system', 
-            content: `You are an expert ${category} educator and assessment designer. Create real, specific questions that test actual ${topic} knowledge and skills. Focus on practical, real-world scenarios and actual technical concepts. Never use placeholder content.`
+            content: `You are an expert ${category} educator and assessment designer. Create real, specific questions that test actual ${topic} knowledge and skills. Focus on practical, real-world scenarios and actual technical concepts. Never use placeholder content.`,
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         {
           model: config.model,
           temperature: config.temperature + 0.2, // Slightly higher for variety
-          max_tokens: config.maxTokens * 2 // More tokens for detailed questions
-        }
+          max_tokens: config.maxTokens * 2, // More tokens for detailed questions
+        },
       );
 
       // Handle both direct content and nested response formats
@@ -330,16 +330,16 @@ Return as JSON object.`;
         [
           { 
             role: 'system', 
-            content: 'You are an expert evaluator. Be fair but thorough. Provide constructive feedback.'
+            content: 'You are an expert evaluator. Be fair but thorough. Provide constructive feedback.',
           },
-          { role: 'user', content: prompt }
+          { role: 'user', content: prompt },
         ],
         {
           model: config.model,
           temperature: config.temperature,
           max_tokens: config.maxTokens,
-          response_format: { type: "json_object" }
-        }
+          response_format: { type: 'json_object' },
+        },
       );
 
       const evaluation = JSON.parse(response.choices?.[0]?.message?.content || '{}');
@@ -377,13 +377,13 @@ Return as JSON object.`;
       const response = await openAIService.createChatCompletion(
         [
           { role: 'system', content: persona.systemPrompt + contextPrompt },
-          { role: 'user', content: userMessage }
+          { role: 'user', content: userMessage },
         ],
         {
           model: persona.model,
           temperature: persona.temperature,
-          max_tokens: 500
-        }
+          max_tokens: 500,
+        },
       );
 
       // Handle both direct content and nested response formats
@@ -395,7 +395,7 @@ Return as JSON object.`;
       return {
         message: reply,
         personality: personality,
-        traits: persona.traits
+        traits: persona.traits,
       };
       
     } catch (error) {
@@ -443,7 +443,7 @@ Return as JSON object.`;
   saveToCache(key, data) {
     this.responseCache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
     
     // Clean old cache entries
@@ -469,7 +469,7 @@ Return as JSON object.`;
         difficulty: 'beginner',
         questionCount: 7,
         estimatedDurationMinutes: 15,
-        rationale: 'Establishes your baseline knowledge to personalize your learning path'
+        rationale: 'Establishes your baseline knowledge to personalize your learning path',
       },
       {
         id: 'skills-focus',
@@ -479,7 +479,7 @@ Return as JSON object.`;
         difficulty: difficulty || 'intermediate',
         questionCount: 8,
         estimatedDurationMinutes: 20,
-        rationale: 'Identifies specific strengths and areas for improvement in key competencies'
+        rationale: 'Identifies specific strengths and areas for improvement in key competencies',
       },
       {
         id: 'stretch',
@@ -489,8 +489,8 @@ Return as JSON object.`;
         difficulty: 'advanced',
         questionCount: 6,
         estimatedDurationMinutes: 18,
-        rationale: 'Challenges you beyond your comfort zone to identify growth opportunities'
-      }
+        rationale: 'Challenges you beyond your comfort zone to identify growth opportunities',
+      },
     ];
   }
 
@@ -503,9 +503,9 @@ Return as JSON object.`;
       models: Object.keys(this.modelConfig).map(key => ({
         type: key,
         model: this.modelConfig[key].model,
-        purpose: this.modelConfig[key].purpose
+        purpose: this.modelConfig[key].purpose,
       })),
-      personalities: Object.keys(this.personalities)
+      personalities: Object.keys(this.personalities),
     };
   }
 }
@@ -515,5 +515,5 @@ const aiServiceManager = new AIServiceManager();
 
 module.exports = {
   aiServiceManager,
-  AIServiceManager
+  AIServiceManager,
 };

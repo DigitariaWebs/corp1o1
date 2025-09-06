@@ -1,24 +1,24 @@
 // services/openaiService.js
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 class OpenAIService {
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY;
-    this.baseURL = "https://api.openai.com/v1";
-    this.defaultModel = process.env.OPENAI_MODEL || "gpt-4o";
-    this.fallbackModel = "gpt-4o-mini";
+    this.baseURL = 'https://api.openai.com/v1';
+    this.defaultModel = process.env.OPENAI_MODEL || 'gpt-4o';
+    this.fallbackModel = 'gpt-4o-mini';
     
     // Advanced models for different use cases
     this.models = {
-      evaluation: process.env.OPENAI_EVALUATION_MODEL || "gpt-4o",
-      analysis: process.env.OPENAI_ANALYSIS_MODEL || "gpt-4o-mini", 
-      recommendations: process.env.OPENAI_RECOMMENDATIONS_MODEL || "gpt-4o"
+      evaluation: process.env.OPENAI_EVALUATION_MODEL || 'gpt-4o',
+      analysis: process.env.OPENAI_ANALYSIS_MODEL || 'gpt-4o-mini', 
+      recommendations: process.env.OPENAI_RECOMMENDATIONS_MODEL || 'gpt-4o',
     };
     
     if (!this.apiKey) {
-      console.warn("⚠️  OPENAI_API_KEY not found in environment variables");
+      console.warn('⚠️  OPENAI_API_KEY not found in environment variables');
     } else {
-      console.log("✅ OpenAI service initialized with advanced configuration");
+      console.log('✅ OpenAI service initialized with advanced configuration');
       console.log(`📋 Models configured: evaluation=${this.models.evaluation}, analysis=${this.models.analysis}, recommendations=${this.models.recommendations}`);
     }
   }
@@ -31,7 +31,7 @@ class OpenAIService {
    */
   async createChatCompletion(messages, options = {}) {
     if (!this.apiKey) {
-      throw new AppError("OpenAI API key not configured", 500);
+      throw new AppError('OpenAI API key not configured', 500);
     }
 
     const config = {
@@ -90,7 +90,7 @@ class OpenAIService {
       if (!response.ok) {
         throw new AppError(
           `OpenAI API error: ${data.error?.message || 'Unknown error'}`,
-          response.status
+          response.status,
         );
       }
 
@@ -104,7 +104,7 @@ class OpenAIService {
         usage: data.usage,
         model: data.model,
         id: data.id,
-        created: data.created
+        created: data.created,
       };
 
       // Add logprobs if available
@@ -128,7 +128,7 @@ class OpenAIService {
         return this.createChatCompletion(messages, {
           ...options,
           model: this.fallbackModel,
-          noFallback: true
+          noFallback: true,
         });
       }
       
@@ -179,7 +179,7 @@ class OpenAIService {
    */
   optimizeMessages(messages, maxTokens = 3500) {
     let totalTokens = messages.reduce((sum, msg) => 
-      sum + this.estimateTokenCount(msg.content), 0
+      sum + this.estimateTokenCount(msg.content), 0,
     );
 
     // If within limits, return as-is
@@ -196,7 +196,7 @@ class OpenAIService {
     // Start with system messages
     let optimizedMessages = [...systemMessages];
     let currentTokens = systemMessages.reduce((sum, msg) => 
-      sum + this.estimateTokenCount(msg.content), 0
+      sum + this.estimateTokenCount(msg.content), 0,
     );
 
     // Add recent conversation messages from the end
@@ -231,11 +231,11 @@ class OpenAIService {
       'I apologize, but I cannot',
       'I\'m not able to help',
       'I don\'t have access to',
-      'As an AI language model'
+      'As an AI language model',
     ];
 
     const hasErrorPattern = errorPatterns.some(pattern => 
-      response.content.toLowerCase().includes(pattern.toLowerCase())
+      response.content.toLowerCase().includes(pattern.toLowerCase()),
     );
 
     // Check minimum content length
@@ -283,7 +283,7 @@ class OpenAIService {
       'ECONNRESET',
       'ETIMEDOUT', 
       'ECONNREFUSED',
-      'ENOTFOUND'
+      'ENOTFOUND',
     ];
     
     const retryableStatusCodes = [429, 500, 502, 503, 504];
@@ -317,7 +317,7 @@ class OpenAIService {
       'gpt-4',
       'gpt-4-turbo-preview',
       'gpt-3.5-turbo',
-      'gpt-3.5-turbo-16k'
+      'gpt-3.5-turbo-16k',
     ];
   }
 
@@ -331,7 +331,7 @@ class OpenAIService {
       'gpt-4': { input: 0.03, output: 0.06 }, // per 1K tokens
       'gpt-4-turbo-preview': { input: 0.01, output: 0.03 },
       'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
-      'gpt-3.5-turbo-16k': { input: 0.003, output: 0.004 }
+      'gpt-3.5-turbo-16k': { input: 0.003, output: 0.004 },
     };
 
     return pricing[model] || pricing['gpt-3.5-turbo'];
@@ -369,10 +369,10 @@ class OpenAIService {
   async healthCheck() {
     try {
       const response = await this.createChatCompletion([
-        { role: 'user', content: 'Hello' }
+        { role: 'user', content: 'Hello' },
       ], { 
         maxTokens: 5,
-        model: this.fallbackModel // Use cheaper model for health check
+        model: this.fallbackModel, // Use cheaper model for health check
       });
 
       return response && response.content;
@@ -388,5 +388,5 @@ const openAIService = new OpenAIService();
 
 module.exports = {
   openAIService,
-  OpenAIService
+  OpenAIService,
 };

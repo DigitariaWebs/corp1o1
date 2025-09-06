@@ -1,11 +1,11 @@
 // services/certificateService.js
-const Certificate = require("../models/Certificate");
-const Assessment = require("../models/Assessment");
-const AssessmentSession = require("../models/AssessmentSession");
-const LearningPath = require("../models/LearningPath");
-const UserProgress = require("../models/UserProgress");
-const User = require("../models/User");
-const { AppError } = require("../middleware/errorHandler");
+const Certificate = require('../models/Certificate');
+const Assessment = require('../models/Assessment');
+const AssessmentSession = require('../models/AssessmentSession');
+const LearningPath = require('../models/LearningPath');
+const UserProgress = require('../models/UserProgress');
+const User = require('../models/User');
+const { AppError } = require('../middleware/errorHandler');
 
 class CertificateService {
   /**
@@ -17,42 +17,42 @@ class CertificateService {
   async checkCertificateEligibility(userId, assessmentId) {
     try {
       console.log(
-        `🏆 Checking certificate eligibility: User ${userId}, Assessment ${assessmentId}`
+        `🏆 Checking certificate eligibility: User ${userId}, Assessment ${assessmentId}`,
       );
 
       // Get assessment
       const assessment = await Assessment.findById(assessmentId).populate(
-        "relatedPaths relatedModules"
+        'relatedPaths relatedModules',
       );
 
       if (!assessment) {
-        throw new AppError("Assessment not found", 404);
+        throw new AppError('Assessment not found', 404);
       }
 
       if (!assessment.certification.issuesCertificate) {
         return {
           eligible: false,
-          reason: "Assessment does not issue certificates",
+          reason: 'Assessment does not issue certificates',
         };
       }
 
       // Get user's best attempt
       const bestAttempt = await AssessmentSession.findBestAttempt(
         userId,
-        assessmentId
+        assessmentId,
       );
 
       if (!bestAttempt) {
         return {
           eligible: false,
-          reason: "No completed assessment attempts found",
+          reason: 'No completed assessment attempts found',
         };
       }
 
       if (!bestAttempt.results.passed) {
         return {
           eligible: false,
-          reason: "Assessment not passed",
+          reason: 'Assessment not passed',
         };
       }
 
@@ -68,14 +68,14 @@ class CertificateService {
       // Check if certificate already issued
       const existingCertificate = await Certificate.findOne({
         userId,
-        "achievementData.assessmentsPassed.assessmentId": assessmentId,
-        status: "issued",
+        'achievementData.assessmentsPassed.assessmentId': assessmentId,
+        status: 'issued',
       });
 
       if (existingCertificate) {
         return {
           eligible: false,
-          reason: "Certificate already issued",
+          reason: 'Certificate already issued',
           existingCertificate: existingCertificate.getSummary(),
         };
       }
@@ -84,10 +84,10 @@ class CertificateService {
         eligible: true,
         assessment,
         bestAttempt,
-        reason: "All requirements met",
+        reason: 'All requirements met',
       };
     } catch (error) {
-      console.error("❌ Error checking certificate eligibility:", error);
+      console.error('❌ Error checking certificate eligibility:', error);
       throw error;
     }
   }
@@ -102,19 +102,19 @@ class CertificateService {
   async generateCertificate(userId, assessmentId, options = {}) {
     try {
       console.log(
-        `📜 Generating certificate: User ${userId}, Assessment ${assessmentId}`
+        `📜 Generating certificate: User ${userId}, Assessment ${assessmentId}`,
       );
 
       // Check eligibility
       const eligibility = await this.checkCertificateEligibility(
         userId,
-        assessmentId
+        assessmentId,
       );
 
       if (!eligibility.eligible) {
         throw new AppError(
           `Not eligible for certificate: ${eligibility.reason}`,
-          400
+          400,
         );
       }
 
@@ -123,7 +123,7 @@ class CertificateService {
       // Get user data
       const user = await User.findById(userId);
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError('User not found', 404);
       }
 
       // Generate certificate data
@@ -131,7 +131,7 @@ class CertificateService {
         user,
         assessment,
         bestAttempt,
-        options
+        options,
       );
 
       // Create certificate
@@ -151,7 +151,7 @@ class CertificateService {
 
       return certificate;
     } catch (error) {
-      console.error("❌ Error generating certificate:", error);
+      console.error('❌ Error generating certificate:', error);
       throw error;
     }
   }
@@ -166,38 +166,38 @@ class CertificateService {
   async generatePathCompletionCertificate(userId, pathId, options = {}) {
     try {
       console.log(
-        `🛤️ Generating path completion certificate: User ${userId}, Path ${pathId}`
+        `🛤️ Generating path completion certificate: User ${userId}, Path ${pathId}`,
       );
 
       // Get learning path and user progress
       const [learningPath, pathProgress] = await Promise.all([
         LearningPath.findById(pathId),
-        UserProgress.findOne({ userId, pathId, "progress.completed": true }),
+        UserProgress.findOne({ userId, pathId, 'progress.completed': true }),
       ]);
 
       if (!learningPath) {
-        throw new AppError("Learning path not found", 404);
+        throw new AppError('Learning path not found', 404);
       }
 
       if (!pathProgress) {
-        throw new AppError("Learning path not completed", 400);
+        throw new AppError('Learning path not completed', 400);
       }
 
       // Check if certificate already exists
       const existingCertificate = await Certificate.findOne({
         userId,
-        "achievementData.pathsCompleted.pathId": pathId,
-        status: "issued",
+        'achievementData.pathsCompleted.pathId': pathId,
+        status: 'issued',
       });
 
       if (existingCertificate) {
-        throw new AppError("Certificate already issued for this path", 400);
+        throw new AppError('Certificate already issued for this path', 400);
       }
 
       // Get user
       const user = await User.findById(userId);
       if (!user) {
-        throw new AppError("User not found", 404);
+        throw new AppError('User not found', 404);
       }
 
       // Build certificate data for path completion
@@ -205,7 +205,7 @@ class CertificateService {
         user,
         learningPath,
         pathProgress,
-        options
+        options,
       );
 
       // Create and save certificate
@@ -220,12 +220,12 @@ class CertificateService {
       await this.updateUserCertificateStats(userId, certificate);
 
       console.log(
-        `✅ Path completion certificate generated: ${certificate.certificateId}`
+        `✅ Path completion certificate generated: ${certificate.certificateId}`,
       );
 
       return certificate;
     } catch (error) {
-      console.error("❌ Error generating path certificate:", error);
+      console.error('❌ Error generating path certificate:', error);
       throw error;
     }
   }
@@ -242,20 +242,20 @@ class CertificateService {
     // Determine certificate type based on assessment
     const certificateType = this.determineCertificateType(
       assessment,
-      assessmentSession.results
+      assessmentSession.results,
     );
 
     // Get skill verifications from assessment results
     const skillsVerified = await this.extractSkillVerifications(
       assessment,
-      assessmentSession
+      assessmentSession,
     );
 
     // Build achievement data
     const achievementData = {
       finalScore: assessmentSession.results.finalScore,
       totalTimeSpent: Math.round(
-        assessmentSession.results.totalTimeSpent / 3600
+        assessmentSession.results.totalTimeSpent / 3600,
       ), // convert to hours
       completionDate: assessmentSession.endTime,
       pathsCompleted: [], // Will be populated if related paths exist
@@ -276,7 +276,7 @@ class CertificateService {
       const pathProgress = await UserProgress.findOne({
         userId: user._id,
         pathId: relatedPath._id,
-        "progress.completed": true,
+        'progress.completed': true,
       });
 
       if (pathProgress) {
@@ -293,19 +293,19 @@ class CertificateService {
       title: this.generateCertificateTitle(assessment, certificateType),
       description: this.generateCertificateDescription(
         assessment,
-        assessmentSession.results
+        assessmentSession.results,
       ),
       type: certificateType,
       category: assessment.category,
       level: this.determineCertificateLevel(
         assessment,
-        assessmentSession.results
+        assessmentSession.results,
       ),
       userId: user._id,
       recipientName: `${user.firstName} ${user.lastName}`,
       recipientEmail: user.email,
       issuedBy: {
-        organization: "Sokol Learning Platform",
+        organization: 'Sokol Learning Platform',
         issuerName: options.issuerName || null,
         issuerId: options.issuerId || null,
       },
@@ -331,10 +331,10 @@ class CertificateService {
         ...assessment.tags,
       ],
       metadata: {
-        credentialType: "assessment_completion",
+        credentialType: 'assessment_completion',
         competencyFramework:
-          options.competencyFramework || "Sokol Skills Framework",
-        version: "1.0.0",
+          options.competencyFramework || 'Sokol Skills Framework',
+        version: '1.0.0',
       },
     };
   }
@@ -352,13 +352,13 @@ class CertificateService {
     const pathAssessments = await AssessmentSession.find({
       userId: user._id,
       assessmentId: { $in: learningPath.assessments || [] },
-      "results.passed": true,
-    }).populate("assessmentId", "title");
+      'results.passed': true,
+    }).populate('assessmentId', 'title');
 
     // Build skills verified from path modules
     const skillsVerified = await this.extractPathSkillVerifications(
       learningPath,
-      pathProgress
+      pathProgress,
     );
 
     const achievementData = {
@@ -385,7 +385,7 @@ class CertificateService {
 
     const certificateType = this.determinePathCertificateType(
       learningPath,
-      pathProgress
+      pathProgress,
     );
 
     return {
@@ -398,14 +398,14 @@ class CertificateService {
       recipientName: `${user.firstName} ${user.lastName}`,
       recipientEmail: user.email,
       issuedBy: {
-        organization: "Sokol Learning Platform",
+        organization: 'Sokol Learning Platform',
         issuerName: options.issuerName || null,
         issuerId: options.issuerId || null,
       },
       skillsVerified,
       achievementData,
       design: {
-        templateId: options.templateId || "path_completion",
+        templateId: options.templateId || 'path_completion',
         backgroundColor:
           options.backgroundColor ||
           this.getCategoryColor(learningPath.category).background,
@@ -418,14 +418,14 @@ class CertificateService {
       },
       tags: [
         learningPath.category,
-        "path_completion",
+        'path_completion',
         certificateType,
         ...learningPath.skills,
       ],
       metadata: {
-        credentialType: "path_completion",
-        competencyFramework: "Sokol Skills Framework",
-        version: "1.0.0",
+        credentialType: 'path_completion',
+        competencyFramework: 'Sokol Skills Framework',
+        version: '1.0.0',
       },
     };
   }
@@ -455,7 +455,7 @@ class CertificateService {
           }
 
           const answer = assessmentSession.answers.find(
-            (a) => a.questionId === question.questionId
+            (a) => a.questionId === question.questionId,
           );
           if (answer) {
             skillScores[skill.name].totalScore += answer.pointsEarned || 0;
@@ -481,7 +481,7 @@ class CertificateService {
           score: Math.round(percentage),
           assessmentId: assessment._id,
           assessmentDate: assessmentSession.endTime,
-          verificationMethod: "assessment",
+          verificationMethod: 'assessment',
         });
       }
     });
@@ -504,7 +504,7 @@ class CertificateService {
         // Determine skill level based on path completion and performance
         const skillLevel = this.determineSkillLevel(
           pathProgress.performance.averageScore,
-          learningPath.difficulty
+          learningPath.difficulty,
         );
 
         if (pathProgress.performance.averageScore >= 70) {
@@ -514,7 +514,7 @@ class CertificateService {
             score: Math.round(pathProgress.performance.averageScore),
             assessmentId: null, // Path completion, not specific assessment
             assessmentDate: pathProgress.progress.completedAt,
-            verificationMethod: "project", // Learning path completion is project-based
+            verificationMethod: 'project', // Learning path completion is project-based
           });
         }
       });
@@ -531,14 +531,14 @@ class CertificateService {
   async generateCertificateAssets(certificate) {
     try {
       console.log(
-        `🎨 Generating certificate assets for: ${certificate.certificateId}`
+        `🎨 Generating certificate assets for: ${certificate.certificateId}`,
       );
 
       // In a real implementation, this would generate actual images and PDFs
       // For now, we'll create placeholder URLs
 
       const baseUrl =
-        process.env.CERTIFICATE_ASSETS_URL || "https://certificates.sokol.ai";
+        process.env.CERTIFICATE_ASSETS_URL || 'https://certificates.sokol.ai';
 
       certificate.assets.certificateImageUrl = `${baseUrl}/certificates/${certificate.certificateId}.png`;
       certificate.assets.pdfUrl = `${baseUrl}/certificates/${certificate.certificateId}.pdf`;
@@ -551,9 +551,9 @@ class CertificateService {
 
       await certificate.save();
 
-      console.log("✅ Certificate assets generated");
+      console.log('✅ Certificate assets generated');
     } catch (error) {
-      console.error("Error generating certificate assets:", error);
+      console.error('Error generating certificate assets:', error);
       // Don't throw - certificate can still be valid without visual assets
     }
   }
@@ -572,11 +572,11 @@ class CertificateService {
       const certificate = await Certificate.findOne({ certificateId });
 
       if (!certificate) {
-        throw new AppError("Certificate not found", 404);
+        throw new AppError('Certificate not found', 404);
       }
 
-      if (certificate.status === "revoked") {
-        throw new AppError("Certificate is already revoked", 400);
+      if (certificate.status === 'revoked') {
+        throw new AppError('Certificate is already revoked', 400);
       }
 
       await certificate.revoke(reason, revokedBy);
@@ -592,7 +592,7 @@ class CertificateService {
 
       return certificate;
     } catch (error) {
-      console.error("❌ Error revoking certificate:", error);
+      console.error('❌ Error revoking certificate:', error);
       throw error;
     }
   }
@@ -611,20 +611,20 @@ class CertificateService {
       if (!certificate) {
         return {
           valid: false,
-          reason: "Certificate not found or invalid",
+          reason: 'Certificate not found or invalid',
         };
       }
 
       if (certificate.isExpired) {
         return {
           valid: false,
-          reason: "Certificate has expired",
+          reason: 'Certificate has expired',
           certificate: certificate.getSummary(),
         };
       }
 
       // Track verification access
-      await certificate.trackAccess("view");
+      await certificate.trackAccess('view');
 
       return {
         valid: true,
@@ -638,7 +638,7 @@ class CertificateService {
         },
       };
     } catch (error) {
-      console.error("❌ Error verifying certificate:", error);
+      console.error('❌ Error verifying certificate:', error);
       throw error;
     }
   }
@@ -653,18 +653,18 @@ class CertificateService {
     try {
       const certificates = await Certificate.findUserCertificates(
         userId,
-        filters
+        filters,
       );
 
       return certificates.map((cert) => ({
         ...cert,
         isValid:
-          cert.status === "issued" &&
+          cert.status === 'issued' &&
           cert.verification?.isVerified &&
           (!cert.validUntil || new Date(cert.validUntil) > new Date()),
       }));
     } catch (error) {
-      console.error("Error getting user certificates:", error);
+      console.error('Error getting user certificates:', error);
       throw error;
     }
   }
@@ -685,7 +685,7 @@ class CertificateService {
         await user.save();
       }
     } catch (error) {
-      console.error("Error updating user certificate stats:", error);
+      console.error('Error updating user certificate stats:', error);
       // Don't throw - certificate generation shouldn't fail due to stats update
     }
   }
@@ -693,28 +693,28 @@ class CertificateService {
   // Helper methods
 
   determineCertificateType(assessment, results) {
-    if (results.finalScore >= 95) return "mastery";
-    if (results.finalScore >= 90) return "expert";
-    if (assessment.type === "certification") return "certification";
-    if (assessment.type === "skill_check") return "micro_credential";
-    return "completion";
+    if (results.finalScore >= 95) return 'mastery';
+    if (results.finalScore >= 90) return 'expert';
+    if (assessment.type === 'certification') return 'certification';
+    if (assessment.type === 'skill_check') return 'micro_credential';
+    return 'completion';
   }
 
   determinePathCertificateType(learningPath, progress) {
-    if (progress.performance.averageScore >= 95) return "mastery";
-    if (progress.performance.averageScore >= 90) return "expert";
-    if (learningPath.difficulty === "expert") return "professional";
-    return "completion";
+    if (progress.performance.averageScore >= 95) return 'mastery';
+    if (progress.performance.averageScore >= 90) return 'expert';
+    if (learningPath.difficulty === 'expert') return 'professional';
+    return 'completion';
   }
 
   determineCertificateLevel(assessment, results) {
-    if (results.finalScore >= 95) return "expert";
-    if (results.finalScore >= 85) return "advanced";
-    if (results.finalScore >= 70) return "intermediate";
-    return "beginner";
+    if (results.finalScore >= 95) return 'expert';
+    if (results.finalScore >= 85) return 'advanced';
+    if (results.finalScore >= 70) return 'intermediate';
+    return 'beginner';
   }
 
-  determineSkillLevel(score, baseLevel = "intermediate") {
+  determineSkillLevel(score, baseLevel = 'intermediate') {
     const levelMap = {
       beginner: 0,
       intermediate: 1,
@@ -724,11 +724,11 @@ class CertificateService {
     };
 
     const reverseMap = [
-      "beginner",
-      "intermediate",
-      "advanced",
-      "expert",
-      "master",
+      'beginner',
+      'intermediate',
+      'advanced',
+      'expert',
+      'master',
     ];
 
     let baseIndex = levelMap[baseLevel] || 1;
@@ -746,15 +746,15 @@ class CertificateService {
 
   generateCertificateTitle(assessment, certificateType) {
     const typeLabels = {
-      completion: "Completion Certificate",
-      mastery: "Mastery Certificate",
-      expert: "Expert Certificate",
-      certification: "Professional Certification",
-      micro_credential: "Micro-Credential",
-      professional: "Professional Certificate",
+      completion: 'Completion Certificate',
+      mastery: 'Mastery Certificate',
+      expert: 'Expert Certificate',
+      certification: 'Professional Certification',
+      micro_credential: 'Micro-Credential',
+      professional: 'Professional Certificate',
     };
 
-    const typeLabel = typeLabels[certificateType] || "Certificate";
+    const typeLabel = typeLabels[certificateType] || 'Certificate';
     return `${assessment.title} - ${typeLabel}`;
   }
 
@@ -766,62 +766,62 @@ class CertificateService {
     }%. This certificate validates proficiency in ${
       assessment.category
     } skills and demonstrates ${
-      results.passed ? "satisfactory" : "excellent"
+      results.passed ? 'satisfactory' : 'excellent'
     } understanding of the subject matter.`;
   }
 
   selectCertificateTemplate(assessment) {
     const templateMap = {
-      "Communication & Leadership": "leadership_template",
-      "Innovation & Creativity": "creative_template",
-      "Technical Skills": "technical_template",
-      "Business Strategy": "business_template",
-      "Personal Development": "personal_template",
-      "Data & Analytics": "analytics_template",
+      'Communication & Leadership': 'leadership_template',
+      'Innovation & Creativity': 'creative_template',
+      'Technical Skills': 'technical_template',
+      'Business Strategy': 'business_template',
+      'Personal Development': 'personal_template',
+      'Data & Analytics': 'analytics_template',
     };
 
-    return templateMap[assessment.category] || "default_template";
+    return templateMap[assessment.category] || 'default_template';
   }
 
   getCategoryColor(category) {
     const colorMap = {
-      "Communication & Leadership": {
-        background: "#f8f9ff",
-        primary: "#3b82f6",
-        secondary: "#e0e7ff",
+      'Communication & Leadership': {
+        background: '#f8f9ff',
+        primary: '#3b82f6',
+        secondary: '#e0e7ff',
       },
-      "Innovation & Creativity": {
-        background: "#fef7ff",
-        primary: "#a855f7",
-        secondary: "#f3e8ff",
+      'Innovation & Creativity': {
+        background: '#fef7ff',
+        primary: '#a855f7',
+        secondary: '#f3e8ff',
       },
-      "Technical Skills": {
-        background: "#f0fdf4",
-        primary: "#22c55e",
-        secondary: "#dcfce7",
+      'Technical Skills': {
+        background: '#f0fdf4',
+        primary: '#22c55e',
+        secondary: '#dcfce7',
       },
-      "Business Strategy": {
-        background: "#fefce8",
-        primary: "#eab308",
-        secondary: "#fef3c7",
+      'Business Strategy': {
+        background: '#fefce8',
+        primary: '#eab308',
+        secondary: '#fef3c7',
       },
-      "Personal Development": {
-        background: "#fff7ed",
-        primary: "#f97316",
-        secondary: "#fed7aa",
+      'Personal Development': {
+        background: '#fff7ed',
+        primary: '#f97316',
+        secondary: '#fed7aa',
       },
-      "Data & Analytics": {
-        background: "#f0f9ff",
-        primary: "#0ea5e9",
-        secondary: "#e0f2fe",
+      'Data & Analytics': {
+        background: '#f0f9ff',
+        primary: '#0ea5e9',
+        secondary: '#e0f2fe',
       },
     };
 
     return (
       colorMap[category] || {
-        background: "#f9fafb",
-        primary: "#6b7280",
-        secondary: "#e5e7eb",
+        background: '#f9fafb',
+        primary: '#6b7280',
+        secondary: '#e5e7eb',
       }
     );
   }

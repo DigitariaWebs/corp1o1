@@ -14,7 +14,7 @@ class ContentService {
       const [module, user, userProgress] = await Promise.all([
         LearningModule.findById(moduleId),
         User.findById(userId),
-        UserProgress.findOne({ userId, moduleId })
+        UserProgress.findOne({ userId, moduleId }),
       ]);
 
       if (!module || !user) {
@@ -32,7 +32,7 @@ class ContentService {
         adaptedContent, 
         user, 
         userProgress,
-        module
+        module,
       );
 
       return enhancedContent;
@@ -53,7 +53,7 @@ class ContentService {
         engagementScore: 50,
         timeSpentRatio: 1,
         strugglingAreas: [],
-        strengths: []
+        strengths: [],
       };
     }
 
@@ -63,7 +63,7 @@ class ContentService {
       timeSpentRatio: userProgress.analytics.totalTimeSpent / 
         Math.max(userProgress.goals?.dailyTimeGoal || 30, 1),
       strugglingAreas: userProgress.performance.weaknesses || [],
-      strengths: userProgress.performance.strengths || []
+      strengths: userProgress.performance.strengths || [],
     };
   }
 
@@ -76,21 +76,21 @@ class ContentService {
     // Learning style adaptations
     adaptations.push(...this.applyLearningStyleAdaptations(
       content, 
-      user.learningProfile.learningStyle
+      user.learningProfile.learningStyle,
     ));
 
     // Difficulty adaptations
     if (userProgress) {
       adaptations.push(...this.applyDifficultyAdaptations(
         content, 
-        userProgress.performance
+        userProgress.performance,
       ));
     }
 
     // Pacing adaptations
     adaptations.push(...this.applyPacingAdaptations(
       content, 
-      user.learningProfile.preferredPace
+      user.learningProfile.preferredPace,
     ));
 
     // Engagement adaptations
@@ -102,7 +102,7 @@ class ContentService {
       ...content,
       adaptations,
       personalizedFor: user.learningProfile.learningStyle,
-      difficultyAdjusted: this.calculateAdjustedDifficulty(module.difficulty, userProgress)
+      difficultyAdjusted: this.calculateAdjustedDifficulty(module.difficulty, userProgress),
     };
   }
 
@@ -113,70 +113,70 @@ class ContentService {
     const adaptations = [];
 
     switch (learningStyle) {
-      case 'visual':
-        adaptations.push({
-          type: 'visual_enhancement',
-          description: 'Added visual diagrams and infographics',
-          priority: 'high',
-          modifications: [
-            'Enhanced visual materials priority',
-            'Added mind maps and flowcharts',
-            'Increased image-to-text ratio'
-          ]
-        });
-        break;
+    case 'visual':
+      adaptations.push({
+        type: 'visual_enhancement',
+        description: 'Added visual diagrams and infographics',
+        priority: 'high',
+        modifications: [
+          'Enhanced visual materials priority',
+          'Added mind maps and flowcharts',
+          'Increased image-to-text ratio',
+        ],
+      });
+      break;
 
-      case 'auditory':
-        adaptations.push({
-          type: 'auditory_enhancement',
-          description: 'Enhanced audio content and verbal explanations',
-          priority: 'high',
-          modifications: [
-            'Prioritized audio materials',
-            'Added narration to visual content',
-            'Included discussion prompts'
-          ]
-        });
-        break;
+    case 'auditory':
+      adaptations.push({
+        type: 'auditory_enhancement',
+        description: 'Enhanced audio content and verbal explanations',
+        priority: 'high',
+        modifications: [
+          'Prioritized audio materials',
+          'Added narration to visual content',
+          'Included discussion prompts',
+        ],
+      });
+      break;
 
-      case 'kinesthetic':
-        adaptations.push({
-          type: 'interactive_enhancement',
-          description: 'Added hands-on activities and simulations',
-          priority: 'high',
-          modifications: [
-            'Increased interactive elements',
-            'Added practical exercises',
-            'Included drag-and-drop activities'
-          ]
-        });
-        break;
+    case 'kinesthetic':
+      adaptations.push({
+        type: 'interactive_enhancement',
+        description: 'Added hands-on activities and simulations',
+        priority: 'high',
+        modifications: [
+          'Increased interactive elements',
+          'Added practical exercises',
+          'Included drag-and-drop activities',
+        ],
+      });
+      break;
 
-      case 'reading':
-        adaptations.push({
-          type: 'textual_enhancement',
-          description: 'Enhanced text-based learning materials',
-          priority: 'high',
-          modifications: [
-            'Detailed written explanations',
-            'Added reading materials',
-            'Structured note-taking templates'
-          ]
-        });
-        break;
+    case 'reading':
+      adaptations.push({
+        type: 'textual_enhancement',
+        description: 'Enhanced text-based learning materials',
+        priority: 'high',
+        modifications: [
+          'Detailed written explanations',
+          'Added reading materials',
+          'Structured note-taking templates',
+        ],
+      });
+      break;
 
-      case 'balanced':
-        adaptations.push({
-          type: 'multimodal_approach',
-          description: 'Balanced mix of all learning modalities',
-          priority: 'medium',
-          modifications: [
-            'Equal emphasis on all content types',
-            'Flexible progression paths',
-            'User choice in content format'
-          ]
-        });
-        break;
+    case 'balanced':
+      adaptations.push({
+        type: 'multimodal_approach',
+        description: 'Balanced mix of all learning modalities',
+        priority: 'medium',
+        modifications: [
+          'Equal emphasis on all content types',
+          'Flexible progression paths',
+          'User choice in content format',
+        ],
+      });
+      break;
     }
 
     return adaptations;
@@ -199,8 +199,8 @@ class ContentService {
           'Added foundational review materials',
           'Broken complex concepts into smaller chunks',
           'Increased examples and practice opportunities',
-          'Added step-by-step guides'
-        ]
+          'Added step-by-step guides',
+        ],
       });
     } else if (averageScore > 90) {
       // User is excelling - add advanced content
@@ -212,8 +212,8 @@ class ContentService {
           'Included advanced topics',
           'Added complex problem scenarios',
           'Provided extension activities',
-          'Suggested additional resources'
-        ]
+          'Suggested additional resources',
+        ],
       });
     }
 
@@ -227,47 +227,47 @@ class ContentService {
     const adaptations = [];
 
     switch (preferredPace) {
-      case 'slow':
-        adaptations.push({
-          type: 'pacing_slow',
-          description: 'Adjusted for thoughtful, deliberate learning pace',
-          priority: 'medium',
-          modifications: [
-            'Added reflection questions',
-            'Included summary checkpoints',
-            'Extended practice opportunities',
-            'Built-in review sessions'
-          ]
-        });
-        break;
+    case 'slow':
+      adaptations.push({
+        type: 'pacing_slow',
+        description: 'Adjusted for thoughtful, deliberate learning pace',
+        priority: 'medium',
+        modifications: [
+          'Added reflection questions',
+          'Included summary checkpoints',
+          'Extended practice opportunities',
+          'Built-in review sessions',
+        ],
+      });
+      break;
 
-      case 'fast':
-        adaptations.push({
-          type: 'pacing_fast',
-          description: 'Optimized for accelerated learning',
-          priority: 'medium',
-          modifications: [
-            'Condensed core concepts',
-            'Skip-ahead options available',
-            'Challenge-based progression',
-            'Parallel learning tracks'
-          ]
-        });
-        break;
+    case 'fast':
+      adaptations.push({
+        type: 'pacing_fast',
+        description: 'Optimized for accelerated learning',
+        priority: 'medium',
+        modifications: [
+          'Condensed core concepts',
+          'Skip-ahead options available',
+          'Challenge-based progression',
+          'Parallel learning tracks',
+        ],
+      });
+      break;
 
-      case 'medium':
-      default:
-        adaptations.push({
-          type: 'pacing_balanced',
-          description: 'Standard pacing with flexibility options',
-          priority: 'low',
-          modifications: [
-            'Balanced content delivery',
-            'Optional deep-dive sections',
-            'Flexible time recommendations'
-          ]
-        });
-        break;
+    case 'medium':
+    default:
+      adaptations.push({
+        type: 'pacing_balanced',
+        description: 'Standard pacing with flexibility options',
+        priority: 'low',
+        modifications: [
+          'Balanced content delivery',
+          'Optional deep-dive sections',
+          'Flexible time recommendations',
+        ],
+      });
+      break;
     }
 
     return adaptations;
@@ -286,8 +286,8 @@ class ContentService {
         'Increased interactive checkpoints',
         'Included multimedia variety',
         'Added progress celebrations',
-        'Implemented micro-learning chunks'
-      ]
+        'Implemented micro-learning chunks',
+      ],
     }];
   }
 
@@ -337,7 +337,7 @@ class ContentService {
       const scoredRecommendations = recommendations.map(path => ({
         path: path.toObject(),
         score: this.calculateRecommendationScore(path, userProfile),
-        reasons: this.generateRecommendationReasons(path, userProfile)
+        reasons: this.generateRecommendationReasons(path, userProfile),
       }));
 
       return scoredRecommendations.sort((a, b) => b.score - a.score);
@@ -380,7 +380,7 @@ class ContentService {
       preferredDifficulty,
       avgPerformance,
       totalLearningTime: user.statistics.totalLearningTime,
-      pathsCompleted: user.statistics.pathsCompleted
+      pathsCompleted: user.statistics.pathsCompleted,
     };
   }
 
@@ -410,8 +410,8 @@ class ContentService {
     const skillOverlap = path.skills.filter(skill => 
       userProfile.completedSkills.some(userSkill => 
         skill.toLowerCase().includes(userSkill.toLowerCase()) ||
-        userSkill.toLowerCase().includes(skill.toLowerCase())
-      )
+        userSkill.toLowerCase().includes(skill.toLowerCase()),
+      ),
     ).length;
     
     score += Math.min(15, skillOverlap * 5);
@@ -435,7 +435,7 @@ class ContentService {
 
     // Skill building
     const newSkills = path.skills.filter(skill => 
-      !userProfile.completedSkills.includes(skill)
+      !userProfile.completedSkills.includes(skill),
     );
     if (newSkills.length > 0) {
       reasons.push(`Builds new skills: ${newSkills.slice(0, 2).join(', ')}`);
@@ -443,7 +443,7 @@ class ContentService {
 
     // Difficulty appropriateness
     if (path.difficulty === userProfile.preferredDifficulty) {
-      reasons.push(`Perfect difficulty level for your current skills`);
+      reasons.push('Perfect difficulty level for your current skills');
     }
 
     // High rating
@@ -471,7 +471,7 @@ class ContentService {
         simplified: null,
         detailed: null,
         practical: null,
-        theoretical: null
+        theoretical: null,
       };
 
       // Analyze interaction patterns
@@ -511,7 +511,7 @@ class ContentService {
         needsSimplification: false,
         wantsMoreDetail: false,
         prefersPractical: false,
-        prefersTheory: false
+        prefersTheory: false,
       };
     }
 
@@ -519,20 +519,20 @@ class ContentService {
       needsSimplification: false,
       wantsMoreDetail: false,
       prefersPractical: false,
-      prefersTheory: false
+      prefersTheory: false,
     };
 
     // Analyze patterns (simplified logic)
     const repeatViews = interactionHistory.filter(i => i.type === 'content_replay').length;
     const helpRequests = interactionHistory.filter(i => i.type === 'help_request').length;
     const practicalInteractions = interactionHistory.filter(i => 
-      i.materialType === 'interactive' || i.materialType === 'practice'
+      i.materialType === 'interactive' || i.materialType === 'practice',
     ).length;
 
     patterns.needsSimplification = repeatViews > 2 || helpRequests > 1;
     patterns.prefersPractical = practicalInteractions > interactionHistory.length * 0.6;
     patterns.wantsMoreDetail = interactionHistory.some(i => 
-      i.completionPercentage === 100 && i.timeSpent > i.estimatedTime * 1.5
+      i.completionPercentage === 100 && i.timeSpent > i.estimatedTime * 1.5,
     );
 
     return patterns;
@@ -549,8 +549,8 @@ class ContentService {
         'Reduced complexity',
         'Added basic examples',
         'Step-by-step breakdowns',
-        'Glossary of terms'
-      ]
+        'Glossary of terms',
+      ],
     };
   }
 
@@ -565,8 +565,8 @@ class ContentService {
         'Extended explanations',
         'Additional case studies',
         'Advanced examples',
-        'Supplementary readings'
-      ]
+        'Supplementary readings',
+      ],
     };
   }
 
@@ -581,8 +581,8 @@ class ContentService {
         'Interactive exercises',
         'Real-world scenarios',
         'Practical projects',
-        'Skill demonstrations'
-      ]
+        'Skill demonstrations',
+      ],
     };
   }
 
@@ -597,8 +597,8 @@ class ContentService {
         'Theoretical foundations',
         'Academic perspectives',
         'Research findings',
-        'Conceptual frameworks'
-      ]
+        'Conceptual frameworks',
+      ],
     };
   }
 }

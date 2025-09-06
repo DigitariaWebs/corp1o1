@@ -1,9 +1,9 @@
-const UserProgress = require("../models/UserProgress");
-const LearningPath = require("../models/LearningPath");
-const LearningModule = require("../models/LearningModule");
-const LearningSession = require("../models/LearningSession");
-const User = require("../models/User");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const UserProgress = require('../models/UserProgress');
+const LearningPath = require('../models/LearningPath');
+const LearningModule = require('../models/LearningModule');
+const LearningSession = require('../models/LearningSession');
+const User = require('../models/User');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 // Get overall progress overview for user
 const getProgressOverview = catchAsync(async (req, res) => {
@@ -16,20 +16,20 @@ const getProgressOverview = catchAsync(async (req, res) => {
   const enrolledPaths = await UserProgress.find({
     userId,
     pathId: { $exists: true, $ne: null },
-    status: { $in: ["in_progress", "completed", "paused"] },
+    status: { $in: ['in_progress', 'completed', 'paused'] },
   })
-    .populate("pathId", "title category difficulty estimatedHours metadata")
-    .sort({ "progress.lastAccessed": -1 })
+    .populate('pathId', 'title category difficulty estimatedHours metadata')
+    .sort({ 'progress.lastAccessed': -1 })
     .limit(10)
     .lean();
 
   // Get recent learning activity
   const recentSessions = await LearningSession.find({
     userId,
-    status: { $in: ["completed", "active"] },
+    status: { $in: ['completed', 'active'] },
   })
-    .populate("moduleId", "title")
-    .populate("pathId", "title")
+    .populate('moduleId', 'title')
+    .populate('pathId', 'title')
     .sort({ startTime: -1 })
     .limit(5)
     .lean();
@@ -100,15 +100,15 @@ const getProgressOverview = catchAsync(async (req, res) => {
     duration: session.totalDuration,
     module: session.moduleId
       ? {
-          id: session.moduleId._id,
-          title: session.moduleId.title,
-        }
+        id: session.moduleId._id,
+        title: session.moduleId.title,
+      }
       : null,
     path: session.pathId
       ? {
-          id: session.pathId._id,
-          title: session.pathId.title,
-        }
+        id: session.pathId._id,
+        title: session.pathId.title,
+      }
       : null,
     status: session.status,
     engagementScore: session.performance?.engagementScore || 0,
@@ -127,9 +127,9 @@ const getProgressOverview = catchAsync(async (req, res) => {
       recentSessions: formattedSessions,
       stats: {
         pathsInProgress: formattedPaths.filter(
-          (p) => p.status === "in_progress"
+          (p) => p.status === 'in_progress',
         ).length,
-        pathsCompleted: formattedPaths.filter((p) => p.status === "completed")
+        pathsCompleted: formattedPaths.filter((p) => p.status === 'completed')
           .length,
         totalTimeThisWeek: await calculateWeeklyLearningTime(userId),
         averageSessionRating: await calculateAverageSessionRating(userId),
@@ -146,7 +146,7 @@ const getPathProgress = catchAsync(async (req, res) => {
   // Get path details
   const path = await LearningPath.findById(pathId);
   if (!path) {
-    throw new AppError("Learning path not found", 404);
+    throw new AppError('Learning path not found', 404);
   }
 
   // Get user's overall path progress
@@ -157,7 +157,7 @@ const getPathProgress = catchAsync(async (req, res) => {
   }).lean();
 
   if (!pathProgress) {
-    throw new AppError("You are not enrolled in this learning path", 404);
+    throw new AppError('You are not enrolled in this learning path', 404);
   }
 
   // Get all modules for this path
@@ -194,37 +194,37 @@ const getPathProgress = catchAsync(async (req, res) => {
       isLocked: module.isLocked,
       progress: progress
         ? {
-            percentage: progress.progress.percentage,
-            completed: progress.progress.completed,
-            timeSpent: progress.progress.timeSpent,
-            engagementScore: progress.analytics?.engagementScore || 0,
-            lastAccessed: progress.progress.lastAccessed,
-            firstAccessed: progress.progress.firstAccessed,
-            assessmentScore: progress.performance?.bestScore || 0,
-            status: progress.status,
-          }
+          percentage: progress.progress.percentage,
+          completed: progress.progress.completed,
+          timeSpent: progress.progress.timeSpent,
+          engagementScore: progress.analytics?.engagementScore || 0,
+          lastAccessed: progress.progress.lastAccessed,
+          firstAccessed: progress.progress.firstAccessed,
+          assessmentScore: progress.performance?.bestScore || 0,
+          status: progress.status,
+        }
         : {
-            percentage: 0,
-            completed: false,
-            timeSpent: 0,
-            engagementScore: 0,
-            lastAccessed: null,
-            firstAccessed: null,
-            assessmentScore: 0,
-            status: "not_started",
-          },
+          percentage: 0,
+          completed: false,
+          timeSpent: 0,
+          engagementScore: 0,
+          lastAccessed: null,
+          firstAccessed: null,
+          assessmentScore: 0,
+          status: 'not_started',
+        },
     };
   });
 
   // Calculate detailed statistics
   const completedModules = modulesWithProgress.filter(
-    (m) => m.progress.completed
+    (m) => m.progress.completed,
   );
   const totalModules = modules.length;
   const totalDuration = modules.reduce((sum, m) => sum + m.content.duration, 0);
   const timeSpent = moduleProgress.reduce(
     (sum, p) => sum + p.progress.timeSpent,
-    0
+    0,
   );
 
   // Get learning sessions for this path
@@ -233,7 +233,7 @@ const getPathProgress = catchAsync(async (req, res) => {
     pathId,
     startTime: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
   })
-    .populate("moduleId", "title")
+    .populate('moduleId', 'title')
     .sort({ startTime: -1 })
     .limit(10)
     .lean();
@@ -263,7 +263,7 @@ const getPathProgress = catchAsync(async (req, res) => {
         totalModules,
         completedModules: completedModules.length,
         completionRate: Math.round(
-          (completedModules.length / totalModules) * 100
+          (completedModules.length / totalModules) * 100,
         ),
         totalDuration,
         timeSpent,
@@ -271,16 +271,16 @@ const getPathProgress = catchAsync(async (req, res) => {
         averageEngagement:
           moduleProgress.length > 0
             ? Math.round(
-                moduleProgress.reduce(
-                  (sum, p) => sum + (p.analytics?.engagementScore || 0),
-                  0
-                ) / moduleProgress.length
-              )
+              moduleProgress.reduce(
+                (sum, p) => sum + (p.analytics?.engagementScore || 0),
+                0,
+              ) / moduleProgress.length,
+            )
             : 0,
         estimatedCompletionDate: calculateEstimatedCompletion(
           pathProgress,
           totalDuration,
-          timeSpent
+          timeSpent,
         ),
       },
       recentSessions: recentSessions.map((session) => ({
@@ -289,9 +289,9 @@ const getPathProgress = catchAsync(async (req, res) => {
         duration: session.totalDuration,
         module: session.moduleId
           ? {
-              id: session.moduleId._id,
-              title: session.moduleId.title,
-            }
+            id: session.moduleId._id,
+            title: session.moduleId.title,
+          }
           : null,
         engagementScore: session.performance?.engagementScore || 0,
         status: session.status,
@@ -332,8 +332,8 @@ const getSessionsHistory = catchAsync(async (req, res) => {
   const skip = (pageNum - 1) * limitNum;
 
   const sessions = await LearningSession.find(query)
-    .populate("pathId", "title category")
-    .populate("moduleId", "title difficulty")
+    .populate('pathId', 'title category')
+    .populate('moduleId', 'title difficulty')
     .sort({ startTime: -1 })
     .skip(skip)
     .limit(limitNum)
@@ -352,17 +352,17 @@ const getSessionsHistory = catchAsync(async (req, res) => {
     status: session.status,
     path: session.pathId
       ? {
-          id: session.pathId._id,
-          title: session.pathId.title,
-          category: session.pathId.category,
-        }
+        id: session.pathId._id,
+        title: session.pathId.title,
+        category: session.pathId.category,
+      }
       : null,
     module: session.moduleId
       ? {
-          id: session.moduleId._id,
-          title: session.moduleId.title,
-          difficulty: session.moduleId.difficulty,
-        }
+        id: session.moduleId._id,
+        title: session.moduleId.title,
+        difficulty: session.moduleId.difficulty,
+      }
       : null,
     performance: {
       engagementScore: session.performance?.engagementScore || 0,
@@ -405,22 +405,22 @@ const recordSessionData = catchAsync(async (req, res) => {
   });
 
   if (!session) {
-    throw new AppError("Learning session not found", 404);
+    throw new AppError('Learning session not found', 404);
   }
 
   // Add activity to session
   session.addActivity(activityType, data, timestamp);
 
   // Update session performance based on activity
-  if (activityType === "content_view") {
+  if (activityType === 'content_view') {
     session.performance.engagementScore = Math.min(
       100,
-      session.performance.engagementScore + 2
+      session.performance.engagementScore + 2,
     );
-  } else if (activityType === "help_request") {
+  } else if (activityType === 'help_request') {
     session.performance.focusScore = Math.max(
       0,
-      session.performance.focusScore - 5
+      session.performance.focusScore - 5,
     );
   }
 
@@ -428,7 +428,7 @@ const recordSessionData = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Session data recorded successfully",
+    message: 'Session data recorded successfully',
     data: {
       sessionId,
       currentPerformance: session.performance,
@@ -439,18 +439,18 @@ const recordSessionData = catchAsync(async (req, res) => {
 // Get learning analytics
 const getLearningAnalytics = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { timeRange = "30d" } = req.query;
+  const { timeRange = '30d' } = req.query;
 
   // Get session analytics
   const sessionAnalytics = await LearningSession.getUserSessionAnalytics(
     userId,
-    timeRange
+    timeRange,
   );
 
   // Get learning analytics from progress
   const learningAnalytics = await UserProgress.getLearningAnalytics(
     userId,
-    timeRange
+    timeRange,
   );
 
   // Calculate additional metrics
@@ -478,19 +478,19 @@ const getLearningAnalytics = catchAsync(async (req, res) => {
       timeSeries: timeSeriesData,
       skillProgress,
       performance: {
-        engagementTrend: calculateTrend(timeSeriesData, "engagement"),
-        focusTrend: calculateTrend(timeSeriesData, "focus"),
+        engagementTrend: calculateTrend(timeSeriesData, 'engagement'),
+        focusTrend: calculateTrend(timeSeriesData, 'focus'),
         productivityScore: calculateProductivityScore(
-          sessionAnalytics[0] || {}
+          sessionAnalytics[0] || {},
         ),
         learningEfficiency: calculateLearningEfficiency(
           totalTime,
-          learningAnalytics.length
+          learningAnalytics.length,
         ),
       },
       recommendations: await generateAnalyticsRecommendations(
         userId,
-        sessionAnalytics[0] || {}
+        sessionAnalytics[0] || {},
       ),
     },
   });
@@ -502,8 +502,8 @@ const getMilestones = catchAsync(async (req, res) => {
 
   // Get all progress records to extract milestones
   const progressRecords = await UserProgress.find({ userId })
-    .populate("pathId", "title category")
-    .populate("moduleId", "title")
+    .populate('pathId', 'title category')
+    .populate('moduleId', 'title')
     .lean();
 
   // Collect all milestones
@@ -530,7 +530,7 @@ const getMilestones = catchAsync(async (req, res) => {
     userId,
     achievements: { $exists: true, $not: { $size: 0 } },
   })
-    .select("achievements startTime")
+    .select('achievements startTime')
     .sort({ startTime: -1 })
     .limit(20)
     .lean();
@@ -538,16 +538,16 @@ const getMilestones = catchAsync(async (req, res) => {
   const sessionAchievements = recentSessions.flatMap((session) =>
     session.achievements.map((achievement) => ({
       ...achievement,
-      source: "session",
+      source: 'session',
       sessionDate: session.startTime,
-    }))
+    })),
   );
 
   // Combine and format all achievements
   const allAchievements = [...allMilestones, ...sessionAchievements].sort(
     (a, b) =>
       new Date(b.achievedAt || b.earnedAt) -
-      new Date(a.achievedAt || a.earnedAt)
+      new Date(a.achievedAt || a.earnedAt),
   );
 
   res.status(200).json({
@@ -563,10 +563,10 @@ const getMilestones = catchAsync(async (req, res) => {
           return date >= monthAgo;
         }).length,
         pathsCompleted: allMilestones.filter(
-          (m) => m.type === "completed" && m.pathTitle
+          (m) => m.type === 'completed' && m.pathTitle,
         ).length,
         modulesCompleted: allMilestones.filter(
-          (m) => m.type === "completed" && m.moduleTitle
+          (m) => m.type === 'completed' && m.moduleTitle,
         ).length,
       },
     },
@@ -583,28 +583,28 @@ const calculateWeeklyLearningTime = async (userId) => {
     userId,
     startTime: { $gte: weekAgo },
   })
-    .select("totalDuration")
+    .select('totalDuration')
     .lean();
 
   return sessions.reduce(
     (total, session) => total + (session.totalDuration || 0),
-    0
+    0,
   );
 };
 
 const calculateAverageSessionRating = async (userId) => {
   const sessions = await LearningSession.find({
     userId,
-    "feedback.overallSatisfaction": { $exists: true },
+    'feedback.overallSatisfaction': { $exists: true },
   })
-    .select("feedback.overallSatisfaction")
+    .select('feedback.overallSatisfaction')
     .lean();
 
   if (sessions.length === 0) return 0;
 
   const total = sessions.reduce(
     (sum, session) => sum + (session.feedback?.overallSatisfaction || 0),
-    0
+    0,
   );
 
   return Math.round((total / sessions.length) * 10) / 10;
@@ -613,7 +613,7 @@ const calculateAverageSessionRating = async (userId) => {
 const calculateEstimatedCompletion = (
   pathProgress,
   totalDuration,
-  timeSpent
+  timeSpent,
 ) => {
   if (pathProgress.progress.percentage === 100) return null;
 
@@ -628,7 +628,7 @@ const calculateEstimatedCompletion = (
 };
 
 const generateTimeSeriesData = async (userId, timeRange) => {
-  const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+  const days = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const dateThreshold = new Date();
   dateThreshold.setDate(dateThreshold.getDate() - days);
 
@@ -636,14 +636,14 @@ const generateTimeSeriesData = async (userId, timeRange) => {
     userId,
     startTime: { $gte: dateThreshold },
   })
-    .select("startTime totalDuration performance")
+    .select('startTime totalDuration performance')
     .lean();
 
   // Group by date
   const dailyData = {};
 
   sessions.forEach((session) => {
-    const dateKey = session.startTime.toISOString().split("T")[0];
+    const dateKey = session.startTime.toISOString().split('T')[0];
     if (!dailyData[dateKey]) {
       dailyData[dateKey] = {
         date: dateKey,
@@ -666,7 +666,7 @@ const generateTimeSeriesData = async (userId, timeRange) => {
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
-    const dateKey = date.toISOString().split("T")[0];
+    const dateKey = date.toISOString().split('T')[0];
 
     if (dailyData[dateKey]) {
       const data = dailyData[dateKey];
@@ -692,10 +692,10 @@ const generateTimeSeriesData = async (userId, timeRange) => {
 const getSkillProgressData = async (userId) => {
   const progressRecords = await UserProgress.find({
     userId,
-    "performance.skillDevelopment": { $exists: true, $not: { $size: 0 } },
+    'performance.skillDevelopment': { $exists: true, $not: { $size: 0 } },
   })
-    .select("performance.skillDevelopment pathId")
-    .populate("pathId", "title category")
+    .select('performance.skillDevelopment pathId')
+    .populate('pathId', 'title category')
     .lean();
 
   const skillMap = {};
@@ -728,7 +728,7 @@ const getSkillProgressData = async (userId) => {
 };
 
 const calculateTrend = (timeSeriesData, metric) => {
-  if (timeSeriesData.length < 2) return "stable";
+  if (timeSeriesData.length < 2) return 'stable';
 
   const recent =
     timeSeriesData.slice(-7).reduce((sum, d) => sum + (d[metric] || 0), 0) / 7;
@@ -738,9 +738,9 @@ const calculateTrend = (timeSeriesData, metric) => {
 
   const change = ((recent - previous) / Math.max(previous, 1)) * 100;
 
-  if (change > 10) return "improving";
-  if (change < -10) return "declining";
-  return "stable";
+  if (change > 10) return 'improving';
+  if (change < -10) return 'declining';
+  return 'stable';
 };
 
 const calculateProductivityScore = (analytics) => {
@@ -771,22 +771,22 @@ const generateAnalyticsRecommendations = async (userId, analytics) => {
 
   if (analytics.avgEngagement < 60) {
     recommendations.push({
-      type: "engagement",
-      priority: "high",
-      title: "Improve Learning Engagement",
+      type: 'engagement',
+      priority: 'high',
+      title: 'Improve Learning Engagement',
       description:
-        "Try interactive content or change your learning environment",
-      action: "explore_content_types",
+        'Try interactive content or change your learning environment',
+      action: 'explore_content_types',
     });
   }
 
   if (analytics.avgSessionLength && analytics.avgSessionLength < 20) {
     recommendations.push({
-      type: "duration",
-      priority: "medium",
-      title: "Extend Learning Sessions",
-      description: "Longer sessions can improve retention and efficiency",
-      action: "set_session_goals",
+      type: 'duration',
+      priority: 'medium',
+      title: 'Extend Learning Sessions',
+      description: 'Longer sessions can improve retention and efficiency',
+      action: 'set_session_goals',
     });
   }
 
@@ -795,11 +795,11 @@ const generateAnalyticsRecommendations = async (userId, analytics) => {
     0.7
   ) {
     recommendations.push({
-      type: "completion",
-      priority: "high",
-      title: "Improve Session Completion",
-      description: "Focus on finishing sessions you start",
-      action: "review_goals",
+      type: 'completion',
+      priority: 'high',
+      title: 'Improve Session Completion',
+      description: 'Focus on finishing sessions you start',
+      action: 'review_goals',
     });
   }
 

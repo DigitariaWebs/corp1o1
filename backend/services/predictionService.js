@@ -1,11 +1,11 @@
 // services/predictionService.js
-const LearningAnalytics = require("../models/LearningAnalytics");
-const UserProgress = require("../models/UserProgress");
-const User = require("../models/User");
-const LearningPath = require("../models/LearningPath");
-const LearningModule = require("../models/LearningModule");
-const { predictionModels } = require("../utils/predictionModels");
-const { dataAnalyzer } = require("../utils/dataAnalyzer");
+const LearningAnalytics = require('../models/LearningAnalytics');
+const UserProgress = require('../models/UserProgress');
+const User = require('../models/User');
+const LearningPath = require('../models/LearningPath');
+const LearningModule = require('../models/LearningModule');
+const { predictionModels } = require('../utils/predictionModels');
+const { dataAnalyzer } = require('../utils/dataAnalyzer');
 
 class PredictionService {
   /**
@@ -20,15 +20,15 @@ class PredictionService {
         return {
           currentPath: null,
           nextModule: null,
-          message: "Insufficient data for predictions",
+          message: 'Insufficient data for predictions',
         };
       }
 
       // Get current active progress
       const activeProgress = await UserProgress.find({
         user: userId,
-        completionStatus: { $in: ["not_started", "in_progress"] },
-      }).populate("learningPath learningModule");
+        completionStatus: { $in: ['not_started', 'in_progress'] },
+      }).populate('learningPath learningModule');
 
       const predictions = {};
 
@@ -38,7 +38,7 @@ class PredictionService {
         predictions.currentPath = await this.predictPathCompletion(
           userId,
           currentPath._id,
-          analytics
+          analytics,
         );
       }
 
@@ -48,13 +48,13 @@ class PredictionService {
         predictions.nextModule = await this.predictModuleCompletion(
           userId,
           nextModule._id,
-          analytics
+          analytics,
         );
       }
 
       return predictions;
     } catch (error) {
-      console.error("Error predicting completion likelihood:", error);
+      console.error('Error predicting completion likelihood:', error);
       throw error;
     }
   }
@@ -70,7 +70,7 @@ class PredictionService {
         return {
           currentPath: null,
           estimatedAccuracy: 0,
-          message: "Insufficient data for time predictions",
+          message: 'Insufficient data for time predictions',
         };
       }
 
@@ -80,8 +80,8 @@ class PredictionService {
       // Get remaining modules in current paths
       const activeProgress = await UserProgress.find({
         user: userId,
-        completionStatus: { $in: ["not_started", "in_progress"] },
-      }).populate("learningPath");
+        completionStatus: { $in: ['not_started', 'in_progress'] },
+      }).populate('learningPath');
 
       const predictions = {};
 
@@ -93,7 +93,7 @@ class PredictionService {
         const completedModules = await UserProgress.countDocuments({
           user: userId,
           learningPath: path._id,
-          completionStatus: "completed",
+          completionStatus: 'completed',
         });
 
         const remainingModules = totalModules - completedModules;
@@ -107,7 +107,7 @@ class PredictionService {
           userId,
           path._id,
           baseTime,
-          analytics
+          analytics,
         );
 
         predictions[path._id] = {
@@ -130,7 +130,7 @@ class PredictionService {
         generatedAt: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Error predicting time to completion:", error);
+      console.error('Error predicting time to completion:', error);
       throw error;
     }
   }
@@ -138,19 +138,19 @@ class PredictionService {
   /**
    * Forecast performance trends
    */
-  async forecastPerformance(userId, horizon = "1month") {
+  async forecastPerformance(userId, horizon = '1month') {
     try {
       const analytics = await LearningAnalytics.getUserAnalytics(
         userId,
-        "weekly",
-        12
+        'weekly',
+        12,
       );
 
       if (analytics.length < 3) {
         return {
           forecast: [],
-          confidence: "low",
-          message: "Need more historical data for accurate forecasting",
+          confidence: 'low',
+          message: 'Need more historical data for accurate forecasting',
         };
       }
 
@@ -166,7 +166,7 @@ class PredictionService {
       const horizonWeeks = this.parseHorizon(horizon);
       const forecast = await predictionModels.forecastTimeSeries(
         performanceData,
-        horizonWeeks
+        horizonWeeks,
       );
 
       // Calculate confidence based on data consistency
@@ -180,7 +180,7 @@ class PredictionService {
         forecastPeriod: horizon,
       };
     } catch (error) {
-      console.error("Error forecasting performance:", error);
+      console.error('Error forecasting performance:', error);
       throw error;
     }
   }
@@ -188,19 +188,19 @@ class PredictionService {
   /**
    * Forecast engagement trends
    */
-  async forecastEngagement(userId, horizon = "1month") {
+  async forecastEngagement(userId, horizon = '1month') {
     try {
       const analytics = await LearningAnalytics.getUserAnalytics(
         userId,
-        "daily",
-        30
+        'daily',
+        30,
       );
 
       if (analytics.length < 7) {
         return {
           forecast: [],
-          confidence: "low",
-          message: "Need at least one week of data for engagement forecasting",
+          confidence: 'low',
+          message: 'Need at least one week of data for engagement forecasting',
         };
       }
 
@@ -211,10 +211,10 @@ class PredictionService {
         sessionDuration: a.engagement.averageSessionDuration,
       }));
 
-      const horizonDays = this.parseHorizon(horizon, "days");
+      const horizonDays = this.parseHorizon(horizon, 'days');
       const forecast = await predictionModels.forecastEngagement(
         engagementData,
-        horizonDays
+        horizonDays,
       );
 
       return {
@@ -227,7 +227,7 @@ class PredictionService {
         confidence: this.calculateEngagementForecastConfidence(engagementData),
       };
     } catch (error) {
-      console.error("Error forecasting engagement:", error);
+      console.error('Error forecasting engagement:', error);
       throw error;
     }
   }
@@ -243,8 +243,8 @@ class PredictionService {
       if (!analytics) {
         return {
           risks: [],
-          overallRiskLevel: "unknown",
-          message: "Insufficient data for risk assessment",
+          overallRiskLevel: 'unknown',
+          message: 'Insufficient data for risk assessment',
         };
       }
 
@@ -253,40 +253,40 @@ class PredictionService {
       // Check for disengagement risk
       if (analytics.engagement.focusScore < 40) {
         risks.push({
-          type: "disengagement",
-          severity: analytics.engagement.focusScore < 20 ? "high" : "medium",
+          type: 'disengagement',
+          severity: analytics.engagement.focusScore < 20 ? 'high' : 'medium',
           probability: this.calculateDisengagementProbability(analytics),
-          description: "User showing signs of decreased engagement",
+          description: 'User showing signs of decreased engagement',
           recommendations: [
-            "Adjust learning difficulty",
-            "Try different AI personality",
-            "Suggest shorter learning sessions",
+            'Adjust learning difficulty',
+            'Try different AI personality',
+            'Suggest shorter learning sessions',
           ],
-          timeframe: "immediate",
+          timeframe: 'immediate',
         });
       }
 
       // Check for performance decline risk
       const recentAnalytics = await LearningAnalytics.getUserAnalytics(
         userId,
-        "weekly",
-        4
+        'weekly',
+        4,
       );
       if (recentAnalytics.length >= 2) {
         const performanceTrend =
           this.calculatePerformanceTrend(recentAnalytics);
-        if (performanceTrend.direction === "declining") {
+        if (performanceTrend.direction === 'declining') {
           risks.push({
-            type: "performance_decline",
+            type: 'performance_decline',
             severity: performanceTrend.severity,
             probability: performanceTrend.confidence,
-            description: "Performance metrics showing downward trend",
+            description: 'Performance metrics showing downward trend',
             recommendations: [
-              "Review challenging topics",
-              "Provide additional support resources",
-              "Consider peer learning opportunities",
+              'Review challenging topics',
+              'Provide additional support resources',
+              'Consider peer learning opportunities',
             ],
-            timeframe: "1-2 weeks",
+            timeframe: '1-2 weeks',
           });
         }
       }
@@ -301,16 +301,16 @@ class PredictionService {
       if (analytics.engagement.averageSessionDuration > 120) {
         // 2 hours
         risks.push({
-          type: "overexertion",
-          severity: "medium",
+          type: 'overexertion',
+          severity: 'medium',
           probability: 0.6,
-          description: "Long session durations may lead to burnout",
+          description: 'Long session durations may lead to burnout',
           recommendations: [
-            "Suggest shorter, more frequent sessions",
-            "Implement mandatory breaks",
-            "Monitor fatigue indicators",
+            'Suggest shorter, more frequent sessions',
+            'Implement mandatory breaks',
+            'Monitor fatigue indicators',
           ],
-          timeframe: "ongoing",
+          timeframe: 'ongoing',
         });
       }
 
@@ -324,7 +324,7 @@ class PredictionService {
         nextAssessment: this.getNextAssessmentDate(overallRiskLevel),
       };
     } catch (error) {
-      console.error("Error assessing risks:", error);
+      console.error('Error assessing risks:', error);
       throw error;
     }
   }
@@ -341,32 +341,32 @@ class PredictionService {
         return {
           steps: [],
           message:
-            "Complete some learning activities to get personalized next steps",
+            'Complete some learning activities to get personalized next steps',
         };
       }
 
       // Get current progress
       const currentProgress = await UserProgress.find({
         user: userId,
-        completionStatus: { $in: ["not_started", "in_progress"] },
-      }).populate("learningPath learningModule");
+        completionStatus: { $in: ['not_started', 'in_progress'] },
+      }).populate('learningPath learningModule');
 
       const steps = [];
 
       // Immediate next steps based on current progress
       if (currentProgress.length > 0) {
         const inProgress = currentProgress.filter(
-          (p) => p.completionStatus === "in_progress"
+          (p) => p.completionStatus === 'in_progress',
         );
         if (inProgress.length > 0) {
           steps.push({
-            type: "continue_current",
-            priority: "high",
+            type: 'continue_current',
+            priority: 'high',
             title: `Continue ${inProgress[0].learningModule.title}`,
-            description: "Complete your current module to maintain momentum",
+            description: 'Complete your current module to maintain momentum',
             estimatedTime: this.estimateModuleTimeRemaining(inProgress[0]),
             action: {
-              type: "continue_module",
+              type: 'continue_module',
               moduleId: inProgress[0].learningModule._id,
             },
           });
@@ -377,13 +377,13 @@ class PredictionService {
       const skillGaps = await this.identifySkillGaps(userId, analytics);
       if (skillGaps.length > 0) {
         steps.push({
-          type: "skill_development",
-          priority: "medium",
+          type: 'skill_development',
+          priority: 'medium',
           title: `Strengthen ${skillGaps[0].skill}`,
           description: `Focus on improving ${skillGaps[0].skill} to enhance overall performance`,
           estimatedTime: skillGaps[0].estimatedTimeToImprove,
           action: {
-            type: "skill_focus",
+            type: 'skill_focus',
             skill: skillGaps[0].skill,
             suggestedModules: skillGaps[0].suggestedModules,
           },
@@ -393,13 +393,13 @@ class PredictionService {
       // Engagement optimization
       if (analytics.engagement.focusScore < 70) {
         steps.push({
-          type: "engagement_optimization",
-          priority: "medium",
-          title: "Optimize Learning Schedule",
-          description: "Adjust your learning schedule for better engagement",
-          estimatedTime: "5-10 minutes setup",
+          type: 'engagement_optimization',
+          priority: 'medium',
+          title: 'Optimize Learning Schedule',
+          description: 'Adjust your learning schedule for better engagement',
+          estimatedTime: '5-10 minutes setup',
           action: {
-            type: "schedule_optimization",
+            type: 'schedule_optimization',
             suggestions: await this.getScheduleOptimizations(userId, analytics),
           },
         });
@@ -408,18 +408,18 @@ class PredictionService {
       // AI personality optimization
       if (analytics.aiInteraction.satisfactionScore < 3.5) {
         steps.push({
-          type: "ai_optimization",
-          priority: "low",
-          title: "Try Different AI Assistant Style",
+          type: 'ai_optimization',
+          priority: 'low',
+          title: 'Try Different AI Assistant Style',
           description:
-            "Switch AI personality to better match your learning preferences",
-          estimatedTime: "Immediate",
+            'Switch AI personality to better match your learning preferences',
+          estimatedTime: 'Immediate',
           action: {
-            type: "ai_personality_change",
+            type: 'ai_personality_change',
             currentPersonality: user.learningProfile.aiPersonality,
             recommendedPersonality: await this.recommendOptimalAIPersonality(
               userId,
-              analytics
+              analytics,
             ),
           },
         });
@@ -428,7 +428,7 @@ class PredictionService {
       // Sort by priority and return top recommendations
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       steps.sort(
-        (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]
+        (a, b) => priorityOrder[b.priority] - priorityOrder[a.priority],
       );
 
       return {
@@ -436,12 +436,12 @@ class PredictionService {
         personalizedMessage: this.generatePersonalizedMessage(
           userId,
           analytics,
-          steps
+          steps,
         ),
         optimizedFor: this.getOptimizationFocus(analytics),
       };
     } catch (error) {
-      console.error("Error suggesting optimal next steps:", error);
+      console.error('Error suggesting optimal next steps:', error);
       throw error;
     }
   }
@@ -457,7 +457,7 @@ class PredictionService {
       if (!analytics) {
         return {
           skills: [],
-          message: "Need more learning data to forecast skill progression",
+          message: 'Need more learning data to forecast skill progression',
         };
       }
 
@@ -485,11 +485,11 @@ class PredictionService {
         skills: skillForecasts,
         overallProgression:
           this.calculateOverallSkillProgression(skillForecasts),
-        timeframe: "3 months",
+        timeframe: '3 months',
         generatedAt: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Error forecasting skill progression:", error);
+      console.error('Error forecasting skill progression:', error);
       throw error;
     }
   }
@@ -504,7 +504,7 @@ class PredictionService {
     const completedModules = await UserProgress.countDocuments({
       user: userId,
       learningPath: pathId,
-      completionStatus: "completed",
+      completionStatus: 'completed',
     });
 
     const completionRate =
@@ -517,7 +517,7 @@ class PredictionService {
       completionRate * 0.6 + velocity * 0.2 + engagementFactor * 0.2;
     const adjustedProbability = Math.min(
       Math.max(baseProbability * 100, 0),
-      100
+      100,
     );
 
     return {
@@ -564,8 +564,8 @@ class PredictionService {
   async getNextModule(userId) {
     const inProgress = await UserProgress.findOne({
       user: userId,
-      completionStatus: "in_progress",
-    }).populate("learningModule");
+      completionStatus: 'in_progress',
+    }).populate('learningModule');
 
     if (inProgress) {
       return inProgress.learningModule;
@@ -574,8 +574,8 @@ class PredictionService {
     // Find next unstarted module
     const notStarted = await UserProgress.findOne({
       user: userId,
-      completionStatus: "not_started",
-    }).populate("learningModule");
+      completionStatus: 'not_started',
+    }).populate('learningModule');
 
     return notStarted ? notStarted.learningModule : null;
   }
@@ -606,18 +606,18 @@ class PredictionService {
     return Math.min(confidence, 100);
   }
 
-  parseHorizon(horizon, unit = "weeks") {
-    const value = parseInt(horizon.replace(/[^0-9]/g, ""));
+  parseHorizon(horizon, unit = 'weeks') {
+    const value = parseInt(horizon.replace(/[^0-9]/g, ''));
 
-    if (horizon.includes("week")) {
-      return unit === "days" ? value * 7 : value;
-    } else if (horizon.includes("month")) {
-      return unit === "days" ? value * 30 : value * 4;
-    } else if (horizon.includes("day")) {
-      return unit === "weeks" ? Math.ceil(value / 7) : value;
+    if (horizon.includes('week')) {
+      return unit === 'days' ? value * 7 : value;
+    } else if (horizon.includes('month')) {
+      return unit === 'days' ? value * 30 : value * 4;
+    } else if (horizon.includes('day')) {
+      return unit === 'weeks' ? Math.ceil(value / 7) : value;
     }
 
-    return unit === "days" ? 30 : 4; // Default 1 month
+    return unit === 'days' ? 30 : 4; // Default 1 month
   }
 
   getDifficultyFactor(difficulty) {

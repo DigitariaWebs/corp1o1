@@ -1,23 +1,23 @@
-const jwt = require("jsonwebtoken");
-const { getAuth, requireAuth } = require("@clerk/express");
-const mongoose = require("mongoose");
-const User = require("../models/User");
-const { AppError } = require("./errorHandler");
+const jwt = require('jsonwebtoken');
+const { getAuth, requireAuth } = require('@clerk/express');
+const mongoose = require('mongoose');
+const User = require('../models/User');
+const { AppError } = require('./errorHandler');
 
 // JWT and authentication configuration
 const authConfig = {
   // JWT Settings
   jwt: {
     secret:
-      process.env.JWT_SECRET || "fallback_secret_key_change_in_production",
+      process.env.JWT_SECRET || 'fallback_secret_key_change_in_production',
     refreshSecret:
       process.env.JWT_REFRESH_SECRET ||
-      "fallback_refresh_secret_change_in_production",
-    expiresIn: process.env.JWT_EXPIRE || "24h",
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || "7d",
-    algorithm: "HS256",
-    issuer: "sokol-learning-platform",
-    audience: "sokol-users",
+      'fallback_refresh_secret_change_in_production',
+    expiresIn: process.env.JWT_EXPIRE || '24h',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRE || '7d',
+    algorithm: 'HS256',
+    issuer: 'sokol-learning-platform',
+    audience: 'sokol-users',
   },
 
   // Password requirements
@@ -47,10 +47,10 @@ const authConfig = {
 
   // Learning profile defaults
   learningDefaults: {
-    learningStyle: "balanced", // visual, auditory, kinesthetic, reading, balanced
-    preferredPace: "medium", // slow, medium, fast
+    learningStyle: 'balanced', // visual, auditory, kinesthetic, reading, balanced
+    preferredPace: 'medium', // slow, medium, fast
     optimalSessionDuration: 45, // minutes
-    aiPersonality: "ARIA", // ARIA, SAGE, COACH
+    aiPersonality: 'ARIA', // ARIA, SAGE, COACH
     adaptiveMode: true,
     voiceEnabled: false,
     notificationSettings: {
@@ -75,52 +75,52 @@ const validateAuthConfig = () => {
 
   // Check required environment variables
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-    errors.push("JWT_SECRET must be at least 32 characters long");
+    errors.push('JWT_SECRET must be at least 32 characters long');
   }
 
   if (
     !process.env.JWT_REFRESH_SECRET ||
     process.env.JWT_REFRESH_SECRET.length < 32
   ) {
-    errors.push("JWT_REFRESH_SECRET must be at least 32 characters long");
+    errors.push('JWT_REFRESH_SECRET must be at least 32 characters long');
   }
 
   // Validate password requirements
   if (authConfig.password.minLength < 8) {
-    errors.push("Minimum password length should be at least 8 characters");
+    errors.push('Minimum password length should be at least 8 characters');
   }
 
   // Validate session settings
   if (authConfig.session.maxActiveSessions < 1) {
-    errors.push("Maximum active sessions must be at least 1");
+    errors.push('Maximum active sessions must be at least 1');
   }
 
   if (errors.length > 0) {
-    console.error("❌ Authentication configuration errors:");
+    console.error('❌ Authentication configuration errors:');
     errors.forEach((error) => console.error(`  - ${error}`));
 
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Invalid authentication configuration");
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Invalid authentication configuration');
     }
   }
 
-  console.log("✅ Authentication configuration validated successfully");
+  console.log('✅ Authentication configuration validated successfully');
 };
 
 // Helper functions
-const getJWTOptions = (type = "access") => {
+const getJWTOptions = (type = 'access') => {
   const baseOptions = {
     algorithm: authConfig.jwt.algorithm,
     issuer: authConfig.jwt.issuer,
     audience: authConfig.jwt.audience,
   };
 
-  if (type === "access") {
+  if (type === 'access') {
     return {
       ...baseOptions,
       expiresIn: authConfig.jwt.expiresIn,
     };
-  } else if (type === "refresh") {
+  } else if (type === 'refresh') {
     return {
       ...baseOptions,
       expiresIn: authConfig.jwt.refreshExpiresIn,
@@ -177,7 +177,7 @@ const attachClerkUser = async (req, res, next) => {
         // Get full user data from Clerk API
         const { createClerkClient } = require('@clerk/backend');
         const clerkClient = createClerkClient({ 
-          secretKey: process.env.CLERK_SECRET_KEY 
+          secretKey: process.env.CLERK_SECRET_KEY, 
         });
         const clerkUser = await clerkClient.users.getUser(auth.userId);
         
@@ -188,9 +188,9 @@ const attachClerkUser = async (req, res, next) => {
           last_name: clerkUser.lastName || 'Member', // Ensure minimum 2 characters
           email_addresses: clerkUser.emailAddresses?.map(email => ({
             email_address: email.emailAddress,
-            verification: { status: email.verification?.status }
+            verification: { status: email.verification?.status },
           })),
-          profile_image_url: clerkUser.profileImageUrl
+          profile_image_url: clerkUser.profileImageUrl,
         });
         
         console.log(`✅ Successfully created user: ${user._id} for Clerk ID: ${auth.userId}`);
@@ -204,7 +204,7 @@ const attachClerkUser = async (req, res, next) => {
           firstName: 'User',
           lastName: 'Member', // Changed to meet 2-character minimum requirement
           clerkSyncStatus: 'pending',
-          lastClerkSync: new Date()
+          lastClerkSync: new Date(),
         });
         
         console.log(`⚠️ Created fallback user: ${user._id}`);
@@ -214,8 +214,8 @@ const attachClerkUser = async (req, res, next) => {
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        error: "Account inactive",
-        message: "Your account has been deactivated. Please contact support.",
+        error: 'Account inactive',
+        message: 'Your account has been deactivated. Please contact support.',
       });
     }
 
@@ -232,11 +232,11 @@ const attachClerkUser = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("Clerk user attachment error:", error);
+    console.error('Clerk user attachment error:', error);
     return res.status(500).json({
       success: false,
-      error: "Authentication failed",
-      message: "An error occurred during authentication.",
+      error: 'Authentication failed',
+      message: 'An error occurred during authentication.',
     });
   }
 };
@@ -263,8 +263,8 @@ const authenticateWithClerk = async (req, res, next) => {
     if (error) {
       return res.status(401).json({
         success: false,
-        error: "Authentication required",
-        message: "Please sign in to access this resource.",
+        error: 'Authentication required',
+        message: 'Please sign in to access this resource.',
       });
     }
 
@@ -276,7 +276,7 @@ const authenticateWithClerk = async (req, res, next) => {
         if (auth?.userId) {
           req.userId = auth.userId;
           req.clerkUserId = auth.userId;
-          req.userRole = req.userRole || "user";
+          req.userRole = req.userRole || 'user';
           req.user = req.user || { _id: auth.userId, isActive: true };
           return next();
         }
@@ -299,11 +299,11 @@ const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        error: "Access denied. No token provided.",
-        message: "Please provide a valid authentication token.",
+        error: 'Access denied. No token provided.',
+        message: 'Please provide a valid authentication token.',
       });
     }
 
@@ -321,8 +321,8 @@ const authenticate = async (req, res, next) => {
       if (!user || !user.isActive) {
         return res.status(401).json({
           success: false,
-          error: "User account not found or inactive",
-          message: "Please login again.",
+          error: 'User account not found or inactive',
+          message: 'Please login again.',
         });
       }
 
@@ -334,35 +334,35 @@ const authenticate = async (req, res, next) => {
 
       next();
     } catch (jwtError) {
-      if (jwtError.name === "TokenExpiredError") {
+      if (jwtError.name === 'TokenExpiredError') {
         return res.status(401).json({
           success: false,
-          error: "Token expired",
-          message: "Your session has expired. Please login again.",
+          error: 'Token expired',
+          message: 'Your session has expired. Please login again.',
         });
       }
-      if (jwtError.name === "JsonWebTokenError") {
+      if (jwtError.name === 'JsonWebTokenError') {
         return res.status(401).json({
           success: false,
-          error: "Invalid token",
-          message: "Invalid authentication token. Please login again.",
+          error: 'Invalid token',
+          message: 'Invalid authentication token. Please login again.',
         });
       }
-      if (jwtError.name === "NotBeforeError") {
+      if (jwtError.name === 'NotBeforeError') {
         return res.status(401).json({
           success: false,
-          error: "Token not active",
-          message: "Token is not yet valid. Please try again later.",
+          error: 'Token not active',
+          message: 'Token is not yet valid. Please try again later.',
         });
       }
       throw jwtError;
     }
   } catch (error) {
-    console.error("Authentication error:", error);
+    console.error('Authentication error:', error);
     return res.status(500).json({
       success: false,
-      error: "Authentication failed",
-      message: "An error occurred during authentication.",
+      error: 'Authentication failed',
+      message: 'An error occurred during authentication.',
     });
   }
 };
@@ -374,7 +374,7 @@ const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7);
 
       try {
@@ -394,14 +394,14 @@ const optionalAuth = async (req, res, next) => {
         }
       } catch (jwtError) {
         // For optional auth, we don't return errors, just continue without auth
-        console.log("Optional auth failed:", jwtError.message);
+        console.log('Optional auth failed:', jwtError.message);
       }
     }
 
     next();
   } catch (error) {
     // For optional auth, continue even if there's an error
-    console.error("Optional authentication error:", error);
+    console.error('Optional authentication error:', error);
     next();
   }
 };
@@ -416,8 +416,8 @@ const validateRefreshToken = async (req, res, next) => {
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        error: "Refresh token required",
-        message: "Refresh token is required for token renewal.",
+        error: 'Refresh token required',
+        message: 'Refresh token is required for token renewal.',
       });
     }
 
@@ -428,11 +428,11 @@ const validateRefreshToken = async (req, res, next) => {
         audience: authConfig.jwt.audience,
       });
 
-      if (decoded.type !== "refresh") {
+      if (decoded.type !== 'refresh') {
         return res.status(401).json({
           success: false,
-          error: "Invalid token type",
-          message: "Token is not a valid refresh token.",
+          error: 'Invalid token type',
+          message: 'Token is not a valid refresh token.',
         });
       }
 
@@ -441,22 +441,22 @@ const validateRefreshToken = async (req, res, next) => {
       if (!user || !user.isActive) {
         return res.status(401).json({
           success: false,
-          error: "User not found or inactive",
-          message: "User account not found or has been deactivated.",
+          error: 'User not found or inactive',
+          message: 'User account not found or has been deactivated.',
         });
       }
 
       const tokenData = user.refreshTokens.find(
         (t) =>
-          t.token === refreshToken && t.isActive && t.expiresAt > new Date()
+          t.token === refreshToken && t.isActive && t.expiresAt > new Date(),
       );
 
       if (!tokenData) {
         return res.status(401).json({
           success: false,
-          error: "Invalid or expired refresh token",
+          error: 'Invalid or expired refresh token',
           message:
-            "Refresh token is invalid or has expired. Please login again.",
+            'Refresh token is invalid or has expired. Please login again.',
         });
       }
 
@@ -464,28 +464,28 @@ const validateRefreshToken = async (req, res, next) => {
       req.refreshToken = refreshToken;
       next();
     } catch (jwtError) {
-      if (jwtError.name === "TokenExpiredError") {
+      if (jwtError.name === 'TokenExpiredError') {
         return res.status(401).json({
           success: false,
-          error: "Refresh token expired",
-          message: "Refresh token has expired. Please login again.",
+          error: 'Refresh token expired',
+          message: 'Refresh token has expired. Please login again.',
         });
       }
-      if (jwtError.name === "JsonWebTokenError") {
+      if (jwtError.name === 'JsonWebTokenError') {
         return res.status(401).json({
           success: false,
-          error: "Invalid refresh token",
-          message: "Invalid refresh token format. Please login again.",
+          error: 'Invalid refresh token',
+          message: 'Invalid refresh token format. Please login again.',
         });
       }
       throw jwtError;
     }
   } catch (error) {
-    console.error("Refresh token validation error:", error);
+    console.error('Refresh token validation error:', error);
     return res.status(500).json({
       success: false,
-      error: "Token validation failed",
-      message: "An error occurred during token validation.",
+      error: 'Token validation failed',
+      message: 'An error occurred during token validation.',
     });
   }
 };
@@ -493,13 +493,13 @@ const validateRefreshToken = async (req, res, next) => {
 /**
  * Authorization middleware for checking resource ownership
  */
-const authorizeOwnership = (paramName = "id") => {
+const authorizeOwnership = (paramName = 'id') => {
   return (req, res, next) => {
     const resourceUserId = req.params[paramName];
     const currentUserId = req.userId?.toString();
 
     // Admin users can access any resource
-    if (req.userRole === "admin") {
+    if (req.userRole === 'admin') {
       return next();
     }
 
@@ -507,8 +507,8 @@ const authorizeOwnership = (paramName = "id") => {
     if (resourceUserId !== currentUserId) {
       return res.status(403).json({
         success: false,
-        error: "Access denied",
-        message: "You can only access your own resources.",
+        error: 'Access denied',
+        message: 'You can only access your own resources.',
       });
     }
 
@@ -524,16 +524,16 @@ const authorizeRoles = (...roles) => {
     if (!req.userRole) {
       return res.status(401).json({
         success: false,
-        error: "Authentication required",
-        message: "Please login to access this resource.",
+        error: 'Authentication required',
+        message: 'Please login to access this resource.',
       });
     }
 
     if (!roles.includes(req.userRole)) {
       return res.status(403).json({
         success: false,
-        error: "Insufficient permissions",
-        message: `Access denied. Required roles: ${roles.join(", ")}`,
+        error: 'Insufficient permissions',
+        message: `Access denied. Required roles: ${roles.join(', ')}`,
       });
     }
 
@@ -572,9 +572,9 @@ const rateLimitByUser = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
     if (userLimit.count >= maxRequests) {
       return res.status(429).json({
         success: false,
-        error: "Too many requests",
+        error: 'Too many requests',
         message: `Rate limit exceeded. Try again in ${Math.ceil(
-          (userLimit.resetTime - now) / 1000
+          (userLimit.resetTime - now) / 1000,
         )} seconds.`,
       });
     }
@@ -585,7 +585,7 @@ const rateLimitByUser = (maxRequests = 100, windowMs = 15 * 60 * 1000) => {
 };
 
 // Initialize configuration validation
-if (process.env.NODE_ENV !== "test") {
+if (process.env.NODE_ENV !== 'test') {
   validateAuthConfig();
 }
 

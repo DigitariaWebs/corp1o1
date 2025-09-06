@@ -17,7 +17,7 @@ router.post('/clerk', express.raw({ type: 'application/json' }), async (req, res
       console.error('❌ CLERK_WEBHOOK_SECRET is not set');
       return res.status(500).json({ 
         success: false, 
-        message: 'Webhook secret not configured' 
+        message: 'Webhook secret not configured', 
       });
     }
 
@@ -50,12 +50,12 @@ router.post('/clerk', express.raw({ type: 'application/json' }), async (req, res
       console.error('Headers received:', {
         'svix-id': svix_id,
         'svix-timestamp': svix_timestamp,
-        'svix-signature': svix_signature ? 'Present' : 'Missing'
+        'svix-signature': svix_signature ? 'Present' : 'Missing',
       });
       return res.status(400).json({
         success: false,
         message: 'Invalid webhook signature',
-        error: err.message
+        error: err.message,
       });
     }
 
@@ -66,17 +66,17 @@ router.post('/clerk', express.raw({ type: 'application/json' }), async (req, res
     console.log(`🔔 Received webhook: ${type} for user ${eventData.id}`);
 
     switch (type) {
-      case 'user.created':
-        await handleUserCreated(eventData);
-        break;
-      case 'user.updated':
-        await handleUserUpdated(eventData);
-        break;
-      case 'user.deleted':
-        await handleUserDeleted(eventData);
-        break;
-      default:
-        console.log(`ℹ️ Unhandled webhook event type: ${type}`);
+    case 'user.created':
+      await handleUserCreated(eventData);
+      break;
+    case 'user.updated':
+      await handleUserUpdated(eventData);
+      break;
+    case 'user.deleted':
+      await handleUserDeleted(eventData);
+      break;
+    default:
+      console.log(`ℹ️ Unhandled webhook event type: ${type}`);
     }
 
     return res.status(200).json({
@@ -132,8 +132,8 @@ async function handleUserCreated(userData) {
           { clerkUserId: userData.id },
           { 
             clerkSyncStatus: 'error',
-            lastClerkSync: new Date() 
-          }
+            lastClerkSync: new Date(), 
+          },
         );
       }
     } catch (updateError) {
@@ -142,7 +142,7 @@ async function handleUserCreated(userData) {
     
     // Don't throw error for test events, just log it
     if (!userData.email_addresses || userData.email_addresses.length === 0) {
-      console.log(`⚠️ Test event processing completed with warnings`);
+      console.log('⚠️ Test event processing completed with warnings');
       return null;
     }
     
@@ -174,8 +174,8 @@ async function handleUserUpdated(userData) {
         { clerkUserId: userData.id },
         { 
           clerkSyncStatus: 'error',
-          lastClerkSync: new Date() 
-        }
+          lastClerkSync: new Date(), 
+        },
       );
     } catch (updateError) {
       console.error('❌ Error updating sync status:', updateError);
@@ -196,9 +196,9 @@ async function handleUserDeleted(userData) {
       { 
         isActive: false,
         clerkSyncStatus: 'synced',
-        lastClerkSync: new Date() 
+        lastClerkSync: new Date(), 
       },
-      { new: true }
+      { new: true },
     );
     
     if (!deletedUser) {

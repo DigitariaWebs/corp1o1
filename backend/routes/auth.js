@@ -1,15 +1,15 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 // Import middleware
-const { authenticate, validateRefreshToken } = require("../middleware/auth");
+const { authenticate, validateRefreshToken } = require('../middleware/auth');
 const {
   validateRegistration,
   validateLogin,
   validatePasswordChange,
   validateRefreshToken: validateRefreshTokenBody,
   validateMongoId,
-} = require("../middleware/validation");
+} = require('../middleware/validation');
 
 // Import controllers
 const {
@@ -25,7 +25,7 @@ const {
   resendEmailVerification,
   getUserSessions,
   revokeSession,
-} = require("../controllers/authController");
+} = require('../controllers/authController');
 
 // Public routes (no authentication required)
 
@@ -34,14 +34,14 @@ const {
  * @desc    Register a new user account
  * @access  Public
  */
-router.post("/register", validateRegistration, register);
+router.post('/register', validateRegistration, register);
 
 /**
  * @route   POST /api/auth/login
  * @desc    Login user and get tokens
  * @access  Public
  */
-router.post("/login", validateLogin, login);
+router.post('/login', validateLogin, login);
 
 /**
  * @route   POST /api/auth/refresh-token
@@ -49,10 +49,10 @@ router.post("/login", validateLogin, login);
  * @access  Public
  */
 router.post(
-  "/refresh-token",
+  '/refresh-token',
   validateRefreshTokenBody,
   validateRefreshToken,
-  refreshToken
+  refreshToken,
 );
 
 /**
@@ -60,14 +60,14 @@ router.post(
  * @desc    Request password reset email
  * @access  Public
  */
-router.post("/forgot-password", requestPasswordReset);
+router.post('/forgot-password', requestPasswordReset);
 
 /**
  * @route   GET /api/auth/verify-email/:token
  * @desc    Verify email address with token
  * @access  Public
  */
-router.get("/verify-email/:token", verifyEmail);
+router.get('/verify-email/:token', verifyEmail);
 
 // Protected routes (authentication required)
 
@@ -76,21 +76,21 @@ router.get("/verify-email/:token", verifyEmail);
  * @desc    Get current authenticated user
  * @access  Private
  */
-router.get("/me", authenticate, getCurrentUser);
+router.get('/me', authenticate, getCurrentUser);
 
 /**
  * @route   POST /api/auth/logout
  * @desc    Logout user (revoke refresh token)
  * @access  Private
  */
-router.post("/logout", authenticate, logout);
+router.post('/logout', authenticate, logout);
 
 /**
  * @route   POST /api/auth/logout-all
  * @desc    Logout user from all devices
  * @access  Private
  */
-router.post("/logout-all", authenticate, logoutAll);
+router.post('/logout-all', authenticate, logoutAll);
 
 /**
  * @route   POST /api/auth/change-password
@@ -98,10 +98,10 @@ router.post("/logout-all", authenticate, logoutAll);
  * @access  Private
  */
 router.post(
-  "/change-password",
+  '/change-password',
   authenticate,
   validatePasswordChange,
-  changePassword
+  changePassword,
 );
 
 /**
@@ -109,14 +109,14 @@ router.post(
  * @desc    Resend email verification
  * @access  Private
  */
-router.post("/resend-verification", authenticate, resendEmailVerification);
+router.post('/resend-verification', authenticate, resendEmailVerification);
 
 /**
  * @route   GET /api/auth/sessions
  * @desc    Get user active sessions
  * @access  Private
  */
-router.get("/sessions", authenticate, getUserSessions);
+router.get('/sessions', authenticate, getUserSessions);
 
 /**
  * @route   DELETE /api/auth/sessions/:sessionId
@@ -124,34 +124,34 @@ router.get("/sessions", authenticate, getUserSessions);
  * @access  Private
  */
 router.delete(
-  "/sessions/:sessionId",
+  '/sessions/:sessionId',
   authenticate,
   validateMongoId,
-  revokeSession
+  revokeSession,
 );
 
 // Health check for auth routes
-router.get("/health", (req, res) => {
+router.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Authentication service is healthy",
+    message: 'Authentication service is healthy',
     timestamp: new Date().toISOString(),
     endpoints: {
       public: [
-        "POST /api/auth/register",
-        "POST /api/auth/login",
-        "POST /api/auth/refresh-token",
-        "POST /api/auth/forgot-password",
-        "GET /api/auth/verify-email/:token",
+        'POST /api/auth/register',
+        'POST /api/auth/login',
+        'POST /api/auth/refresh-token',
+        'POST /api/auth/forgot-password',
+        'GET /api/auth/verify-email/:token',
       ],
       private: [
-        "GET /api/auth/me",
-        "POST /api/auth/logout",
-        "POST /api/auth/logout-all",
-        "POST /api/auth/change-password",
-        "POST /api/auth/resend-verification",
-        "GET /api/auth/sessions",
-        "DELETE /api/auth/sessions/:sessionId",
+        'GET /api/auth/me',
+        'POST /api/auth/logout',
+        'POST /api/auth/logout-all',
+        'POST /api/auth/change-password',
+        'POST /api/auth/resend-verification',
+        'GET /api/auth/sessions',
+        'DELETE /api/auth/sessions/:sessionId',
       ],
     },
   });

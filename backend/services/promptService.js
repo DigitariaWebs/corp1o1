@@ -1,6 +1,6 @@
 // services/promptService.js
-const AIPrompt = require("../models/AIPrompt");
-const { AppError } = require("../middleware/errorHandler");
+const AIPrompt = require('../models/AIPrompt');
+const { AppError } = require('../middleware/errorHandler');
 
 class PromptService {
   constructor() {
@@ -10,17 +10,17 @@ class PromptService {
 
     // Context type mapping for intent detection
     this.intentContextMap = {
-      help: "learning_help",
-      motivation: "motivation",
-      assessment: "assessment_feedback",
-      progress: "progress_review",
-      explanation: "concept_explanation",
-      guidance: "skill_guidance",
-      encouragement: "encouragement",
-      challenge: "challenge",
-      reflection: "reflection",
-      goal_setting: "goal_setting",
-      general: "learning_help", // default fallback
+      help: 'learning_help',
+      motivation: 'motivation',
+      assessment: 'assessment_feedback',
+      progress: 'progress_review',
+      explanation: 'concept_explanation',
+      guidance: 'skill_guidance',
+      encouragement: 'encouragement',
+      challenge: 'challenge',
+      reflection: 'reflection',
+      goal_setting: 'goal_setting',
+      general: 'learning_help', // default fallback
     };
   }
 
@@ -37,14 +37,14 @@ class PromptService {
       console.log(`🎯 Selecting prompt: ${personality} | Intent: ${intent}`);
 
       // Map intent to context type
-      const contextType = this.intentContextMap[intent] || "learning_help";
+      const contextType = this.intentContextMap[intent] || 'learning_help';
 
       // Build selection criteria
       const selectionCriteria = this.buildSelectionCriteria(
         personality,
         contextType,
         userContext,
-        options
+        options,
       );
 
       // Get best matching prompt from database
@@ -54,13 +54,13 @@ class PromptService {
       const contextualizedPrompt = await this.buildContextualizedPrompt(
         promptTemplate,
         userContext,
-        options
+        options,
       );
 
       // Apply adaptation rules
       const adaptedPrompt = await this.applyAdaptationRules(
         contextualizedPrompt,
-        userContext
+        userContext,
       );
 
       // Record usage for optimization
@@ -69,7 +69,7 @@ class PromptService {
       console.log(`✅ Prompt selected: ${promptTemplate.name}`);
       return adaptedPrompt;
     } catch (error) {
-      console.error("❌ Error selecting prompt:", error);
+      console.error('❌ Error selecting prompt:', error);
 
       // Fallback to basic prompt if database fails
       return this.getFallbackPrompt(personality, intent, userContext);
@@ -100,16 +100,16 @@ class PromptService {
     // Add difficulty targeting
     if (userContext.currentLearning?.currentPath?.difficulty) {
       criteria.targetDifficulty = {
-        $in: ["any", userContext.currentLearning.currentPath.difficulty],
+        $in: ['any', userContext.currentLearning.currentPath.difficulty],
       };
     }
 
     // Add user state considerations
     const userState = userContext.insights?.userState;
-    if (userState === "struggling") {
+    if (userState === 'struggling') {
       criteria.adaptationRules = {
         $elemMatch: {
-          triggerCondition: "user_struggling",
+          triggerCondition: 'user_struggling',
         },
       };
     }
@@ -129,7 +129,7 @@ class PromptService {
     // Check cache first
     const cached = this.promptCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-      console.log("📋 Using cached prompt");
+      console.log('📋 Using cached prompt');
       return cached.prompt;
     }
 
@@ -141,13 +141,13 @@ class PromptService {
         learningDomain: criteria.learningDomains,
         difficulty: criteria.targetDifficulty?.$in?.[1],
         enableABTesting: true,
-      }
+      },
     );
 
     if (!prompt) {
       throw new AppError(
         `No prompt found for ${criteria.personality} - ${criteria.contextType}`,
-        404
+        404,
       );
     }
 
@@ -176,19 +176,19 @@ class PromptService {
 
     // Add user message to the prompt structure
     const userMessage =
-      options.userMessage || "Hello, I need help with my learning.";
+      options.userMessage || 'Hello, I need help with my learning.';
 
     // Construct final messages array for OpenAI
     const messages = [
       {
-        role: "system",
+        role: 'system',
         content: contextualizedPrompt.systemPrompt,
       },
       {
-        role: "user",
+        role: 'user',
         content: this.enhanceUserMessage(
           contextualizedPrompt.userPrompt,
-          userMessage
+          userMessage,
         ),
       },
     ];
@@ -197,7 +197,7 @@ class PromptService {
       messages,
       config: {
         ...promptTemplate.responseConfig.toObject(),
-        model: promptTemplate.modelType || "gpt-4",
+        model: promptTemplate.modelType || 'gpt-4',
       },
       metadata: {
         promptId: promptTemplate._id,
@@ -206,7 +206,7 @@ class PromptService {
         contextType: promptTemplate.contextType,
         adaptationsApplied: contextualizedPrompt.adaptationsApplied || [],
         contextVariablesUsed: promptTemplate.contextVariables.map(
-          (cv) => cv.name
+          (cv) => cv.name,
         ),
         buildTimestamp: new Date(),
       },
@@ -221,10 +221,10 @@ class PromptService {
    */
   enhanceUserMessage(userPromptTemplate, actualUserMessage) {
     // If template has {{userQuestion}} placeholder, replace it
-    if (userPromptTemplate.includes("{{userQuestion}}")) {
+    if (userPromptTemplate.includes('{{userQuestion}}')) {
       return userPromptTemplate.replace(
         /\{\{userQuestion\}\}/g,
-        actualUserMessage
+        actualUserMessage,
       );
     }
 
@@ -239,7 +239,7 @@ class PromptService {
    * @returns {Promise<Object>} Adapted prompt
    */
   async applyAdaptationRules(prompt, userContext) {
-    console.log("🎛️ Applying adaptation rules");
+    console.log('🎛️ Applying adaptation rules');
 
     const adaptations = [];
     const systemMessage = prompt.messages[0];
@@ -250,24 +250,24 @@ class PromptService {
     const strugglingAreas = userContext.performance?.strugglingAreas || [];
 
     // Struggling user adaptations
-    if (userState === "struggling" || strugglingAreas.length > 2) {
+    if (userState === 'struggling' || strugglingAreas.length > 2) {
       systemMessage.content +=
-        "\n\nADAPTATION: The user is currently struggling. Provide extra encouragement, break down concepts into smaller steps, and offer specific, actionable guidance. Be patient and supportive.";
-      adaptations.push("struggling_support");
+        '\n\nADAPTATION: The user is currently struggling. Provide extra encouragement, break down concepts into smaller steps, and offer specific, actionable guidance. Be patient and supportive.';
+      adaptations.push('struggling_support');
     }
 
     // Low motivation adaptations
     if (motivationLevel < 40) {
       systemMessage.content +=
-        "\n\nADAPTATION: The user has low motivation. Focus on inspiring them, highlighting their progress, and connecting learning to their personal goals. Be enthusiastic and encouraging.";
-      adaptations.push("motivation_boost");
+        '\n\nADAPTATION: The user has low motivation. Focus on inspiring them, highlighting their progress, and connecting learning to their personal goals. Be enthusiastic and encouraging.';
+      adaptations.push('motivation_boost');
     }
 
     // High engagement adaptations
-    if (userState === "highly_engaged" && motivationLevel > 80) {
+    if (userState === 'highly_engaged' && motivationLevel > 80) {
       systemMessage.content +=
-        "\n\nADAPTATION: The user is highly engaged and motivated. Provide advanced challenges, deeper insights, and encourage them to push their boundaries. Be intellectually stimulating.";
-      adaptations.push("advanced_challenge");
+        '\n\nADAPTATION: The user is highly engaged and motivated. Provide advanced challenges, deeper insights, and encourage them to push their boundaries. Be intellectually stimulating.';
+      adaptations.push('advanced_challenge');
     }
 
     // Learning style adaptations
@@ -285,8 +285,8 @@ class PromptService {
       const currentHour = new Date().getHours();
       if (!preferredHours.includes(currentHour)) {
         systemMessage.content +=
-          "\n\nTIMING ADAPTATION: The user is learning outside their typical hours. Be mindful that they might be less focused or energetic than usual.";
-        adaptations.push("off_peak_timing");
+          '\n\nTIMING ADAPTATION: The user is learning outside their typical hours. Be mindful that they might be less focused or energetic than usual.';
+        adaptations.push('off_peak_timing');
       }
     }
 
@@ -307,16 +307,16 @@ class PromptService {
   getLearningStyalseAdaptations(learningStyle) {
     const adaptations = {
       visual:
-        "Use descriptive language, mention diagrams/charts, suggest visualizing concepts, and offer to describe visual representations of ideas.",
+        'Use descriptive language, mention diagrams/charts, suggest visualizing concepts, and offer to describe visual representations of ideas.',
       auditory:
-        "Explain concepts verbally, use analogies and stories, suggest discussion or verbal repetition, and emphasize listening-based learning methods.",
+        'Explain concepts verbally, use analogies and stories, suggest discussion or verbal repetition, and emphasize listening-based learning methods.',
       kinesthetic:
-        "Focus on hands-on activities, practical applications, real-world examples, and encourage active practice and experimentation.",
+        'Focus on hands-on activities, practical applications, real-world examples, and encourage active practice and experimentation.',
       reading:
-        "Provide detailed written explanations, suggest reading materials, organize information in structured text format, and emphasize note-taking.",
+        'Provide detailed written explanations, suggest reading materials, organize information in structured text format, and emphasize note-taking.',
     };
 
-    return adaptations[learningStyle] || adaptations["visual"];
+    return adaptations[learningStyle] || adaptations['visual'];
   }
 
   /**
@@ -331,11 +331,11 @@ class PromptService {
       if (prompt) {
         await prompt.recordUsage(
           metadata.responseTime || 0,
-          metadata.userRating || null
+          metadata.userRating || null,
         );
       }
     } catch (error) {
-      console.error("Error recording prompt usage:", error);
+      console.error('Error recording prompt usage:', error);
       // Don't throw - this is just for optimization
     }
   }
@@ -348,53 +348,53 @@ class PromptService {
    * @returns {Object} Fallback prompt
    */
   getFallbackPrompt(personality, intent, userContext) {
-    console.log("🆘 Using fallback prompt");
+    console.log('🆘 Using fallback prompt');
 
     const personalityPrompts = {
       ARIA: {
         system: `You are ARIA, an encouraging and supportive AI learning assistant. You provide helpful guidance while being warm, empathetic, and motivating. The user's learning style is ${
-          userContext.user?.learningStyle || "visual"
+          userContext.user?.learningStyle || 'visual'
         } and they prefer a ${
-          userContext.user?.preferredPace || "moderate"
+          userContext.user?.preferredPace || 'moderate'
         } learning pace.`,
-        user: "The user needs help with their learning journey. Provide encouraging and practical assistance.",
+        user: 'The user needs help with their learning journey. Provide encouraging and practical assistance.',
       },
       SAGE: {
         system: `You are SAGE, a professional and knowledgeable AI learning analyst. You provide objective, detailed analysis and recommendations. The user's learning style is ${
-          userContext.user?.learningStyle || "visual"
+          userContext.user?.learningStyle || 'visual'
         } and they prefer a ${
-          userContext.user?.preferredPace || "moderate"
+          userContext.user?.preferredPace || 'moderate'
         } learning pace.`,
-        user: "The user is seeking professional guidance and analysis of their learning progress.",
+        user: 'The user is seeking professional guidance and analysis of their learning progress.',
       },
       COACH: {
         system: `You are COACH, a motivational AI learning coach. You provide energetic encouragement, challenges, and goal-oriented guidance. The user's learning style is ${
-          userContext.user?.learningStyle || "visual"
+          userContext.user?.learningStyle || 'visual'
         } and they prefer a ${
-          userContext.user?.preferredPace || "moderate"
+          userContext.user?.preferredPace || 'moderate'
         } learning pace.`,
-        user: "The user needs motivational coaching and guidance to achieve their learning goals.",
+        user: 'The user needs motivational coaching and guidance to achieve their learning goals.',
       },
     };
 
     const promptData =
-      personalityPrompts[personality] || personalityPrompts["ARIA"];
+      personalityPrompts[personality] || personalityPrompts['ARIA'];
 
     return {
       messages: [
-        { role: "system", content: promptData.system },
-        { role: "user", content: promptData.user },
+        { role: 'system', content: promptData.system },
+        { role: 'user', content: promptData.user },
       ],
       config: {
-        model: "gpt-4",
+        model: 'gpt-4',
         temperature: 0.7,
         maxTokens: 500,
       },
       metadata: {
-        promptId: "fallback",
+        promptId: 'fallback',
         promptName: `Fallback ${personality} Prompt`,
         personality,
-        contextType: "learning_help",
+        contextType: 'learning_help',
         isFallback: true,
         buildTimestamp: new Date(),
       },
@@ -412,84 +412,84 @@ class PromptService {
     // Intent patterns
     const patterns = {
       help: [
-        "help",
-        "assistance",
-        "stuck",
-        "confused",
-        "don't understand",
-        "explain",
+        'help',
+        'assistance',
+        'stuck',
+        'confused',
+        'don\'t understand',
+        'explain',
       ],
       motivation: [
-        "motivated",
-        "inspire",
-        "encourage",
-        "give up",
-        "tired",
-        "bored",
+        'motivated',
+        'inspire',
+        'encourage',
+        'give up',
+        'tired',
+        'bored',
       ],
       assessment: [
-        "test",
-        "quiz",
-        "assessment",
-        "evaluate",
-        "score",
-        "performance",
+        'test',
+        'quiz',
+        'assessment',
+        'evaluate',
+        'score',
+        'performance',
       ],
       progress: [
-        "progress",
-        "how am i doing",
-        "status",
-        "achievement",
-        "completion",
+        'progress',
+        'how am i doing',
+        'status',
+        'achievement',
+        'completion',
       ],
       explanation: [
-        "what is",
-        "how does",
-        "why",
-        "explain",
-        "definition",
-        "meaning",
+        'what is',
+        'how does',
+        'why',
+        'explain',
+        'definition',
+        'meaning',
       ],
       guidance: [
-        "what should",
-        "recommend",
-        "suggest",
-        "advice",
-        "next step",
-        "how to",
+        'what should',
+        'recommend',
+        'suggest',
+        'advice',
+        'next step',
+        'how to',
       ],
       encouragement: [
-        "difficult",
-        "hard",
-        "challenging",
-        "frustrated",
-        "struggling",
+        'difficult',
+        'hard',
+        'challenging',
+        'frustrated',
+        'struggling',
       ],
-      challenge: ["easy", "bored", "more advanced", "harder", "challenge me"],
+      challenge: ['easy', 'bored', 'more advanced', 'harder', 'challenge me'],
       reflection: [
-        "learned",
-        "think about",
-        "reflect",
-        "understand",
-        "realize",
+        'learned',
+        'think about',
+        'reflect',
+        'understand',
+        'realize',
       ],
       goal_setting: [
-        "goal",
-        "objective",
-        "aim",
-        "target",
-        "want to achieve",
-        "plan",
+        'goal',
+        'objective',
+        'aim',
+        'target',
+        'want to achieve',
+        'plan',
       ],
     };
 
     // Find best matching intent
-    let bestIntent = "general";
+    let bestIntent = 'general';
     let maxMatches = 0;
 
     for (const [intent, keywords] of Object.entries(patterns)) {
       const matches = keywords.filter((keyword) =>
-        lowerMessage.includes(keyword)
+        lowerMessage.includes(keyword),
       ).length;
       if (matches > maxMatches) {
         maxMatches = matches;
@@ -529,20 +529,20 @@ class PromptService {
     analytics.averageRating =
       prompts.reduce(
         (sum, p) => sum + (p.performanceMetrics?.averageRating || 0),
-        0
+        0,
       ) / prompts.length;
 
     analytics.averageUseCount =
       prompts.reduce(
         (sum, p) => sum + (p.performanceMetrics?.useCount || 0),
-        0
+        0,
       ) / prompts.length;
 
     // Sort by performance
     const sortedByPerformance = prompts.sort(
       (a, b) =>
         (b.performanceMetrics?.effectivenessScore || 0) -
-        (a.performanceMetrics?.effectivenessScore || 0)
+        (a.performanceMetrics?.effectivenessScore || 0),
     );
 
     analytics.topPerformingPrompts = sortedByPerformance
@@ -583,7 +583,7 @@ class PromptService {
    */
   clearCache() {
     this.promptCache.clear();
-    console.log("🗑️ Prompt cache cleared");
+    console.log('🗑️ Prompt cache cleared');
   }
 
   /**

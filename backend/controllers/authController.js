@@ -1,7 +1,7 @@
-const User = require("../models/User");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
-const { extractDeviceInfo } = require("../utils/jwt");
-const { getDefaultLearningProfile } = require("../config/auth");
+const User = require('../models/User');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
+const { extractDeviceInfo } = require('../utils/jwt');
+const { getDefaultLearningProfile } = require('../config/auth');
 
 // Register new user
 const register = catchAsync(async (req, res) => {
@@ -11,7 +11,7 @@ const register = catchAsync(async (req, res) => {
   // Check if user already exists
   const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
-    throw new AppError("User with this email already exists", 400);
+    throw new AppError('User with this email already exists', 400);
   }
 
   // Get device information for token tracking
@@ -23,8 +23,8 @@ const register = catchAsync(async (req, res) => {
     lastName: lastName.trim(),
     email: email.toLowerCase(),
     password,
-    timezone: timezone || "UTC",
-    preferredLanguage: preferredLanguage || "en",
+    timezone: timezone || 'UTC',
+    preferredLanguage: preferredLanguage || 'en',
     learningProfile: getDefaultLearningProfile(),
     statistics: {
       totalLoginCount: 0,
@@ -52,14 +52,14 @@ const register = catchAsync(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: "Account created successfully",
+    message: 'Account created successfully',
     data: {
       user: user.toSafeObject(),
       tokens: {
         accessToken,
         refreshToken,
-        tokenType: "Bearer",
-        expiresIn: "24h",
+        tokenType: 'Bearer',
+        expiresIn: '24h',
       },
     },
   });
@@ -74,7 +74,7 @@ const login = catchAsync(async (req, res) => {
 
   // Check if account is active
   if (!user.isActive) {
-    throw new AppError("Account is deactivated. Please contact support.", 401);
+    throw new AppError('Account is deactivated. Please contact support.', 401);
   }
 
   // Get device information for token tracking
@@ -95,24 +95,24 @@ const login = catchAsync(async (req, res) => {
 
   // Set secure cookie for refresh token if "remember me" is selected
   if (rememberMe) {
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
 
   res.status(200).json({
     success: true,
-    message: "Login successful",
+    message: 'Login successful',
     data: {
       user: user.toSafeObject(),
       tokens: {
         accessToken,
         refreshToken,
-        tokenType: "Bearer",
-        expiresIn: "24h",
+        tokenType: 'Bearer',
+        expiresIn: '24h',
       },
     },
   });
@@ -125,16 +125,16 @@ const refreshToken = catchAsync(async (req, res) => {
   // Find user and validate refresh token
   const user = await User.findById(req.user._id);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Check if refresh token exists and is active
   const tokenData = user.refreshTokens.find(
-    (t) => t.token === token && t.isActive && t.expiresAt > new Date()
+    (t) => t.token === token && t.isActive && t.expiresAt > new Date(),
   );
 
   if (!tokenData) {
-    throw new AppError("Invalid or expired refresh token", 401);
+    throw new AppError('Invalid or expired refresh token', 401);
   }
 
   // Generate new tokens
@@ -142,7 +142,7 @@ const refreshToken = catchAsync(async (req, res) => {
 
   // Optionally rotate refresh token
   let newRefreshToken = token;
-  if (process.env.REFRESH_TOKEN_ROTATION === "true") {
+  if (process.env.REFRESH_TOKEN_ROTATION === 'true') {
     const deviceInfo = extractDeviceInfo(req);
     newRefreshToken = user.generateRefreshToken(deviceInfo);
 
@@ -156,13 +156,13 @@ const refreshToken = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Token refreshed successfully",
+    message: 'Token refreshed successfully',
     data: {
       tokens: {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
-        tokenType: "Bearer",
-        expiresIn: "24h",
+        tokenType: 'Bearer',
+        expiresIn: '24h',
       },
     },
   });
@@ -175,7 +175,7 @@ const logout = catchAsync(async (req, res) => {
   // Find user
   const user = await User.findById(req.userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Revoke the specific refresh token
@@ -185,13 +185,13 @@ const logout = catchAsync(async (req, res) => {
   }
 
   // Clear refresh token cookie
-  res.clearCookie("refreshToken");
+  res.clearCookie('refreshToken');
 
   console.log(`✅ User logged out: ${user.email}`);
 
   res.status(200).json({
     success: true,
-    message: "Logged out successfully",
+    message: 'Logged out successfully',
   });
 });
 
@@ -200,7 +200,7 @@ const logoutAll = catchAsync(async (req, res) => {
   // Find user
   const user = await User.findById(req.userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Revoke all refresh tokens
@@ -208,13 +208,13 @@ const logoutAll = catchAsync(async (req, res) => {
   await user.save();
 
   // Clear refresh token cookie
-  res.clearCookie("refreshToken");
+  res.clearCookie('refreshToken');
 
   console.log(`✅ User logged out from all devices: ${user.email}`);
 
   res.status(200).json({
     success: true,
-    message: "Logged out from all devices successfully",
+    message: 'Logged out from all devices successfully',
   });
 });
 
@@ -224,7 +224,7 @@ const getCurrentUser = catchAsync(async (req, res) => {
   const user = await User.findById(req.userId);
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update last active timestamp
@@ -244,23 +244,23 @@ const changePassword = catchAsync(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   // Get user with password field
-  const user = await User.findById(req.userId).select("+password");
+  const user = await User.findById(req.userId).select('+password');
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Verify current password
   const isCurrentPasswordValid = await user.comparePassword(currentPassword);
   if (!isCurrentPasswordValid) {
-    throw new AppError("Current password is incorrect", 400);
+    throw new AppError('Current password is incorrect', 400);
   }
 
   // Check if new password is different from current
   const isSamePassword = await user.comparePassword(newPassword);
   if (isSamePassword) {
     throw new AppError(
-      "New password must be different from current password",
-      400
+      'New password must be different from current password',
+      400,
     );
   }
 
@@ -277,7 +277,7 @@ const changePassword = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message:
-      "Password changed successfully. Please login again with your new password.",
+      'Password changed successfully. Please login again with your new password.',
   });
 });
 
@@ -291,7 +291,7 @@ const requestPasswordReset = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message:
-      "If an account with that email exists, a password reset link has been sent.",
+      'If an account with that email exists, a password reset link has been sent.',
   });
 
   // Only proceed if user exists
@@ -310,7 +310,7 @@ const verifyEmail = catchAsync(async (req, res) => {
   // TODO: Implement email verification logic
   res.status(200).json({
     success: true,
-    message: "Email verification will be implemented in a future update.",
+    message: 'Email verification will be implemented in a future update.',
   });
 });
 
@@ -319,11 +319,11 @@ const resendEmailVerification = catchAsync(async (req, res) => {
   const user = await User.findById(req.userId);
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   if (user.isEmailVerified) {
-    throw new AppError("Email is already verified", 400);
+    throw new AppError('Email is already verified', 400);
   }
 
   // TODO: Generate new verification token and send email
@@ -331,7 +331,7 @@ const resendEmailVerification = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Verification email sent. Please check your inbox.",
+    message: 'Verification email sent. Please check your inbox.',
   });
 });
 
@@ -340,7 +340,7 @@ const getUserSessions = catchAsync(async (req, res) => {
   const user = await User.findById(req.userId);
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   const activeSessions = user.refreshTokens
@@ -368,13 +368,13 @@ const revokeSession = catchAsync(async (req, res) => {
 
   const user = await User.findById(req.userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Find and deactivate the session
   const session = user.refreshTokens.id(sessionId);
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   session.isActive = false;
@@ -382,7 +382,7 @@ const revokeSession = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Session revoked successfully",
+    message: 'Session revoked successfully',
   });
 });
 

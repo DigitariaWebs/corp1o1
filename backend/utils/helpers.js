@@ -33,5 +33,5 @@ const formatDuration = (minutes) => {
 module.exports = {
   generateSessionId,
   calculatePercentage,
-  formatDuration
+  formatDuration,
 };

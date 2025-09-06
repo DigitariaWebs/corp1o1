@@ -1,11 +1,11 @@
 // controllers/aiController.js
-const AISession = require("../models/AISession");
-const User = require("../models/User");
-const { openAIService } = require("../services/openaiService");
-const { contextService } = require("../services/contextService");
-const { promptService } = require("../services/promptService");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
-const { v4: uuidv4 } = require("uuid");
+const AISession = require('../models/AISession');
+const User = require('../models/User');
+const { openAIService } = require('../services/openaiService');
+const { contextService } = require('../services/contextService');
+const { promptService } = require('../services/promptService');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * Handle AI chat messages - Main AI interaction endpoint
@@ -20,8 +20,8 @@ const handleChatMessage = catchAsync(async (req, res) => {
     context: additionalContext = {},
   } = req.body;
 
-  if (!message || typeof message !== "string" || message.trim().length === 0) {
-    throw new AppError("Message is required and cannot be empty", 400);
+  if (!message || typeof message !== 'string' || message.trim().length === 0) {
+    throw new AppError('Message is required and cannot be empty', 400);
   }
 
   const startTime = Date.now();
@@ -34,8 +34,8 @@ const handleChatMessage = catchAsync(async (req, res) => {
     // 2. Assemble user context
     const userContext = await contextService.assembleUserContext(userId, {
       sessionId: session.sessionId,
-      deviceType: req.headers["x-device-type"] || "unknown",
-      userAgent: req.headers["user-agent"],
+      deviceType: req.headers['x-device-type'] || 'unknown',
+      userAgent: req.headers['user-agent'],
       ...additionalContext,
     });
 
@@ -44,18 +44,18 @@ const handleChatMessage = catchAsync(async (req, res) => {
 
     // 4. Get current user personality preference
     const aiPersonality =
-      personality || userContext.user.aiPersonality || "ARIA";
+      personality || userContext.user.aiPersonality || 'ARIA';
 
     // 5. Select and build optimal prompt
     const promptData = await promptService.selectOptimalPrompt(
       aiPersonality,
       messageIntent,
       userContext,
-      { userMessage: message }
+      { userMessage: message },
     );
 
     // 6. Add user message to session
-    const userMessage = session.addMessage("user", message, {
+    const userMessage = session.addMessage('user', message, {
       intent: messageIntent,
       urgency: detectUrgency(message),
       topics: extractTopics(message),
@@ -81,23 +81,23 @@ const handleChatMessage = catchAsync(async (req, res) => {
         userId: userId.toString(),
         temperature: adjustTemperatureForContext(
           userContext,
-          promptData.config.temperature
+          promptData.config.temperature,
         ),
-      }
+      },
     );
 
     // 9. Validate response quality
     if (!openAIService.validateResponse(aiResponse)) {
-      console.warn("⚠️ AI response quality validation failed");
+      console.warn('⚠️ AI response quality validation failed');
       throw new AppError(
-        "Generated response did not meet quality standards",
-        500
+        'Generated response did not meet quality standards',
+        500,
       );
     }
 
     // 10. Add AI response to session
     const assistantMessage = session.addMessage(
-      "assistant",
+      'assistant',
       aiResponse.content,
       {
         promptId: promptData.metadata.promptId,
@@ -106,16 +106,16 @@ const handleChatMessage = catchAsync(async (req, res) => {
         tokenCount: aiResponse.usage?.total_tokens || 0,
         confidence: calculateConfidence(aiResponse, userContext),
         finishReason: aiResponse.finishReason,
-      }
+      },
     );
 
     // 11. Update session context and analytics
     session.updateContext({
       lastActivity: new Date(),
       sessionDuration: Math.round(
-        (Date.now() - session.startTime) / (1000 * 60)
+        (Date.now() - session.startTime) / (1000 * 60),
       ),
-      userState: userContext.insights?.userState || "stable",
+      userState: userContext.insights?.userState || 'stable',
     });
 
     // 12. Save session
@@ -124,7 +124,7 @@ const handleChatMessage = catchAsync(async (req, res) => {
     // 13. Calculate cost
     const cost = openAIService.calculateCost(
       aiResponse.usage,
-      aiResponse.model
+      aiResponse.model,
     );
 
     // 14. Prepare response
@@ -135,7 +135,7 @@ const handleChatMessage = catchAsync(async (req, res) => {
         message: {
           id: assistantMessage.messageId,
           content: aiResponse.content,
-          role: "assistant",
+          role: 'assistant',
           timestamp: assistantMessage.timestamp,
           metadata: {
             confidence: assistantMessage.metadata.confidence,
@@ -167,11 +167,11 @@ const handleChatMessage = catchAsync(async (req, res) => {
     console.log(
       `✅ AI Chat Response Generated - ${responseTime}ms | ${
         aiResponse.usage?.total_tokens || 0
-      } tokens | $${cost.toFixed(4)}`
+      } tokens | $${cost.toFixed(4)}`,
     );
     res.status(200).json(response);
   } catch (error) {
-    console.error("❌ AI Chat Error:", error);
+    console.error('❌ AI Chat Error:', error);
 
     // Try to save error to session if we have one
     if (sessionId) {
@@ -179,7 +179,7 @@ const handleChatMessage = catchAsync(async (req, res) => {
         const errorSession = await AISession.findOne({ sessionId });
         if (errorSession) {
           errorSession.addMessage(
-            "system",
+            'system',
             `Error occurred: ${error.message}`,
             {
               error: {
@@ -188,12 +188,12 @@ const handleChatMessage = catchAsync(async (req, res) => {
                 code: error.statusCode || 500,
                 timestamp: new Date(),
               },
-            }
+            },
           );
           await errorSession.save();
         }
       } catch (saveError) {
-        console.error("Failed to save error to session:", saveError);
+        console.error('Failed to save error to session:', saveError);
       }
     }
 
@@ -234,21 +234,21 @@ const switchPersonality = catchAsync(async (req, res) => {
   const userId = req.user._id;
   const { personality } = req.body;
 
-  if (!personality || !["ARIA", "SAGE", "COACH"].includes(personality)) {
+  if (!personality || !['ARIA', 'SAGE', 'COACH'].includes(personality)) {
     throw new AppError(
-      "Invalid personality. Must be ARIA, SAGE, or COACH",
-      400
+      'Invalid personality. Must be ARIA, SAGE, or COACH',
+      400,
     );
   }
 
   console.log(
-    `🎭 Switching AI personality for user ${userId} to: ${personality}`
+    `🎭 Switching AI personality for user ${userId} to: ${personality}`,
   );
 
   // Update user's AI personality preference
   const user = await User.findById(userId);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   user.learningProfile.aiPersonality = personality;
@@ -276,11 +276,11 @@ const provideFeedback = catchAsync(async (req, res) => {
   const { messageId, rating, helpful, comment } = req.body;
 
   if (!messageId) {
-    throw new AppError("Message ID is required", 400);
+    throw new AppError('Message ID is required', 400);
   }
 
   if (rating && (rating < 1 || rating > 5)) {
-    throw new AppError("Rating must be between 1 and 5", 400);
+    throw new AppError('Rating must be between 1 and 5', 400);
   }
 
   console.log(`👍 Receiving feedback for message: ${messageId}`);
@@ -288,11 +288,11 @@ const provideFeedback = catchAsync(async (req, res) => {
   // Find the session containing this message
   const session = await AISession.findOne({
     userId,
-    "messages.messageId": messageId,
+    'messages.messageId': messageId,
   });
 
   if (!session) {
-    throw new AppError("Message not found in user sessions", 404);
+    throw new AppError('Message not found in user sessions', 404);
   }
 
   // Add feedback to the message
@@ -304,7 +304,7 @@ const provideFeedback = catchAsync(async (req, res) => {
   });
 
   if (!feedbackAdded) {
-    throw new AppError("Failed to add feedback to message", 500);
+    throw new AppError('Failed to add feedback to message', 500);
   }
 
   await session.save();
@@ -313,21 +313,21 @@ const provideFeedback = catchAsync(async (req, res) => {
   const message = session.messages.find((m) => m.messageId === messageId);
   if (message?.metadata?.promptId && rating) {
     try {
-      const prompt = await require("../models/AIPrompt").findById(
-        message.metadata.promptId
+      const prompt = await require('../models/AIPrompt').findById(
+        message.metadata.promptId,
       );
       if (prompt) {
         await prompt.recordUsage(message.metadata.responseTime || 0, rating);
       }
     } catch (error) {
-      console.error("Error updating prompt performance:", error);
+      console.error('Error updating prompt performance:', error);
     }
   }
 
   res.status(200).json({
     success: true,
     data: {
-      message: "Feedback recorded successfully",
+      message: 'Feedback recorded successfully',
       messageId,
       feedback: { rating, helpful, comment },
     },
@@ -395,7 +395,7 @@ const getSessionDetail = catchAsync(async (req, res) => {
   }).lean();
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   // Filter messages for response (exclude system metadata)
@@ -446,7 +446,7 @@ async function getOrCreateSession(userId, sessionId, personality) {
     const existingSession = await AISession.findOne({
       sessionId,
       userId,
-      status: "active",
+      status: 'active',
     });
 
     if (existingSession) {
@@ -459,16 +459,16 @@ async function getOrCreateSession(userId, sessionId, personality) {
   // Create new session
   const user = await User.findById(userId);
   const aiPersonality =
-    personality || user?.learningProfile?.aiPersonality || "ARIA";
+    personality || user?.learningProfile?.aiPersonality || 'ARIA';
 
   const newSession = new AISession({
     sessionId: uuidv4(),
     userId,
     aiPersonality,
     startTime: new Date(),
-    status: "active",
+    status: 'active',
     configuration: {
-      modelType: "openai-gpt4",
+      modelType: 'openai-gpt4',
       maxMessages: 100,
       sessionTimeout: 30,
       adaptiveMode: true,
@@ -487,25 +487,25 @@ async function getOrCreateSession(userId, sessionId, personality) {
  */
 function detectUrgency(message) {
   const urgentKeywords = [
-    "urgent",
-    "asap",
-    "immediately",
-    "emergency",
-    "help now",
+    'urgent',
+    'asap',
+    'immediately',
+    'emergency',
+    'help now',
   ];
-  const mediumKeywords = ["soon", "quickly", "fast", "hurry"];
+  const mediumKeywords = ['soon', 'quickly', 'fast', 'hurry'];
 
   const lowerMessage = message.toLowerCase();
 
   if (urgentKeywords.some((keyword) => lowerMessage.includes(keyword))) {
-    return "high";
+    return 'high';
   }
 
   if (mediumKeywords.some((keyword) => lowerMessage.includes(keyword))) {
-    return "medium";
+    return 'medium';
   }
 
-  return "low";
+  return 'low';
 }
 
 /**
@@ -519,11 +519,11 @@ function extractTopics(message) {
   const lowerMessage = message.toLowerCase();
 
   const topicKeywords = {
-    learning: ["learn", "study", "understand", "knowledge"],
-    assessment: ["test", "quiz", "exam", "assessment", "evaluate"],
-    motivation: ["motivated", "inspiration", "encourage", "goal"],
-    progress: ["progress", "advancement", "achievement", "completion"],
-    difficulty: ["hard", "difficult", "challenging", "struggle", "confused"],
+    learning: ['learn', 'study', 'understand', 'knowledge'],
+    assessment: ['test', 'quiz', 'exam', 'assessment', 'evaluate'],
+    motivation: ['motivated', 'inspiration', 'encourage', 'goal'],
+    progress: ['progress', 'advancement', 'achievement', 'completion'],
+    difficulty: ['hard', 'difficult', 'challenging', 'struggle', 'confused'],
   };
 
   for (const [topic, keywords] of Object.entries(topicKeywords)) {
@@ -545,7 +545,7 @@ function calculateConfidence(aiResponse, userContext) {
   let confidence = 75; // Base confidence
 
   // Higher confidence for successful completion
-  if (aiResponse.finishReason === "stop") {
+  if (aiResponse.finishReason === 'stop') {
     confidence += 10;
   }
 
@@ -573,12 +573,12 @@ function adjustTemperatureForContext(userContext, baseTemperature = 0.7) {
   const userState = userContext.insights?.userState;
 
   // Lower temperature for struggling users (more focused responses)
-  if (userState === "struggling") {
+  if (userState === 'struggling') {
     return Math.max(0.3, baseTemperature - 0.2);
   }
 
   // Higher temperature for highly engaged users (more creative responses)
-  if (userState === "highly_engaged") {
+  if (userState === 'highly_engaged') {
     return Math.min(1.0, baseTemperature + 0.1);
   }
 
@@ -592,13 +592,13 @@ function adjustTemperatureForContext(userContext, baseTemperature = 0.7) {
  */
 function getPersonalityDescription(personality) {
   const descriptions = {
-    ARIA: "Encouraging and supportive assistant focused on positive reinforcement and gentle guidance",
-    SAGE: "Professional and analytical assistant providing objective insights and detailed analysis",
+    ARIA: 'Encouraging and supportive assistant focused on positive reinforcement and gentle guidance',
+    SAGE: 'Professional and analytical assistant providing objective insights and detailed analysis',
     COACH:
-      "Motivational and energetic assistant focused on goal achievement and performance improvement",
+      'Motivational and energetic assistant focused on goal achievement and performance improvement',
   };
 
-  return descriptions[personality] || descriptions["ARIA"];
+  return descriptions[personality] || descriptions['ARIA'];
 }
 
 module.exports = {

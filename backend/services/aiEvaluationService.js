@@ -13,7 +13,7 @@ class AIEvaluationService {
     this.models = {
       evaluation: process.env.OPENAI_EVALUATION_MODEL || 'gpt-4o',
       analysis: process.env.OPENAI_ANALYSIS_MODEL || 'gpt-4o-mini',
-      recommendations: process.env.OPENAI_RECOMMENDATIONS_MODEL || 'gpt-4o'
+      recommendations: process.env.OPENAI_RECOMMENDATIONS_MODEL || 'gpt-4o',
     };
     
     // Advanced evaluation settings
@@ -23,31 +23,31 @@ class AIEvaluationService {
       enableLogprobs: true, // For confidence scoring
       topLogprobs: 5, // Number of token alternatives for confidence calculation
       presencePenalty: 0.1,
-      frequencyPenalty: 0.1
+      frequencyPenalty: 0.1,
     };
 
     // Skill categories with specialized evaluation criteria
     this.skillCategories = {
       programming: {
         criteria: ['code_correctness', 'best_practices', 'problem_solving', 'efficiency', 'documentation'],
-        weights: { correctness: 0.4, quality: 0.25, logic: 0.2, efficiency: 0.15 }
+        weights: { correctness: 0.4, quality: 0.25, logic: 0.2, efficiency: 0.15 },
       },
       design: {
         criteria: ['creativity', 'usability', 'aesthetics', 'user_experience', 'technical_feasibility'],
-        weights: { creativity: 0.3, usability: 0.25, aesthetics: 0.2, ux: 0.15, technical: 0.1 }
+        weights: { creativity: 0.3, usability: 0.25, aesthetics: 0.2, ux: 0.15, technical: 0.1 },
       },
       communication: {
         criteria: ['clarity', 'structure', 'persuasiveness', 'audience_awareness', 'professional_tone'],
-        weights: { clarity: 0.3, structure: 0.25, persuasion: 0.2, audience: 0.15, tone: 0.1 }
+        weights: { clarity: 0.3, structure: 0.25, persuasion: 0.2, audience: 0.15, tone: 0.1 },
       },
       leadership: {
         criteria: ['decision_making', 'team_management', 'strategic_thinking', 'conflict_resolution', 'motivation'],
-        weights: { decisions: 0.25, management: 0.25, strategy: 0.2, conflict: 0.15, motivation: 0.15 }
+        weights: { decisions: 0.25, management: 0.25, strategy: 0.2, conflict: 0.15, motivation: 0.15 },
       },
       analytics: {
         criteria: ['data_interpretation', 'statistical_accuracy', 'visualization', 'insights', 'methodology'],
-        weights: { interpretation: 0.3, accuracy: 0.25, visualization: 0.2, insights: 0.15, methodology: 0.1 }
-      }
+        weights: { interpretation: 0.3, accuracy: 0.25, visualization: 0.2, insights: 0.15, methodology: 0.1 },
+      },
     };
   }
 
@@ -80,7 +80,7 @@ class AIEvaluationService {
         learningStyle: context.learningStyle || 'adaptive',
         careerGoals: context.careerGoals || [],
         previousAttempts: context.previousAttempts || 0,
-        ...context
+        ...context,
       };
 
       // Generate personalized prompts based on context
@@ -173,7 +173,7 @@ Learning Style: ${learningStyle}`;
       // Make OpenAI API call with logprobs for confidence scoring
       const response = await openAIService.createChatCompletion([
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: evaluationPrompt }
+        { role: 'user', content: evaluationPrompt },
       ], {
         model: question.aiConfig?.model || this.models.evaluation,
         temperature: this.settings.temperature,
@@ -182,7 +182,7 @@ Learning Style: ${learningStyle}`;
         top_logprobs: this.settings.topLogprobs,
         presence_penalty: this.settings.presencePenalty,
         frequency_penalty: this.settings.frequencyPenalty,
-        response_format: { type: "json_object" } // Structured output
+        response_format: { type: 'json_object' }, // Structured output
       });
 
       // Parse structured response
@@ -198,7 +198,7 @@ Learning Style: ${learningStyle}`;
         model: question.aiConfig?.model || this.models.evaluation,
         evaluatedAt: new Date(),
         logprobsConfidence: confidenceScore,
-        rawLogprobs: response.logprobs // For debugging/analysis
+        rawLogprobs: response.logprobs, // For debugging/analysis
       };
 
     } catch (error) {
@@ -281,7 +281,7 @@ Provide your evaluation as a JSON object with this exact structure:
   getPersonalizedEvaluationCriteria(context) {
     const { question, skillCategory, userProfile, careerGoals, learningStyle } = context;
     
-    let criteria = `\n\nPERSONALIZED EVALUATION CRITERIA:`;
+    let criteria = '\n\nPERSONALIZED EVALUATION CRITERIA:';
 
     // Skill-specific criteria
     if (this.skillCategories[skillCategory]) {
@@ -294,11 +294,11 @@ Provide your evaluation as a JSON object with this exact structure:
 
     // Learning style adaptations
     if (learningStyle === 'visual') {
-      criteria += `\n\nNote: This learner prefers visual explanations. Look for diagrams, charts, or visual thinking in the response.`;
+      criteria += '\n\nNote: This learner prefers visual explanations. Look for diagrams, charts, or visual thinking in the response.';
     } else if (learningStyle === 'practical') {
-      criteria += `\n\nNote: This learner prefers hands-on examples. Look for practical applications and real-world connections.`;
+      criteria += '\n\nNote: This learner prefers hands-on examples. Look for practical applications and real-world connections.';
     } else if (learningStyle === 'theoretical') {
-      criteria += `\n\nNote: This learner prefers conceptual understanding. Look for theoretical knowledge and abstract reasoning.`;
+      criteria += '\n\nNote: This learner prefers conceptual understanding. Look for theoretical knowledge and abstract reasoning.';
     }
 
     // Career goal alignment
@@ -308,9 +308,9 @@ Provide your evaluation as a JSON object with this exact structure:
 
     // Experience level considerations
     if (userProfile.experienceLevel === 'beginner') {
-      criteria += `\n\nBeginner Considerations: Focus on foundational understanding, encourage effort, provide clear next steps.`;
+      criteria += '\n\nBeginner Considerations: Focus on foundational understanding, encourage effort, provide clear next steps.';
     } else if (userProfile.experienceLevel === 'advanced') {
-      criteria += `\n\nAdvanced Considerations: Look for nuanced understanding, innovative approaches, industry best practices.`;
+      criteria += '\n\nAdvanced Considerations: Look for nuanced understanding, innovative approaches, industry best practices.';
     }
 
     return criteria;
@@ -402,7 +402,7 @@ Provide your evaluation as a JSON object with this exact structure:
         adaptiveDifficultyRecommendation: evaluation.adaptiveDifficultyRecommendation || 'same',
         estimatedStudyTime: evaluation.estimatedStudyTime || '2-4 hours',
         relatedTopics: evaluation.relatedTopics || [],
-        industryApplications: evaluation.industryApplications || []
+        industryApplications: evaluation.industryApplications || [],
       };
 
     } catch (error) {
@@ -429,7 +429,7 @@ Provide your evaluation as a JSON object with this exact structure:
         adaptiveDifficultyRecommendation: 'same',
         estimatedStudyTime: 'Unknown',
         relatedTopics: [],
-        industryApplications: []
+        industryApplications: [],
       };
     }
   }
@@ -460,8 +460,8 @@ Provide your evaluation as a JSON object with this exact structure:
           skillProgression: learningProgression,
           careerAlignment: careerInsights,
           nextSteps: this.generatePersonalizedNextSteps(result, context),
-          studyPlan: this.generateStudyPlan(result, context)
-        }
+          studyPlan: this.generateStudyPlan(result, context),
+        },
       };
       
     } catch (error) {
@@ -507,7 +507,7 @@ Provide your evaluation as a JSON object with this exact structure:
       return {
         relevance: 'general',
         applications: ['General skill development'],
-        careerImpact: 'Builds foundational competencies'
+        careerImpact: 'Builds foundational competencies',
       };
     }
 
@@ -517,18 +517,18 @@ Provide your evaluation as a JSON object with this exact structure:
       'data_scientist': ['analytics', 'programming', 'communication'],
       'product_manager': ['communication', 'leadership', 'analytics'],
       'designer': ['design', 'communication', 'creativity'],
-      'marketing_manager': ['communication', 'analytics', 'creativity']
+      'marketing_manager': ['communication', 'analytics', 'creativity'],
     };
 
     const relevantCareers = careerGoals.filter(goal => 
-      careerMapping[goal]?.includes(skillCategory)
+      careerMapping[goal]?.includes(skillCategory),
     );
 
     return {
       relevance: relevantCareers.length > 0 ? 'high' : 'medium',
       applications: this.getCareerApplications(skillCategory, careerGoals),
       careerImpact: this.assessCareerImpact(result.score, skillCategory, careerGoals),
-      industryDemand: this.getIndustryDemand(skillCategory)
+      industryDemand: this.getIndustryDemand(skillCategory),
     };
   }
 
@@ -544,7 +544,7 @@ Provide your evaluation as a JSON object with this exact structure:
         trend: 'first_attempt',
         improvement: 0,
         consistency: 0,
-        recommendation: 'Establish baseline performance'
+        recommendation: 'Establish baseline performance',
       };
     }
 
@@ -567,7 +567,7 @@ Provide your evaluation as a JSON object with this exact structure:
       trend,
       improvement: Math.round(avgImprovement * 100),
       consistency: Math.round(consistency),
-      recommendation: this.getProgressionRecommendation(trend, consistency)
+      recommendation: this.getProgressionRecommendation(trend, consistency),
     };
   }
 
@@ -640,7 +640,7 @@ Provide your evaluation as a JSON object with this exact structure:
       recommendedDuration: duration,
       frequency: intensity === 'intensive' ? 'daily' : 'weekly',
       focus: score < 0.6 ? 'fundamentals' : 'advanced_topics',
-      methods: this.getRecommendedStudyMethods(skillCategory, userProfile.learningStyle)
+      methods: this.getRecommendedStudyMethods(skillCategory, userProfile.learningStyle),
     };
   }
 
@@ -656,32 +656,32 @@ Provide your evaluation as a JSON object with this exact structure:
         'Software development projects',
         'API design and implementation',
         'Code review and optimization',
-        'Technical architecture decisions'
+        'Technical architecture decisions',
       ],
       communication: [
         'Team collaboration and meetings',
         'Client presentations and proposals',
         'Technical documentation',
-        'Cross-functional project coordination'
+        'Cross-functional project coordination',
       ],
       leadership: [
         'Team management and mentoring',
         'Strategic planning and execution',
         'Conflict resolution and negotiation',
-        'Performance management and feedback'
+        'Performance management and feedback',
       ],
       design: [
         'User experience optimization',
         'Brand and visual identity creation',
         'Product design and prototyping',
-        'Design system development'
+        'Design system development',
       ],
       analytics: [
         'Data-driven decision making',
         'Performance metrics and KPIs',
         'Market research and insights',
-        'A/B testing and experimentation'
-      ]
+        'A/B testing and experimentation',
+      ],
     };
 
     return applications[skillCategory] || ['General professional development'];
@@ -715,7 +715,7 @@ Provide your evaluation as a JSON object with this exact structure:
       communication: 'High - Critical for leadership and collaboration',
       leadership: 'High - In-demand for management positions',
       design: 'Medium-High - Growing with digital transformation',
-      analytics: 'Very High - Essential for data-driven organizations'
+      analytics: 'Very High - Essential for data-driven organizations',
     };
 
     return demand[skillCategory] || 'Medium - Valuable for professional development';
@@ -751,7 +751,7 @@ Provide your evaluation as a JSON object with this exact structure:
       communication: ['Presentation practice', 'Writing exercises', 'Peer feedback'],
       leadership: ['Case studies', 'Role playing', 'Mentoring practice'],
       design: ['Portfolio projects', 'Design challenges', 'User testing'],
-      analytics: ['Data projects', 'Tool practice', 'Visualization exercises']
+      analytics: ['Data projects', 'Tool practice', 'Visualization exercises'],
     };
 
     let methods = baseMethods[skillCategory] || ['Practice exercises', 'Study guides', 'Peer learning'];
@@ -804,12 +804,12 @@ Provide your evaluation as a JSON object with this exact structure:
           trend: 'unknown',
           improvement: 0,
           consistency: 0,
-          recommendation: 'Technical error - seek manual evaluation'
+          recommendation: 'Technical error - seek manual evaluation',
         },
         careerAlignment: {
           relevance: 'unknown',
           applications: ['Manual review needed'],
-          careerImpact: 'Cannot assess due to technical error'
+          careerImpact: 'Cannot assess due to technical error',
         },
         nextSteps: ['Contact instructor for manual evaluation'],
         studyPlan: {
@@ -817,9 +817,9 @@ Provide your evaluation as a JSON object with this exact structure:
           recommendedDuration: 'Unknown',
           frequency: 'unknown',
           focus: 'unknown',
-          methods: ['Seek instructor guidance']
-        }
-      }
+          methods: ['Seek instructor guidance'],
+        },
+      },
     };
   }
 
@@ -860,14 +860,14 @@ Provide specific, actionable career recommendations in JSON format:
       const response = await openAIService.createChatCompletion([
         { 
           role: 'system', 
-          content: 'You are an expert career counselor with deep knowledge of industry trends, skill requirements, and career progression paths.' 
+          content: 'You are an expert career counselor with deep knowledge of industry trends, skill requirements, and career progression paths.', 
         },
-        { role: 'user', content: careerPrompt }
+        { role: 'user', content: careerPrompt },
       ], {
         model: this.models.recommendations,
         temperature: 0.3,
         max_tokens: 800,
-        response_format: { type: "json_object" }
+        response_format: { type: 'json_object' },
       });
 
       return JSON.parse(response.content);
@@ -884,8 +884,8 @@ Provide specific, actionable career recommendations in JSON format:
         certificationRecommendations: ['Research relevant certifications'],
         salaryProjections: {
           currentLevel: 'Assessment needed',
-          withImprovement: 'Potential for growth'
-        }
+          withImprovement: 'Potential for growth',
+        },
       };
     }
   }
@@ -958,7 +958,7 @@ Provide specific, actionable career recommendations in JSON format:
       provider: 'openai',
       model: result.model || this.models.evaluation,
       evaluatedAt: result.evaluatedAt || new Date(),
-      evaluationVersion: '2.0.0-openai-advanced'
+      evaluationVersion: '2.0.0-openai-advanced',
     };
   }
 
@@ -983,7 +983,7 @@ Provide specific, actionable career recommendations in JSON format:
         const result = await this.evaluateAnswer(
           evaluation.question,
           evaluation.answer,
-          evaluation.context
+          evaluation.context,
         );
         
         results.push({
@@ -991,7 +991,7 @@ Provide specific, actionable career recommendations in JSON format:
           questionNumber: i + 1,
           success: true,
           result,
-          processingTime: Date.now() - startTime
+          processingTime: Date.now() - startTime,
         });
         
         successCount++;
@@ -1010,7 +1010,7 @@ Provide specific, actionable career recommendations in JSON format:
           questionNumber: i + 1,
           success: false,
           error: error.message,
-          processingTime: Date.now() - startTime
+          processingTime: Date.now() - startTime,
         });
       }
     }
@@ -1029,8 +1029,8 @@ Provide specific, actionable career recommendations in JSON format:
         successRate: (successCount / evaluations.length) * 100,
         averageConfidence: Math.round(avgConfidence),
         totalProcessingTime: totalTime,
-        averageTimePerQuestion: Math.round(totalTime / evaluations.length)
-      }
+        averageTimePerQuestion: Math.round(totalTime / evaluations.length),
+      },
     };
   }
 
@@ -1053,16 +1053,16 @@ Provide specific, actionable career recommendations in JSON format:
         structuredOutput: true,
         logprobsAnalysis: true,
         batchProcessing: true,
-        progressTracking: true
+        progressTracking: true,
       },
       skillCategories: Object.keys(this.skillCategories),
       settings: {
         temperature: this.settings.temperature,
         maxTokens: this.settings.maxTokens,
         enableLogprobs: this.settings.enableLogprobs,
-        topLogprobs: this.settings.topLogprobs
+        topLogprobs: this.settings.topLogprobs,
       },
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
     };
   }
 
@@ -1074,11 +1074,11 @@ Provide specific, actionable career recommendations in JSON format:
     try {
       // Test basic OpenAI connectivity
       const testResponse = await openAIService.createChatCompletion([
-        { role: 'user', content: 'Health check: respond with "OK"' }
+        { role: 'user', content: 'Health check: respond with "OK"' },
       ], {
         model: this.models.analysis,
         max_tokens: 10,
-        temperature: 0
+        temperature: 0,
       });
 
       const isHealthy = testResponse && testResponse.content && testResponse.content.includes('OK');
@@ -1089,7 +1089,7 @@ Provide specific, actionable career recommendations in JSON format:
         provider: this.provider,
         models: this.models,
         connectivity: isHealthy ? 'connected' : 'connection_issues',
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
       
     } catch (error) {
@@ -1101,7 +1101,7 @@ Provide specific, actionable career recommendations in JSON format:
         provider: this.provider,
         error: error.message,
         connectivity: 'failed',
-        lastCheck: new Date().toISOString()
+        lastCheck: new Date().toISOString(),
       };
     }
   }
@@ -1112,5 +1112,5 @@ const aiEvaluationService = new AIEvaluationService();
 
 module.exports = {
   aiEvaluationService,
-  AIEvaluationService
+  AIEvaluationService,
 };

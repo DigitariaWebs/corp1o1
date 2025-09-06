@@ -1,13 +1,13 @@
 // services/analyticsService.js
-const LearningAnalytics = require("../models/LearningAnalytics");
-const UserProgress = require("../models/UserProgress");
-const LearningSession = require("../models/LearningSession");
-const AISession = require("../models/AISession");
-const User = require("../models/User");
-const LearningPath = require("../models/LearningPath");
-const LearningModule = require("../models/LearningModule");
-const { openAIService } = require("./openaiService");
-const { dataAnalyzer } = require("../utils/dataAnalyzer");
+const LearningAnalytics = require('../models/LearningAnalytics');
+const UserProgress = require('../models/UserProgress');
+const LearningSession = require('../models/LearningSession');
+const AISession = require('../models/AISession');
+const User = require('../models/User');
+const LearningPath = require('../models/LearningPath');
+const LearningModule = require('../models/LearningModule');
+const { openAIService } = require('./openaiService');
+const { dataAnalyzer } = require('../utils/dataAnalyzer');
 
 class AnalyticsService {
   /**
@@ -19,7 +19,7 @@ class AnalyticsService {
       await LearningAnalytics.findOne().limit(1);
       return true;
     } catch (error) {
-      console.error("Analytics service health check failed:", error);
+      console.error('Analytics service health check failed:', error);
       return false;
     }
   }
@@ -27,10 +27,10 @@ class AnalyticsService {
   /**
    * Calculate and store analytics for a user
    */
-  async calculateUserAnalytics(userId, periodType = "daily") {
+  async calculateUserAnalytics(userId, periodType = 'daily') {
     try {
       const user = await User.findById(userId);
-      if (!user) throw new Error("User not found");
+      if (!user) throw new Error('User not found');
 
       // Define period boundaries
       const { startDate, endDate } = this.getPeriodBoundaries(periodType);
@@ -39,12 +39,12 @@ class AnalyticsService {
       const progressData = await this.getUserProgressData(
         userId,
         startDate,
-        endDate
+        endDate,
       );
       const sessionData = await this.getUserSessionData(
         userId,
         startDate,
-        endDate
+        endDate,
       );
       const aiData = await this.getUserAIData(userId, startDate, endDate);
 
@@ -61,13 +61,13 @@ class AnalyticsService {
         performance: await this.calculatePerformanceMetrics(
           userId,
           progressData,
-          sessionData
+          sessionData,
         ),
         aiInteraction: this.calculateAIMetrics(aiData),
         predictions: await this.calculatePredictions(
           userId,
           progressData,
-          sessionData
+          sessionData,
         ),
         recommendations: await this.calculateRecommendationMetrics(userId),
       };
@@ -75,9 +75,9 @@ class AnalyticsService {
       // Save or update analytics
       const existingAnalytics = await LearningAnalytics.findOne({
         user: userId,
-        "period.type": periodType,
-        "period.startDate": startDate,
-        "period.endDate": endDate,
+        'period.type': periodType,
+        'period.startDate': startDate,
+        'period.endDate': endDate,
       });
 
       if (existingAnalytics) {
@@ -90,7 +90,7 @@ class AnalyticsService {
         return newAnalytics;
       }
     } catch (error) {
-      console.error("Error calculating user analytics:", error);
+      console.error('Error calculating user analytics:', error);
       throw error;
     }
   }
@@ -99,7 +99,7 @@ class AnalyticsService {
    * Get performance analytics for user
    */
   async getPerformanceAnalytics(userId, options = {}) {
-    const { timeRange = "30d", pathId, moduleId, metrics = [] } = options;
+    const { timeRange = '30d', pathId, moduleId, metrics = [] } = options;
 
     const { startDate, endDate } = this.parseTimeRange(timeRange);
 
@@ -114,8 +114,8 @@ class AnalyticsService {
 
     // Get progress data
     const progressData = await UserProgress.find(query)
-      .populate("learningPath", "title category difficulty")
-      .populate("learningModule", "title difficulty estimatedDuration")
+      .populate('learningPath', 'title category difficulty')
+      .populate('learningModule', 'title difficulty estimatedDuration')
       .sort({ createdAt: -1 });
 
     // Calculate metrics
@@ -125,7 +125,7 @@ class AnalyticsService {
       breakdown: this.calculatePerformanceBreakdown(progressData),
       recommendations: await this.generatePerformanceRecommendations(
         userId,
-        progressData
+        progressData,
       ),
     };
 
@@ -172,19 +172,19 @@ class AnalyticsService {
 
       return JSON.parse(aiResponse);
     } catch (error) {
-      console.error("Error generating performance insights:", error);
+      console.error('Error generating performance insights:', error);
       return {
         insights: [
           {
-            type: "opportunity",
-            title: "Continue Your Learning Journey",
+            type: 'opportunity',
+            title: 'Continue Your Learning Journey',
             description:
-              "Keep building on your current progress with consistent practice.",
+              'Keep building on your current progress with consistent practice.',
             actionableSteps: [
-              "Set a regular learning schedule",
-              "Focus on areas needing improvement",
+              'Set a regular learning schedule',
+              'Focus on areas needing improvement',
             ],
-            priority: "medium",
+            priority: 'medium',
           },
         ],
       };
@@ -195,7 +195,7 @@ class AnalyticsService {
    * Get engagement metrics and trends
    */
   async getEngagementMetrics(userId, options = {}) {
-    const { timeRange = "30d", granularity = "day" } = options;
+    const { timeRange = '30d', granularity = 'day' } = options;
     const { startDate, endDate } = this.parseTimeRange(timeRange);
 
     // Get session data
@@ -221,7 +221,7 @@ class AnalyticsService {
     // Get time-series data for trends
     const timeSeriesData = this.groupSessionsByGranularity(
       sessions,
-      granularity
+      granularity,
     );
 
     return {
@@ -237,15 +237,15 @@ class AnalyticsService {
   async getRecentAchievements(userId, limit = 5) {
     const recentProgress = await UserProgress.find({
       user: userId,
-      completionStatus: "completed",
+      completionStatus: 'completed',
     })
-      .populate("learningModule", "title category difficulty")
+      .populate('learningModule', 'title category difficulty')
       .sort({ completedAt: -1 })
       .limit(limit);
 
     return recentProgress.map((progress) => ({
       id: progress._id,
-      type: "module_completion",
+      type: 'module_completion',
       title: `Completed: ${progress.learningModule.title}`,
       description: `Successfully completed ${progress.learningModule.category} module`,
       achievedAt: progress.completedAt,
@@ -273,7 +273,7 @@ class AnalyticsService {
     // Group sessions by date
     const sessionsByDate = {};
     sessions.forEach((session) => {
-      const date = session.startTime.toISOString().split("T")[0];
+      const date = session.startTime.toISOString().split('T')[0];
       sessionsByDate[date] = true;
     });
 
@@ -282,7 +282,7 @@ class AnalyticsService {
     for (let i = 0; i < 90; i++) {
       const checkDate = new Date(today);
       checkDate.setDate(today.getDate() - i);
-      const dateStr = checkDate.toISOString().split("T")[0];
+      const dateStr = checkDate.toISOString().split('T')[0];
 
       if (sessionsByDate[dateStr]) {
         if (
@@ -328,21 +328,21 @@ class AnalyticsService {
   /**
    * Get performance trends for user
    */
-  async getPerformanceTrends(userId, timeRange = "30d") {
+  async getPerformanceTrends(userId, timeRange = '30d') {
     const { startDate, endDate } = this.parseTimeRange(timeRange);
 
     const analytics = await LearningAnalytics.find({
       user: userId,
-      "period.startDate": { $gte: startDate },
-      "period.endDate": { $lte: endDate },
-    }).sort({ "period.startDate": 1 });
+      'period.startDate': { $gte: startDate },
+      'period.endDate': { $lte: endDate },
+    }).sort({ 'period.startDate': 1 });
 
     if (analytics.length === 0) {
       return {
         trends: [],
         summary: {
-          direction: "stable",
-          strength: "insufficient_data",
+          direction: 'stable',
+          strength: 'insufficient_data',
         },
       };
     }
@@ -377,11 +377,11 @@ class AnalyticsService {
   async generateComprehensiveInsights(userId) {
     try {
       const latestAnalytics = await LearningAnalytics.getLatestAnalytics(
-        userId
+        userId,
       );
       if (!latestAnalytics) {
         return {
-          message: "Complete more learning activities to unlock insights",
+          message: 'Complete more learning activities to unlock insights',
           hasInsights: false,
         };
       }
@@ -390,7 +390,7 @@ class AnalyticsService {
       const insights = await this.generateAIInsights(userId, latestAnalytics);
 
       // Get personalized recommendations
-      const RecommendationEngine = require("../models/RecommendationEngine");
+      const RecommendationEngine = require('../models/RecommendationEngine');
       const recommendations =
         await RecommendationEngine.getActiveRecommendations(userId, 3);
 
@@ -409,7 +409,7 @@ class AnalyticsService {
         generatedAt: new Date().toISOString(),
       };
     } catch (error) {
-      console.error("Error generating comprehensive insights:", error);
+      console.error('Error generating comprehensive insights:', error);
       throw error;
     }
   }
@@ -427,7 +427,7 @@ class AnalyticsService {
         User Profile:
         - Learning Style: ${user.learningProfile.learningStyle}
         - AI Personality: ${user.learningProfile.aiPersonality}
-        - Goals: ${user.learningProfile.goals.join(", ")}
+        - Goals: ${user.learningProfile.goals.join(', ')}
 
         Recent Analytics:
         - Completion Rate: ${analytics.progress.completionRate}%
@@ -461,12 +461,12 @@ class AnalyticsService {
 
       return JSON.parse(aiResponse);
     } catch (error) {
-      console.error("Error generating AI insights:", error);
+      console.error('Error generating AI insights:', error);
       return {
         insights: [],
-        keyStrengths: ["Consistent learning engagement"],
-        improvementAreas: ["Continue building learning habits"],
-        personalizedTip: "Keep up your great learning momentum!",
+        keyStrengths: ['Consistent learning engagement'],
+        improvementAreas: ['Continue building learning habits'],
+        personalizedTip: 'Keep up your great learning momentum!',
       };
     }
   }
@@ -476,49 +476,49 @@ class AnalyticsService {
    */
   async exportData(userId, options = {}) {
     const {
-      timeRange = "30d",
+      timeRange = '30d',
       dataTypes = [],
-      format = "json",
+      format = 'json',
       includePersonalData = false,
     } = options;
     const { startDate, endDate } = this.parseTimeRange(timeRange);
 
     const exportData = {};
 
-    if (dataTypes.includes("learning_sessions")) {
+    if (dataTypes.includes('learning_sessions')) {
       exportData.sessions = await LearningSession.find({
         user: userId,
         startTime: { $gte: startDate, $lte: endDate },
-      }).select(includePersonalData ? {} : "-user -personalNotes");
+      }).select(includePersonalData ? {} : '-user -personalNotes');
     }
 
-    if (dataTypes.includes("progress_data")) {
+    if (dataTypes.includes('progress_data')) {
       exportData.progress = await UserProgress.find({
         user: userId,
         createdAt: { $gte: startDate, $lte: endDate },
       })
-        .populate("learningModule", "title category")
-        .select(includePersonalData ? {} : "-user");
+        .populate('learningModule', 'title category')
+        .select(includePersonalData ? {} : '-user');
     }
 
-    if (dataTypes.includes("ai_interactions")) {
+    if (dataTypes.includes('ai_interactions')) {
       exportData.aiInteractions = await AISession.find({
         user: userId,
         createdAt: { $gte: startDate, $lte: endDate },
-      }).select(includePersonalData ? {} : "-user -messages.userMessage");
+      }).select(includePersonalData ? {} : '-user -messages.userMessage');
     }
 
-    if (dataTypes.includes("engagement_metrics")) {
+    if (dataTypes.includes('engagement_metrics')) {
       exportData.analytics = await LearningAnalytics.find({
         user: userId,
-        "period.startDate": { $gte: startDate },
-      }).select("-user");
+        'period.startDate': { $gte: startDate },
+      }).select('-user');
     }
 
     // Format based on requested format
-    if (format === "csv") {
+    if (format === 'csv') {
       return this.convertToCSV(exportData);
-    } else if (format === "xlsx") {
+    } else if (format === 'xlsx') {
       return this.convertToXLSX(exportData);
     }
 
@@ -532,27 +532,28 @@ class AnalyticsService {
     let startDate, endDate;
 
     switch (periodType) {
-      case "daily":
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 1);
-        break;
-      case "weekly":
-        const dayOfWeek = now.getDay();
-        startDate = new Date(now);
-        startDate.setDate(now.getDate() - dayOfWeek);
-        startDate.setHours(0, 0, 0, 0);
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 7);
-        break;
-      case "monthly":
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-        break;
-      default:
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 1);
+    case 'daily':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
+      break;
+    case 'weekly': {
+      const dayOfWeek = now.getDay();
+      startDate = new Date(now);
+      startDate.setDate(now.getDate() - dayOfWeek);
+      startDate.setHours(0, 0, 0, 0);
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 7);
+      break;
+    }
+    case 'monthly':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      break;
+    default:
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 1);
     }
 
     return { startDate, endDate };
@@ -562,11 +563,11 @@ class AnalyticsService {
     const now = new Date();
     let startDate;
 
-    if (timeRange.endsWith("d")) {
-      const days = parseInt(timeRange.replace("d", ""));
+    if (timeRange.endsWith('d')) {
+      const days = parseInt(timeRange.replace('d', ''));
       startDate = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-    } else if (timeRange.endsWith("m")) {
-      const months = parseInt(timeRange.replace("m", ""));
+    } else if (timeRange.endsWith('m')) {
+      const months = parseInt(timeRange.replace('m', ''));
       startDate = new Date(now);
       startDate.setMonth(now.getMonth() - months);
     } else {
@@ -610,12 +611,12 @@ class AnalyticsService {
 
     const totalTime = sessionData.reduce(
       (sum, session) => sum + (session.duration || 0),
-      0
+      0,
     );
     const avgDuration = totalTime / sessionData.length;
     const totalInteractions = sessionData.reduce(
       (sum, session) => sum + (session.interactionCount || 0),
-      0
+      0,
     );
     const interactionRate =
       totalTime > 0 ? totalInteractions / (totalTime / 60) : 0;
@@ -645,7 +646,7 @@ class AnalyticsService {
     }
 
     const completed = progressData.filter(
-      (p) => p.completionStatus === "completed"
+      (p) => p.completionStatus === 'completed',
     );
     const scores = progressData
       .filter((p) => p.finalScore > 0)
@@ -697,7 +698,7 @@ class AnalyticsService {
     // Group sessions by day
     const sessionsByDay = {};
     sessions.forEach((session) => {
-      const day = session.startTime.toISOString().split("T")[0];
+      const day = session.startTime.toISOString().split('T')[0];
       sessionsByDay[day] = (sessionsByDay[day] || 0) + 1;
     });
 
@@ -721,7 +722,7 @@ class AnalyticsService {
   }
 
   calculateTrendDirection(dataPoints) {
-    if (dataPoints.length < 2) return "stable";
+    if (dataPoints.length < 2) return 'stable';
 
     const firstHalf = dataPoints.slice(0, Math.floor(dataPoints.length / 2));
     const secondHalf = dataPoints.slice(Math.floor(dataPoints.length / 2));
@@ -733,13 +734,13 @@ class AnalyticsService {
 
     const change = ((secondAvg - firstAvg) / firstAvg) * 100;
 
-    if (change > 5) return "improving";
-    if (change < -5) return "declining";
-    return "stable";
+    if (change > 5) return 'improving';
+    if (change < -5) return 'declining';
+    return 'stable';
   }
 
   calculateTrendStrength(dataPoints) {
-    if (dataPoints.length < 3) return "weak";
+    if (dataPoints.length < 3) return 'weak';
 
     // Calculate correlation coefficient to determine trend strength
     // Simplified version - in production might use more sophisticated analysis
@@ -763,9 +764,9 @@ class AnalyticsService {
       Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
 
     const absCorr = Math.abs(correlation);
-    if (absCorr > 0.7) return "strong";
-    if (absCorr > 0.4) return "moderate";
-    return "weak";
+    if (absCorr > 0.7) return 'strong';
+    if (absCorr > 0.4) return 'moderate';
+    return 'weak';
   }
 
   // Additional helper methods would go here...

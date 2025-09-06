@@ -15,7 +15,7 @@ async function testAIService() {
       ['React', 'Node.js', 'TypeScript'],
       '2-3 years',
       'become a senior developer',
-      'intermediate'
+      'intermediate',
     );
     
     console.log('✅ Assessment Plan Generated:');
@@ -36,7 +36,7 @@ async function testAIService() {
       'JavaScript Arrays and Objects',
       'intermediate',
       3,
-      ['multiple_choice', 'text']
+      ['multiple_choice', 'text'],
     );
     
     console.log(`✅ Generated ${questions.length} questions`);
@@ -52,7 +52,7 @@ async function testAIService() {
       const response = await aiServiceManager.getPersonalityResponse(
         personality,
         testMessage,
-        { userName: 'Test User', currentTopic: 'React', performance: 'struggling' }
+        { userName: 'Test User', currentTopic: 'React', performance: 'struggling' },
       );
       console.log(response.message.substring(0, 200) + '...');
     }

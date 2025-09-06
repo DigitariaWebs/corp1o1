@@ -13,10 +13,10 @@ async function testOpenAI() {
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: 'Say "Hello, OpenAI is working!" in JSON format with a "message" field.' }
+        { role: 'user', content: 'Say "Hello, OpenAI is working!" in JSON format with a "message" field.' },
       ],
       temperature: 0.5,
-      max_tokens: 50
+      max_tokens: 50,
     });
     
     console.log('✅ OpenAI Response:', completion.choices?.[0]?.message?.content);

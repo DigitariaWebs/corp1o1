@@ -14,15 +14,15 @@ exports.generateQuestions = async (req, res, next) => {
       questionCount = 10,
       includeTypes = ['multiple_choice', 'text', 'essay'],
       topic,
-      subtopics = []
+      subtopics = [],
     } = req.body;
 
     // Normalize difficulty to easy/medium/hard for consistent scoring/prompts
     const difficulty = (
       rawDifficulty === 'beginner' ? 'easy' :
-      rawDifficulty === 'intermediate' ? 'medium' :
-      (rawDifficulty === 'advanced' || rawDifficulty === 'expert') ? 'hard' :
-      rawDifficulty
+        rawDifficulty === 'intermediate' ? 'medium' :
+          (rawDifficulty === 'advanced' || rawDifficulty === 'expert') ? 'hard' :
+            rawDifficulty
     );
 
     // Validate inputs
@@ -87,7 +87,7 @@ Format the response as a JSON array with the following structure:
         topic || title,
         difficulty,
         questionCount,
-        includeTypes
+        includeTypes,
       );
       
       console.log(`✅ Successfully generated ${questions.length} questions`);
@@ -100,7 +100,7 @@ Format the response as a JSON array with the following structure:
         success: false,
         error: 'Failed to generate questions',
         message: aiError.message,
-        hint: 'Check AI service configuration'
+        hint: 'Check AI service configuration',
       });
     }
 
@@ -110,7 +110,7 @@ Format the response as a JSON array with the following structure:
       id: `${assessmentId}_q${index + 1}`,
       difficulty: q.difficulty || difficulty,
       points: q.points || (difficulty === 'easy' ? 5 : difficulty === 'hard' ? 15 : 10),
-      timeLimit: q.timeLimit || 120
+      timeLimit: q.timeLimit || 120,
     }));
 
     res.status(200).json({
@@ -120,8 +120,8 @@ Format the response as a JSON array with the following structure:
         questions,
         totalQuestions: questions.length,
         totalPoints: questions.reduce((sum, q) => sum + q.points, 0),
-        estimatedDuration: Math.ceil(questions.reduce((sum, q) => sum + (q.timeLimit || 120), 0) / 60)
-      }
+        estimatedDuration: Math.ceil(questions.reduce((sum, q) => sum + (q.timeLimit || 120), 0) / 60),
+      },
     });
 
   } catch (error) {
@@ -149,14 +149,14 @@ function generateFallbackQuestions(title, category, difficulty, count) {
           `Option A for question ${i}`,
           `Option B for question ${i}`,
           `Option C for question ${i}`,
-          `Option D for question ${i}`
+          `Option D for question ${i}`,
         ],
         correctAnswer: `Option A for question ${i}`,
         points: difficulty === 'easy' ? 5 : difficulty === 'hard' ? 15 : 10,
         difficulty,
         timeLimit: 120,
         hints: [`Think about the fundamentals of ${category}`],
-        explanation: `This tests your understanding of ${title} concepts.`
+        explanation: `This tests your understanding of ${title} concepts.`,
       });
     } else if (type === 'text') {
       questions.push({
@@ -167,7 +167,7 @@ function generateFallbackQuestions(title, category, difficulty, count) {
         difficulty,
         timeLimit: 180,
         hints: [`Consider the practical applications in ${category}`],
-        explanation: `A good answer should demonstrate understanding of ${title}.`
+        explanation: `A good answer should demonstrate understanding of ${title}.`,
       });
     } else {
       questions.push({
@@ -177,8 +177,8 @@ function generateFallbackQuestions(title, category, difficulty, count) {
         points: difficulty === 'easy' ? 15 : difficulty === 'hard' ? 25 : 20,
         difficulty,
         timeLimit: 300,
-        hints: [`Think about real-world applications and best practices`],
-        explanation: `This requires comprehensive understanding of ${title}.`
+        hints: ['Think about real-world applications and best practices'],
+        explanation: `This requires comprehensive understanding of ${title}.`,
       });
     }
   }
@@ -195,7 +195,7 @@ exports.regenerateQuestion = async (req, res, next) => {
       questionId,
       currentQuestion,
       reason,
-      preferences
+      preferences,
     } = req.body;
 
     const prompt = `Regenerate this assessment question with improvements:
@@ -213,20 +213,20 @@ Generate a new question that:
 
 Provide the response in the same JSON format as before.`;
 
-    const completion = await openaiService.createChatCompletion({
+    const completion = await aiServiceManager.createChatCompletion({
       model: 'gpt-4',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert assessment designer. Create an alternative question that tests the same knowledge differently.'
+          content: 'You are an expert assessment designer. Create an alternative question that tests the same knowledge differently.',
         },
         {
           role: 'user',
-          content: prompt
-        }
+          content: prompt,
+        },
       ],
       temperature: 0.8,
-      max_tokens: 500
+      max_tokens: 500,
     });
 
     let newQuestion;
@@ -237,7 +237,7 @@ Provide the response in the same JSON format as before.`;
       newQuestion = {
         ...currentQuestion,
         question: `Alternative: ${currentQuestion.question}`,
-        id: questionId
+        id: questionId,
       };
     }
 
@@ -246,9 +246,9 @@ Provide the response in the same JSON format as before.`;
       data: {
         question: {
           ...newQuestion,
-          id: questionId
-        }
-      }
+          id: questionId,
+        },
+      },
     });
 
   } catch (error) {

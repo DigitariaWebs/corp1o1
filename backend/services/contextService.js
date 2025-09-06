@@ -1,11 +1,11 @@
 // services/contextService.js
-const User = require("../models/User");
-const UserProgress = require("../models/UserProgress");
-const LearningPath = require("../models/LearningPath");
-const LearningModule = require("../models/LearningModule");
-const LearningSession = require("../models/LearningSession");
-const AISession = require("../models/AISession");
-const { AppError } = require("../middleware/errorHandler");
+const User = require('../models/User');
+const UserProgress = require('../models/UserProgress');
+const LearningPath = require('../models/LearningPath');
+const LearningModule = require('../models/LearningModule');
+const LearningSession = require('../models/LearningSession');
+const AISession = require('../models/AISession');
+const { AppError } = require('../middleware/errorHandler');
 
 class ContextService {
   /**
@@ -44,13 +44,13 @@ class ContextService {
         session: {
           ...sessionData,
           timestamp: new Date(),
-          deviceType: sessionData.deviceType || "unknown",
+          deviceType: sessionData.deviceType || 'unknown',
         },
         aiHistory: recentAIActivity,
         patterns: learningPatterns,
         metadata: {
           contextGeneratedAt: new Date(),
-          contextVersion: "1.0",
+          contextVersion: '1.0',
           userId: userId,
         },
       };
@@ -59,12 +59,12 @@ class ContextService {
       context.insights = this.generateContextInsights(context);
 
       console.log(
-        `✅ Context assembled: ${Object.keys(context).length} sections`
+        `✅ Context assembled: ${Object.keys(context).length} sections`,
       );
       return context;
     } catch (error) {
-      console.error("❌ Error assembling user context:", error);
-      throw new AppError("Failed to assemble user context", 500);
+      console.error('❌ Error assembling user context:', error);
+      throw new AppError('Failed to assemble user context', 500);
     }
   }
 
@@ -76,26 +76,26 @@ class ContextService {
   async getUserProfile(userId) {
     const user = await User.findById(userId)
       .select(
-        "firstName lastName email learningProfile subscription preferences statistics"
+        'firstName lastName email learningProfile subscription preferences statistics',
       )
       .lean();
 
     if (!user) {
-      throw new AppError("User not found", 404);
+      throw new AppError('User not found', 404);
     }
 
     return {
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
-      learningStyle: user.learningProfile?.learningStyle || "visual",
-      preferredPace: user.learningProfile?.preferredPace || "moderate",
-      aiPersonality: user.learningProfile?.aiPersonality || "ARIA",
+      learningStyle: user.learningProfile?.learningStyle || 'visual',
+      preferredPace: user.learningProfile?.preferredPace || 'moderate',
+      aiPersonality: user.learningProfile?.aiPersonality || 'ARIA',
       motivationFactors: user.learningProfile?.motivationFactors || [],
       learningGoals: user.learningProfile?.learningGoals || [],
-      preferredTimeOfDay: user.preferences?.learningTime || "any",
+      preferredTimeOfDay: user.preferences?.learningTime || 'any',
       difficultyPreference:
-        user.learningProfile?.difficultyPreference || "moderate",
-      subscription: user.subscription?.tier || "basic",
+        user.learningProfile?.difficultyPreference || 'moderate',
+      subscription: user.subscription?.tier || 'basic',
       joinedDate: user.statistics?.joinDate,
       totalLearningTime: user.statistics?.totalLearningTime || 0,
       streakCount: user.statistics?.currentStreak || 0,
@@ -113,22 +113,22 @@ class ContextService {
     // Get active paths
     const activePaths = await UserProgress.find({
       userId,
-      status: "in_progress",
+      status: 'in_progress',
     })
-      .populate("pathId", "title category difficulty estimatedHours")
+      .populate('pathId', 'title category difficulty estimatedHours')
       .limit(5)
       .lean();
 
     // Get recently completed paths
     const recentCompletions = await UserProgress.find({
       userId,
-      status: "completed",
-      "progress.completedAt": {
+      status: 'completed',
+      'progress.completedAt': {
         $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
       },
     })
-      .populate("pathId", "title category")
-      .sort({ "progress.completedAt": -1 })
+      .populate('pathId', 'title category')
+      .sort({ 'progress.completedAt': -1 })
       .limit(3)
       .lean();
 
@@ -159,12 +159,12 @@ class ContextService {
     // Find most recent active learning session
     const activeSession = await LearningSession.findOne({
       userId,
-      status: { $in: ["active", "paused"] },
+      status: { $in: ['active', 'paused'] },
     })
-      .populate("pathId", "title category difficulty skills")
+      .populate('pathId', 'title category difficulty skills')
       .populate(
-        "moduleId",
-        "title description content learningObjectives estimatedDuration"
+        'moduleId',
+        'title description content learningObjectives estimatedDuration',
       )
       .sort({ startTime: -1 })
       .lean();
@@ -186,7 +186,7 @@ class ContextService {
       hasActiveSession: true,
       sessionId: activeSession._id,
       sessionDuration: Math.round(
-        (new Date() - activeSession.startTime) / (1000 * 60)
+        (new Date() - activeSession.startTime) / (1000 * 60),
       ), // minutes
       currentPath: {
         title: activeSession.pathId?.title,
@@ -223,8 +223,8 @@ class ContextService {
         $gte: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
       },
     })
-      .populate("pathId", "title category difficulty")
-      .populate("moduleId", "title difficulty")
+      .populate('pathId', 'title category difficulty')
+      .populate('moduleId', 'title difficulty')
       .sort({ lastActivityDate: -1 })
       .limit(20)
       .lean();
@@ -242,13 +242,13 @@ class ContextService {
     const averageEngagement =
       recentProgress.reduce(
         (sum, p) => sum + (p.analytics?.engagementScore || 0),
-        0
+        0,
       ) / recentProgress.length;
 
     const averagePerformance =
       recentProgress.reduce(
         (sum, p) => sum + (p.performance?.averageScore || 0),
-        0
+        0,
       ) / recentProgress.length;
 
     // Identify struggling areas (low engagement or low scores)
@@ -256,7 +256,7 @@ class ContextService {
       .filter(
         (p) =>
           (p.analytics?.engagementScore || 0) < 60 ||
-          (p.performance?.averageScore || 0) < 70
+          (p.performance?.averageScore || 0) < 70,
       )
       .map((p) => ({
         area: p.pathId?.category || p.moduleId?.title,
@@ -271,7 +271,7 @@ class ContextService {
       .filter(
         (p) =>
           (p.analytics?.engagementScore || 0) > 85 &&
-          (p.performance?.averageScore || 0) > 85
+          (p.performance?.averageScore || 0) > 85,
       )
       .map((p) => ({
         area: p.pathId?.category || p.moduleId?.title,
@@ -322,7 +322,7 @@ class ContextService {
     const preferredPersonality = this.getMostFrequent(personalities);
 
     const allTopics = recentSessions.flatMap(
-      (s) => s.analytics?.topicsDiscussed || []
+      (s) => s.analytics?.topicsDiscussed || [],
     );
     const commonTopics = this.getMostFrequentTopics(allTopics, 3);
 
@@ -345,7 +345,7 @@ class ContextService {
       lastInteractionDate: recentSessions[0]?.startTime,
       totalConversationMessages: recentSessions.reduce(
         (sum, s) => sum + s.messages.length,
-        0
+        0,
       ),
     };
   }
@@ -427,13 +427,13 @@ class ContextService {
     const recentActivity = context.patterns?.sessionCount || 0;
     const strugglingAreas = context.performance?.strugglingAreas?.length || 0;
 
-    if (strugglingAreas > 2 && engagement < 50) return "struggling";
-    if (engagement > 85 && recentActivity > 10) return "highly_engaged";
-    if (engagement > 70 && recentActivity > 5) return "motivated";
-    if (recentActivity === 0) return "inactive";
-    if (engagement < 40) return "low_engagement";
+    if (strugglingAreas > 2 && engagement < 50) return 'struggling';
+    if (engagement > 85 && recentActivity > 10) return 'highly_engaged';
+    if (engagement > 70 && recentActivity > 5) return 'motivated';
+    if (recentActivity === 0) return 'inactive';
+    if (engagement < 40) return 'low_engagement';
 
-    return "stable";
+    return 'stable';
   }
 
   /**
@@ -446,15 +446,15 @@ class ContextService {
     const personality = context.user?.aiPersonality;
 
     const approaches = {
-      struggling: "supportive_detailed",
-      highly_engaged: "challenging_advanced",
-      motivated: "encouraging_progressive",
-      inactive: "motivating_gentle",
-      low_engagement: "engaging_interactive",
-      stable: "balanced_adaptive",
+      struggling: 'supportive_detailed',
+      highly_engaged: 'challenging_advanced',
+      motivated: 'encouraging_progressive',
+      inactive: 'motivating_gentle',
+      low_engagement: 'engaging_interactive',
+      stable: 'balanced_adaptive',
     };
 
-    return approaches[userState] || "balanced_adaptive";
+    return approaches[userState] || 'balanced_adaptive';
   }
 
   /**
@@ -469,7 +469,7 @@ class ContextService {
     });
 
     return Object.keys(frequency).reduce((a, b) =>
-      frequency[a] > frequency[b] ? a : b
+      frequency[a] > frequency[b] ? a : b,
     );
   }
 
@@ -495,13 +495,13 @@ class ContextService {
 
   getTopDays(dailyActivity, limit = 3) {
     const dayNames = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
     ];
 
     return dailyActivity
@@ -519,13 +519,13 @@ class ContextService {
 
   calculateActivityLevel(progressRecords) {
     const activeDays = new Set(
-      progressRecords.map((p) => p.lastActivityDate.toDateString())
+      progressRecords.map((p) => p.lastActivityDate.toDateString()),
     ).size;
 
-    if (activeDays >= 10) return "high";
-    if (activeDays >= 5) return "moderate";
-    if (activeDays >= 1) return "low";
-    return "inactive";
+    if (activeDays >= 10) return 'high';
+    if (activeDays >= 5) return 'moderate';
+    if (activeDays >= 1) return 'low';
+    return 'inactive';
   }
 
   getLastAssessmentScore(progressRecords) {
@@ -537,10 +537,10 @@ class ContextService {
   }
 
   calculateImprovementTrend(progressRecords) {
-    if (progressRecords.length < 2) return "insufficient_data";
+    if (progressRecords.length < 2) return 'insufficient_data';
 
     const sortedByDate = progressRecords.sort(
-      (a, b) => a.lastActivityDate - b.lastActivityDate
+      (a, b) => a.lastActivityDate - b.lastActivityDate,
     );
     const recent = sortedByDate.slice(-3);
     const earlier = sortedByDate.slice(0, 3);
@@ -552,9 +552,9 @@ class ContextService {
       earlier.reduce((sum, p) => sum + (p.performance?.averageScore || 0), 0) /
       earlier.length;
 
-    if (recentAvg > earlierAvg + 5) return "improving";
-    if (recentAvg < earlierAvg - 5) return "declining";
-    return "stable";
+    if (recentAvg > earlierAvg + 5) return 'improving';
+    if (recentAvg < earlierAvg - 5) return 'declining';
+    return 'stable';
   }
 
   calculateConsistencyScore(sessions) {
@@ -573,7 +573,7 @@ class ContextService {
     const variance =
       intervals.reduce(
         (sum, interval) => sum + Math.pow(interval - avgInterval, 2),
-        0
+        0,
       ) / intervals.length;
 
     // Lower variance means higher consistency
@@ -587,13 +587,13 @@ class ContextService {
       userId,
     })
       .sort({ lastActivityDate: -1 })
-      .populate("pathId moduleId")
+      .populate('pathId moduleId')
       .lean();
 
     if (!lastActivity) return null;
 
     return {
-      type: lastActivity.pathId ? "path" : "module",
+      type: lastActivity.pathId ? 'path' : 'module',
       title: lastActivity.pathId?.title || lastActivity.moduleId?.title,
       date: lastActivity.lastActivityDate,
       progress: lastActivity.progress?.percentage || 0,
@@ -604,15 +604,15 @@ class ContextService {
     const indicators = [];
 
     if (context.performance?.averageEngagement < 50) {
-      indicators.push("low_engagement");
+      indicators.push('low_engagement');
     }
 
     if (context.performance?.strugglingAreas?.length > 2) {
-      indicators.push("multiple_struggle_areas");
+      indicators.push('multiple_struggle_areas');
     }
 
     if (context.patterns?.consistencyScore < 30) {
-      indicators.push("inconsistent_learning");
+      indicators.push('inconsistent_learning');
     }
 
     return indicators;
@@ -644,21 +644,21 @@ class ContextService {
     const userState = context.insights?.userState;
     const motivationLevel = context.insights?.motivationLevel || 50;
 
-    if (userState === "struggling") {
-      return personality === "COACH"
-        ? "motivational_supportive"
-        : "gentle_encouraging";
+    if (userState === 'struggling') {
+      return personality === 'COACH'
+        ? 'motivational_supportive'
+        : 'gentle_encouraging';
     }
 
-    if (userState === "highly_engaged" && motivationLevel > 80) {
-      return "challenging_expert";
+    if (userState === 'highly_engaged' && motivationLevel > 80) {
+      return 'challenging_expert';
     }
 
     if (motivationLevel < 30) {
-      return "inspiring_motivational";
+      return 'inspiring_motivational';
     }
 
-    return "balanced_adaptive";
+    return 'balanced_adaptive';
   }
 }
 

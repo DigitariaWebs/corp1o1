@@ -1,13 +1,13 @@
 // controllers/analyticsController.js
-const { catchAsync } = require("../middleware/errorHandler");
-const LearningAnalytics = require("../models/LearningAnalytics");
-const UserProgress = require("../models/UserProgress");
-const LearningSession = require("../models/LearningSession");
-const AISession = require("../models/AISession");
-const { analyticsService } = require("../services/analyticsService");
-const { predictionService } = require("../services/predictionService");
-const { dataAnalyzer } = require("../utils/dataAnalyzer");
-const { patternDetector } = require("../utils/patternDetector");
+const { catchAsync } = require('../middleware/errorHandler');
+const LearningAnalytics = require('../models/LearningAnalytics');
+const UserProgress = require('../models/UserProgress');
+const LearningSession = require('../models/LearningSession');
+const AISession = require('../models/AISession');
+const { analyticsService } = require('../services/analyticsService');
+const { predictionService } = require('../services/predictionService');
+const { dataAnalyzer } = require('../utils/dataAnalyzer');
+const { patternDetector } = require('../utils/patternDetector');
 
 /**
  * @desc    Get personalized analytics dashboard
@@ -15,7 +15,7 @@ const { patternDetector } = require("../utils/patternDetector");
  * @access  Private
  */
 const getDashboard = catchAsync(async (req, res) => {
-  const { timeRange = "month", widgets } = req.query;
+  const { timeRange = 'month', widgets } = req.query;
   const userId = req.user.id;
 
   // Get latest analytics
@@ -25,71 +25,71 @@ const getDashboard = catchAsync(async (req, res) => {
     return res.status(200).json({
       success: true,
       data: {
-        message: "Start learning to unlock your personalized dashboard",
+        message: 'Start learning to unlock your personalized dashboard',
         hasData: false,
         suggestions: [
-          "Enroll in a learning path",
-          "Complete your first module",
-          "Interact with the AI assistant"
-        ]
-      }
+          'Enroll in a learning path',
+          'Complete your first module',
+          'Interact with the AI assistant',
+        ],
+      },
     });
   }
 
   // Build dashboard based on requested widgets
   const dashboardData = {};
 
-  if (widgets.includes("progress_overview")) {
+  if (widgets.includes('progress_overview')) {
     dashboardData.progressOverview = {
       completionRate: latestAnalytics.progress.completionRate,
       modulesCompleted: latestAnalytics.progress.modulesCompleted,
       pathsEnrolled: latestAnalytics.progress.pathsEnrolled,
       averageScore: latestAnalytics.progress.averageModuleScore,
-      learningVelocity: latestAnalytics.calculateLearningVelocity()
+      learningVelocity: latestAnalytics.calculateLearningVelocity(),
     };
   }
 
-  if (widgets.includes("engagement_metrics")) {
+  if (widgets.includes('engagement_metrics')) {
     dashboardData.engagementMetrics = {
       totalSessionTime: latestAnalytics.engagement.totalSessionTime,
       averageSessionDuration: latestAnalytics.engagement.averageSessionDuration,
       focusScore: latestAnalytics.engagement.focusScore,
       sessionCount: latestAnalytics.engagement.sessionCount,
-      engagementTrend: latestAnalytics.calculateEngagementTrend()
+      engagementTrend: latestAnalytics.calculateEngagementTrend(),
     };
   }
 
-  if (widgets.includes("recent_achievements")) {
+  if (widgets.includes('recent_achievements')) {
     const recentAchievements = await analyticsService.getRecentAchievements(userId, 5);
     dashboardData.recentAchievements = recentAchievements;
   }
 
-  if (widgets.includes("learning_streak")) {
+  if (widgets.includes('learning_streak')) {
     const streakData = await analyticsService.getLearningStreak(userId);
     dashboardData.learningStreak = streakData;
   }
 
-  if (widgets.includes("ai_interactions")) {
+  if (widgets.includes('ai_interactions')) {
     dashboardData.aiInteractions = {
       totalInteractions: latestAnalytics.aiInteraction.totalInteractions,
       satisfactionScore: latestAnalytics.aiInteraction.satisfactionScore,
       effectivenessScore: latestAnalytics.aiInteraction.effectivenessScore,
-      personalityUsage: latestAnalytics.aiInteraction.personalityUsage
+      personalityUsage: latestAnalytics.aiInteraction.personalityUsage,
     };
   }
 
-  if (widgets.includes("performance_trends")) {
+  if (widgets.includes('performance_trends')) {
     const trends = await analyticsService.getPerformanceTrends(userId, timeRange);
     dashboardData.performanceTrends = trends;
   }
 
-  if (widgets.includes("upcoming_goals")) {
+  if (widgets.includes('upcoming_goals')) {
     const goals = await analyticsService.getUpcomingGoals(userId);
     dashboardData.upcomingGoals = goals;
   }
 
-  if (widgets.includes("recommendations")) {
-    const RecommendationEngine = require("../models/RecommendationEngine");
+  if (widgets.includes('recommendations')) {
+    const RecommendationEngine = require('../models/RecommendationEngine');
     const recommendations = await RecommendationEngine.getActiveRecommendations(userId, 3);
     dashboardData.recommendations = recommendations;
   }
@@ -100,8 +100,8 @@ const getDashboard = catchAsync(async (req, res) => {
       dashboard: dashboardData,
       lastUpdated: latestAnalytics.calculatedAt,
       hasData: true,
-      insights: latestAnalytics.identifyLearningPatterns()
-    }
+      insights: latestAnalytics.identifyLearningPatterns(),
+    },
   });
 });
 
@@ -111,7 +111,7 @@ const getDashboard = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getPerformanceAnalytics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", pathId, moduleId, includeAIAnalysis = true, metrics } = req.query;
+  const { timeRange = '30d', pathId, moduleId, includeAIAnalysis = true, metrics } = req.query;
   const userId = req.user.id;
 
   // Get performance data
@@ -119,7 +119,7 @@ const getPerformanceAnalytics = catchAsync(async (req, res) => {
     timeRange,
     pathId,
     moduleId,
-    metrics
+    metrics,
   });
 
   // Get AI insights if requested
@@ -131,7 +131,7 @@ const getPerformanceAnalytics = catchAsync(async (req, res) => {
   // Get comparison data
   const comparisonData = await analyticsService.getPerformanceComparison(userId, {
     timeRange,
-    pathId
+    pathId,
   });
 
   res.status(200).json({
@@ -140,8 +140,8 @@ const getPerformanceAnalytics = catchAsync(async (req, res) => {
       performance: performanceData,
       aiInsights,
       comparison: comparisonData,
-      generatedAt: new Date().toISOString()
-    }
+      generatedAt: new Date().toISOString(),
+    },
   });
 });
 
@@ -151,14 +151,14 @@ const getPerformanceAnalytics = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getLearningPatterns = catchAsync(async (req, res) => {
-  const { timeRange = "30d", patternTypes, minConfidence = 60 } = req.query;
+  const { timeRange = '30d', patternTypes, minConfidence = 60 } = req.query;
   const userId = req.user.id;
 
   // Detect learning patterns
   const patterns = await patternDetector.detectPatterns(userId, {
     timeRange,
     patternTypes,
-    minConfidence
+    minConfidence,
   });
 
   // Get optimal timing patterns
@@ -177,14 +177,14 @@ const getLearningPatterns = catchAsync(async (req, res) => {
         overall: patterns,
         timing: timingPatterns,
         engagement: engagementPatterns,
-        struggles: strugglePatterns
+        struggles: strugglePatterns,
       },
       metadata: {
         analysisTimeRange: timeRange,
         minimumConfidence: minConfidence,
-        generatedAt: new Date().toISOString()
-      }
-    }
+        generatedAt: new Date().toISOString(),
+      },
+    },
   });
 });
 
@@ -194,44 +194,44 @@ const getLearningPatterns = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getPredictions = catchAsync(async (req, res) => {
-  const { predictionTypes, horizon = "1month", includeRecommendations = true } = req.query;
+  const { predictionTypes, horizon = '1month', includeRecommendations = true } = req.query;
   const userId = req.user.id;
 
   // Generate predictions
   const predictions = {};
 
-  if (predictionTypes.includes("completion_likelihood")) {
+  if (predictionTypes.includes('completion_likelihood')) {
     predictions.completionLikelihood = await predictionService.predictCompletionLikelihood(userId);
   }
 
-  if (predictionTypes.includes("time_to_completion")) {
+  if (predictionTypes.includes('time_to_completion')) {
     predictions.timeToCompletion = await predictionService.predictTimeToCompletion(userId);
   }
 
-  if (predictionTypes.includes("performance_forecast")) {
+  if (predictionTypes.includes('performance_forecast')) {
     predictions.performanceForecast = await predictionService.forecastPerformance(userId, horizon);
   }
 
-  if (predictionTypes.includes("engagement_forecast")) {
+  if (predictionTypes.includes('engagement_forecast')) {
     predictions.engagementForecast = await predictionService.forecastEngagement(userId, horizon);
   }
 
-  if (predictionTypes.includes("risk_assessment")) {
+  if (predictionTypes.includes('risk_assessment')) {
     predictions.riskAssessment = await predictionService.assessRisks(userId);
   }
 
-  if (predictionTypes.includes("optimal_next_steps")) {
+  if (predictionTypes.includes('optimal_next_steps')) {
     predictions.optimalNextSteps = await predictionService.suggestOptimalNextSteps(userId);
   }
 
   // Generate recommendations based on predictions
   let recommendations = null;
   if (includeRecommendations) {
-    const RecommendationEngine = require("../models/RecommendationEngine");
+    const RecommendationEngine = require('../models/RecommendationEngine');
     const context = {
       userId,
       predictions,
-      category: "General"
+      category: 'General',
     };
     recommendations = await RecommendationEngine.generateRecommendations(userId, context, 3);
   }
@@ -243,10 +243,10 @@ const getPredictions = catchAsync(async (req, res) => {
       recommendations,
       metadata: {
         horizon,
-        confidenceNote: "Predictions are based on current data and may change as you progress",
-        generatedAt: new Date().toISOString()
-      }
-    }
+        confidenceNote: 'Predictions are based on current data and may change as you progress',
+        generatedAt: new Date().toISOString(),
+      },
+    },
   });
 });
 
@@ -256,14 +256,14 @@ const getPredictions = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getInsights = catchAsync(async (req, res) => {
-  const { timeRange = "30d", category = "all", format = "summary" } = req.query;
+  const { timeRange = '30d', category = 'all', format = 'summary' } = req.query;
   const userId = req.user.id;
 
   // Generate AI insights
   const insights = await analyticsService.generatePersonalizedInsights(userId, {
     timeRange,
     category,
-    format
+    format,
   });
 
   // Get actionable recommendations
@@ -282,9 +282,9 @@ const getInsights = catchAsync(async (req, res) => {
         insightType: format,
         timeRange,
         category,
-        generatedAt: new Date().toISOString()
-      }
-    }
+        generatedAt: new Date().toISOString(),
+      },
+    },
   });
 });
 
@@ -294,13 +294,13 @@ const getInsights = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getEngagementMetrics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", granularity = "day", includeComparison = false } = req.query;
+  const { timeRange = '30d', granularity = 'day', includeComparison = false } = req.query;
   const userId = req.user.id;
 
   // Get engagement metrics
   const engagementMetrics = await analyticsService.getEngagementMetrics(userId, {
     timeRange,
-    granularity
+    granularity,
   });
 
   // Get engagement trends
@@ -321,9 +321,9 @@ const getEngagementMetrics = catchAsync(async (req, res) => {
       insights: {
         optimalEngagementTime: trends.optimalTime,
         engagementScore: trends.overallScore,
-        improvementAreas: trends.improvementAreas
-      }
-    }
+        improvementAreas: trends.improvementAreas,
+      },
+    },
   });
 });
 
@@ -333,14 +333,14 @@ const getEngagementMetrics = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getProgressTrends = catchAsync(async (req, res) => {
-  const { timeRange = "30d", category = "all", difficulty = "all" } = req.query;
+  const { timeRange = '30d', category = 'all', difficulty = 'all' } = req.query;
   const userId = req.user.id;
 
   // Get progress trends
   const progressTrends = await analyticsService.getProgressTrends(userId, {
     timeRange,
     category,
-    difficulty
+    difficulty,
   });
 
   // Get milestone achievements
@@ -357,9 +357,9 @@ const getProgressTrends = catchAsync(async (req, res) => {
       velocity,
       projections: {
         estimatedCompletion: velocity.estimatedCompletion,
-        recommendedPace: velocity.recommendedPace
-      }
-    }
+        recommendedPace: velocity.recommendedPace,
+      },
+    },
   });
 });
 
@@ -369,13 +369,13 @@ const getProgressTrends = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getComparisonAnalytics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", category = "all" } = req.query;
+  const { timeRange = '30d', category = 'all' } = req.query;
   const userId = req.user.id;
 
   // Get peer comparison data (anonymized)
   const comparison = await analyticsService.getPeerComparison(userId, {
     timeRange,
-    category
+    category,
   });
 
   // Get percentile rankings
@@ -386,8 +386,8 @@ const getComparisonAnalytics = catchAsync(async (req, res) => {
     data: {
       comparison,
       rankings,
-      note: "All comparison data is anonymized and aggregated for privacy protection"
-    }
+      note: 'All comparison data is anonymized and aggregated for privacy protection',
+    },
   });
 });
 
@@ -397,13 +397,13 @@ const getComparisonAnalytics = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getTimeAnalytics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", granularity = "day" } = req.query;
+  const { timeRange = '30d', granularity = 'day' } = req.query;
   const userId = req.user.id;
 
   // Get time-based analytics
   const timeAnalytics = await analyticsService.getTimeBasedAnalytics(userId, {
     timeRange,
-    granularity
+    granularity,
   });
 
   // Detect optimal learning times
@@ -417,9 +417,9 @@ const getTimeAnalytics = catchAsync(async (req, res) => {
       recommendations: {
         bestDayOfWeek: optimalTimes.bestDay,
         bestTimeOfDay: optimalTimes.bestHour,
-        idealSessionLength: optimalTimes.idealSessionLength
-      }
-    }
+        idealSessionLength: optimalTimes.idealSessionLength,
+      },
+    },
   });
 });
 
@@ -429,13 +429,13 @@ const getTimeAnalytics = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getSkillAnalytics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", category = "all" } = req.query;
+  const { timeRange = '30d', category = 'all' } = req.query;
   const userId = req.user.id;
 
   // Get skill development data
   const skillAnalytics = await analyticsService.getSkillAnalytics(userId, {
     timeRange,
-    category
+    category,
   });
 
   // Get skill gaps and recommendations
@@ -450,8 +450,8 @@ const getSkillAnalytics = catchAsync(async (req, res) => {
       skills: skillAnalytics,
       gaps: skillGaps,
       progression,
-      recommendations: await analyticsService.getSkillRecommendations(userId)
-    }
+      recommendations: await analyticsService.getSkillRecommendations(userId),
+    },
   });
 });
 
@@ -461,7 +461,7 @@ const getSkillAnalytics = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getAIEffectivenessAnalytics = catchAsync(async (req, res) => {
-  const { timeRange = "30d", includeComparison = false } = req.query;
+  const { timeRange = '30d', includeComparison = false } = req.query;
   const userId = req.user.id;
 
   // Get AI effectiveness metrics
@@ -481,9 +481,9 @@ const getAIEffectivenessAnalytics = catchAsync(async (req, res) => {
       optimizations,
       insights: {
         mostEffectivePersonality: personalityComparison.mostEffective,
-        improvementPotential: aiEffectiveness.improvementPotential
-      }
-    }
+        improvementPotential: aiEffectiveness.improvementPotential,
+      },
+    },
   });
 });
 
@@ -500,7 +500,7 @@ const getPersonalizedInsights = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: personalizedInsights
+    data: personalizedInsights,
   });
 });
 
@@ -510,7 +510,7 @@ const getPersonalizedInsights = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getGoalProgress = catchAsync(async (req, res) => {
-  const { timeRange = "30d" } = req.query;
+  const { timeRange = '30d' } = req.query;
   const userId = req.user.id;
 
   // Get goal progress
@@ -518,7 +518,7 @@ const getGoalProgress = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: goalProgress
+    data: goalProgress,
   });
 });
 
@@ -536,7 +536,7 @@ const getLearningPath = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: pathInsights
+    data: pathInsights,
   });
 });
 
@@ -546,7 +546,7 @@ const getLearningPath = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getAnalyticsHistory = catchAsync(async (req, res) => {
-  const { timeRange = "90d", granularity = "week" } = req.query;
+  const { timeRange = '90d', granularity = 'week' } = req.query;
   const userId = req.user.id;
 
   // Get historical analytics
@@ -562,9 +562,9 @@ const getAnalyticsHistory = catchAsync(async (req, res) => {
       metadata: {
         timeRange,
         granularity,
-        dataPoints: history.length
-      }
-    }
+        dataPoints: history.length,
+      },
+    },
   });
 });
 
@@ -585,12 +585,12 @@ const generateReport = catchAsync(async (req, res) => {
     includeCharts,
     includeTables,
     includeInsights,
-    customSections
+    customSections,
   });
 
-  if (format === "pdf" || format === "html") {
-    res.setHeader("Content-Type", format === "pdf" ? "application/pdf" : "text/html");
-    res.setHeader("Content-Disposition", `attachment; filename="learning-report.${format}"`);
+  if (format === 'pdf' || format === 'html') {
+    res.setHeader('Content-Type', format === 'pdf' ? 'application/pdf' : 'text/html');
+    res.setHeader('Content-Disposition', `attachment; filename="learning-report.${format}"`);
     return res.send(report);
   }
 
@@ -602,9 +602,9 @@ const generateReport = catchAsync(async (req, res) => {
         reportType,
         timeRange,
         format,
-        generatedAt: new Date().toISOString()
-      }
-    }
+        generatedAt: new Date().toISOString(),
+      },
+    },
   });
 });
 
@@ -622,20 +622,20 @@ const exportAnalyticsData = catchAsync(async (req, res) => {
     timeRange,
     dataTypes,
     format,
-    includePersonalData
+    includePersonalData,
   });
 
   // Set appropriate headers
   const contentType = {
-    json: "application/json",
-    csv: "text/csv",
-    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    json: 'application/json',
+    csv: 'text/csv',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   }[format];
 
-  res.setHeader("Content-Type", contentType);
-  res.setHeader("Content-Disposition", `attachment; filename="analytics-export.${format}"`);
+  res.setHeader('Content-Type', contentType);
+  res.setHeader('Content-Disposition', `attachment; filename="analytics-export.${format}"`);
 
-  if (format === "json") {
+  if (format === 'json') {
     return res.json(exportData);
   }
 
@@ -659,5 +659,5 @@ module.exports = {
   getLearningPath,
   getAnalyticsHistory,
   generateReport,
-  exportAnalyticsData
+  exportAnalyticsData,
 };

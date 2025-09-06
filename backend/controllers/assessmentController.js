@@ -1,11 +1,11 @@
 // controllers/assessmentController.js
-const Assessment = require("../models/Assessment");
-const AssessmentSession = require("../models/AssessmentSession");
-const User = require("../models/User");
-const { assessmentService } = require("../services/assessmentService");
-const { certificateService } = require("../services/certificateService");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
-const { aiServiceManager } = require("../services/aiServiceManager");
+const Assessment = require('../models/Assessment');
+const AssessmentSession = require('../models/AssessmentSession');
+const User = require('../models/User');
+const { assessmentService } = require('../services/assessmentService');
+const { certificateService } = require('../services/certificateService');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
+const { aiServiceManager } = require('../services/aiServiceManager');
 
 /**
  * Get available assessments for user
@@ -29,8 +29,8 @@ const getAvailableAssessments = catchAsync(async (req, res) => {
         data: {
           assessments: [],
           totalCount: 0,
-          hasMore: false
-        }
+          hasMore: false,
+        },
       });
     }
   }
@@ -46,7 +46,7 @@ const getAvailableAssessments = catchAsync(async (req, res) => {
   };
 
   if (category) filters.category = category;
-  if (difficulty && difficulty !== "all") filters.difficulty = difficulty;
+  if (difficulty && difficulty !== 'all') filters.difficulty = difficulty;
   if (type) filters.type = type;
 
   // For now, simplify to get all matching assessments (including AI-generated)
@@ -68,15 +68,15 @@ const getAvailableAssessments = catchAsync(async (req, res) => {
     },
     {
       $group: {
-        _id: "$assessmentId",
+        _id: '$assessmentId',
         totalAttempts: { $sum: 1 },
         completedAttempts: {
-          $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
         },
-        bestScore: { $max: "$results.finalScore" },
-        lastAttempt: { $max: "$startTime" },
+        bestScore: { $max: '$results.finalScore' },
+        lastAttempt: { $max: '$startTime' },
         hasPassed: {
-          $max: { $cond: ["$results.passed", 1, 0] },
+          $max: { $cond: ['$results.passed', 1, 0] },
         },
       },
     },
@@ -90,46 +90,46 @@ const getAvailableAssessments = catchAsync(async (req, res) => {
 
   // Format response data
   const assessments = eligibleAssessments.map((assessment) => {
-      const attemptData = attemptsLookup[assessment._id.toString()] || {
-        totalAttempts: 0,
-        completedAttempts: 0,
-        bestScore: null,
-        lastAttempt: null,
-        hasPassed: false,
-      };
+    const attemptData = attemptsLookup[assessment._id.toString()] || {
+      totalAttempts: 0,
+      completedAttempts: 0,
+      bestScore: null,
+      lastAttempt: null,
+      hasPassed: false,
+    };
 
-      return {
-        id: assessment._id,
-        title: assessment.title,
-        description: assessment.description,
-        type: assessment.type,
-        category: assessment.category,
-        difficulty: assessment.difficulty,
-        questionCount: assessment.questionCount,
-        estimatedDuration: assessment.estimatedDuration,
-        passingScore: assessment.scoring.passingScore,
-        maxAttempts: assessment.attemptSettings.maxAttempts,
-        timeConstraints: assessment.timeConstraints,
-        aiFeatures: assessment.aiFeatures,
-        certification: assessment.certification,
-        tags: assessment.tags,
-        userProgress: {
-          attempts: attemptData.totalAttempts,
-          completedAttempts: attemptData.completedAttempts,
-          bestScore: attemptData.bestScore,
-          lastAttempt: attemptData.lastAttempt,
-          hasPassed: attemptData.hasPassed > 0,
-          canRetake:
+    return {
+      id: assessment._id,
+      title: assessment.title,
+      description: assessment.description,
+      type: assessment.type,
+      category: assessment.category,
+      difficulty: assessment.difficulty,
+      questionCount: assessment.questionCount,
+      estimatedDuration: assessment.estimatedDuration,
+      passingScore: assessment.scoring.passingScore,
+      maxAttempts: assessment.attemptSettings.maxAttempts,
+      timeConstraints: assessment.timeConstraints,
+      aiFeatures: assessment.aiFeatures,
+      certification: assessment.certification,
+      tags: assessment.tags,
+      userProgress: {
+        attempts: attemptData.totalAttempts,
+        completedAttempts: attemptData.completedAttempts,
+        bestScore: attemptData.bestScore,
+        lastAttempt: attemptData.lastAttempt,
+        hasPassed: attemptData.hasPassed > 0,
+        canRetake:
             attemptData.completedAttempts <
             assessment.attemptSettings.maxAttempts,
-        },
-        analytics: {
-          averageScore: assessment.analytics.averageScore,
-          passRate: assessment.analytics.passRate,
-          totalAttempts: assessment.analytics.totalAttempts,
-        },
-      };
-    });
+      },
+      analytics: {
+        averageScore: assessment.analytics.averageScore,
+        passRate: assessment.analytics.passRate,
+        totalAttempts: assessment.analytics.totalAttempts,
+      },
+    };
+  });
 
   res.status(200).json({
     success: true,
@@ -154,19 +154,19 @@ const getAssessmentDetails = catchAsync(async (req, res) => {
   const { assessmentId } = req.params;
 
   console.log(
-    `🔍 Getting assessment details: ${assessmentId} for user: ${userId}`
+    `🔍 Getting assessment details: ${assessmentId} for user: ${userId}`,
   );
 
   const assessment = await Assessment.findById(assessmentId)
-    .populate("relatedPaths", "title category difficulty")
-    .populate("relatedModules", "title difficulty");
+    .populate('relatedPaths', 'title category difficulty')
+    .populate('relatedModules', 'title difficulty');
 
   if (!assessment) {
-    throw new AppError("Assessment not found", 404);
+    throw new AppError('Assessment not found', 404);
   }
 
   if (!assessment.isActive || !assessment.isPublished) {
-    throw new AppError("Assessment not available", 403);
+    throw new AppError('Assessment not available', 403);
   }
 
   // Check eligibility
@@ -175,11 +175,11 @@ const getAssessmentDetails = catchAsync(async (req, res) => {
   // Get user's attempt history
   const userAttempts = await AssessmentSession.findUserAttempts(
     userId,
-    assessmentId
+    assessmentId,
   );
   const bestAttempt = await AssessmentSession.findBestAttempt(
     userId,
-    assessmentId
+    assessmentId,
   );
 
   // Check certificate eligibility if assessment issues certificates
@@ -188,7 +188,7 @@ const getAssessmentDetails = catchAsync(async (req, res) => {
     const certEligibility =
       await certificateService.checkCertificateEligibility(
         userId,
-        assessmentId
+        assessmentId,
       );
     certificateInfo = {
       eligible: certEligibility.eligible,
@@ -222,7 +222,7 @@ const getAssessmentDetails = catchAsync(async (req, res) => {
       eligibility,
       userProgress: {
         totalAttempts: userAttempts.length,
-        completedAttempts: userAttempts.filter((a) => a.status === "completed")
+        completedAttempts: userAttempts.filter((a) => a.status === 'completed')
           .length,
         bestScore: bestAttempt?.results?.finalScore || null,
         lastAttempt: userAttempts[0] || null,
@@ -249,13 +249,13 @@ const startAssessment = catchAsync(async (req, res) => {
   const sessionOptions = req.body;
 
   console.log(
-    `▶️ Starting assessment session: ${assessmentId} for user: ${userId}`
+    `▶️ Starting assessment session: ${assessmentId} for user: ${userId}`,
   );
 
   const sessionData = await assessmentService.createAssessmentSession(
     userId,
     assessmentId,
-    sessionOptions
+    sessionOptions,
   );
 
   res.status(201).json({
@@ -277,15 +277,15 @@ const getSessionStatus = catchAsync(async (req, res) => {
   const session = await AssessmentSession.findOne({
     sessionId,
     userId,
-  }).populate("assessmentId", "title type category timeConstraints");
+  }).populate('assessmentId', 'title type category timeConstraints');
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   // Check if session should timeout
-  if (session.status === "in_progress" && session.shouldTimeout()) {
-    session.status = "timeout";
+  if (session.status === 'in_progress' && session.shouldTimeout()) {
+    session.status = 'timeout';
     await session.save();
   }
 
@@ -301,12 +301,12 @@ const getSessionStatus = catchAsync(async (req, res) => {
       },
       timeRemaining: session.sessionConfig.hasTimeLimit
         ? Math.max(
-            0,
-            session.sessionConfig.totalTimeMinutes * 60 -
-              session.timeTracking.totalTimeSpent
-          )
+          0,
+          session.sessionConfig.totalTimeMinutes * 60 -
+              session.timeTracking.totalTimeSpent,
+        )
         : null,
-      canContinue: ["in_progress", "paused"].includes(session.status),
+      canContinue: ['in_progress', 'paused'].includes(session.status),
     },
   });
 });
@@ -321,7 +321,7 @@ const submitAnswer = catchAsync(async (req, res) => {
   const { questionId, answer, timeSpent } = req.body;
 
   console.log(
-    `📝 Submitting answer: Session ${sessionId}, Question ${questionId}`
+    `📝 Submitting answer: Session ${sessionId}, Question ${questionId}`,
   );
 
   // Verify session ownership
@@ -331,14 +331,14 @@ const submitAnswer = catchAsync(async (req, res) => {
   });
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   const result = await assessmentService.submitAnswer(
     sessionId,
     questionId,
     answer,
-    timeSpent
+    timeSpent,
   );
 
   res.status(200).json({
@@ -365,12 +365,12 @@ const completeAssessment = catchAsync(async (req, res) => {
   });
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   const results = await assessmentService.completeAssessment(
     sessionId,
-    finalAnswers
+    finalAnswers,
   );
 
   // If eligible for certificate, generate it automatically
@@ -378,15 +378,15 @@ const completeAssessment = catchAsync(async (req, res) => {
     try {
       const certificate = await certificateService.generateCertificate(
         userId,
-        session.assessmentId
+        session.assessmentId,
       );
 
       results.certificate = certificate.getSummary();
     } catch (error) {
-      console.error("Failed to generate certificate:", error);
+      console.error('Failed to generate certificate:', error);
       // Don't fail the assessment completion due to certificate generation failure
       results.certificateError =
-        "Certificate generation failed - please contact support";
+        'Certificate generation failed - please contact support';
     }
   }
 
@@ -419,7 +419,7 @@ const planCustomAssessments = catchAsync(async (req, res) => {
         firstName: 'Test',
         lastName: 'User',
         role: 'user',
-        isActive: true
+        isActive: true,
       });
       console.log('📋 Created default test user:', defaultUser._id);
     }
@@ -428,11 +428,11 @@ const planCustomAssessments = catchAsync(async (req, res) => {
     console.log('📋 Using test user ID:', userId);
   }
   const {
-    primaryDomain = "Programming",
+    primaryDomain = 'Programming',
     subdomains = [],
-    yearsExperience = "0-1",
-    goals = "baseline",
-    preferredDifficulty = "intermediate",
+    yearsExperience = '0-1',
+    goals = 'baseline',
+    preferredDifficulty = 'intermediate',
   } = req.body || {};
 
   // Create three assessment briefs: diagnostic, skills focus, stretch
@@ -469,7 +469,7 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
       subdomains,
       yearsExperience,
       goals,
-      preferredDifficulty
+      preferredDifficulty,
     );
     
     console.log('✅ Generated custom assessment plan:', plan.map(p => p.title));
@@ -480,7 +480,7 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
       // Check if assessment already exists (by title and userId)
       let existingAssessment = await Assessment.findOne({
         title: assessment.title,
-        createdBy: userId
+        createdBy: userId,
       });
       
       if (!existingAssessment) {
@@ -496,7 +496,7 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
           'Business': 'Business Strategy',
           'Data Science': 'Data & Analytics',
           'Analytics': 'Data & Analytics',
-          'Personal': 'Personal Development'
+          'Personal': 'Personal Development',
         };
         
         const validCategory = categoryMapping[primaryDomain] || 'Technical Skills';
@@ -517,11 +517,11 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
             totalPoints: totalPoints,
             passingScore: 70, // Default 70% passing score
             perfectScore: 100,
-            weightingMethod: 'equal'
+            weightingMethod: 'equal',
           },
           timeConstraints: {
             totalTime: assessment.estimatedDurationMinutes,
-            perQuestion: Math.ceil(assessment.estimatedDurationMinutes * 60 / assessment.questionCount)
+            perQuestion: Math.ceil(assessment.estimatedDurationMinutes * 60 / assessment.questionCount),
           },
           scoringMethod: 'percentage',
           createdBy: userId,
@@ -531,8 +531,8 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
             rationale: assessment.rationale,
             generatedForGoals: goals,
             generatedForExperience: yearsExperience,
-            originalDomain: primaryDomain
-          }
+            originalDomain: primaryDomain,
+          },
         });
         
         savedAssessments.push(newAssessment);
@@ -546,7 +546,7 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
     // Return both the plan and the saved assessment IDs
     planWithIds = plan.map((p, index) => ({
       ...p,
-      assessmentId: savedAssessments[index]?._id
+      assessmentId: savedAssessments[index]?._id,
     }));
     
     console.log(`✅ Saved ${savedAssessments.length} assessments to database`);
@@ -559,7 +559,7 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
       success: false,
       error: 'Failed to generate assessment plan',
       message: e.message,
-      hint: 'Please check AI service configuration'
+      hint: 'Please check AI service configuration',
     });
     
   }
@@ -569,8 +569,8 @@ Ensure the assessments are specifically tailored to ${primaryDomain} and progres
     data: { 
       userId, 
       plan: planWithIds || plan,
-      message: 'Assessment plan generated and saved successfully'
-    }
+      message: 'Assessment plan generated and saved successfully',
+    },
   });
 });
 
@@ -590,7 +590,7 @@ const pauseSession = catchAsync(async (req, res) => {
   });
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   await session.pause();
@@ -598,7 +598,7 @@ const pauseSession = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Session paused successfully",
+      message: 'Session paused successfully',
       sessionId: session.sessionId,
       status: session.status,
     },
@@ -621,7 +621,7 @@ const resumeSession = catchAsync(async (req, res) => {
   });
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
   await session.resume();
@@ -629,7 +629,7 @@ const resumeSession = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Session resumed successfully",
+      message: 'Session resumed successfully',
       sessionId: session.sessionId,
       status: session.status,
     },
@@ -649,20 +649,20 @@ const getAssessmentResults = catchAsync(async (req, res) => {
   const session = await AssessmentSession.findOne({
     sessionId,
     userId,
-  }).populate("assessmentId", "title type category attemptSettings");
+  }).populate('assessmentId', 'title type category attemptSettings');
 
   if (!session) {
-    throw new AppError("Session not found", 404);
+    throw new AppError('Session not found', 404);
   }
 
-  if (session.status !== "completed") {
-    throw new AppError("Assessment not completed yet", 400);
+  if (session.status !== 'completed') {
+    throw new AppError('Assessment not completed yet', 400);
   }
 
   // Check if user is allowed to see results
   const showResults = session.assessmentId.attemptSettings.showResults;
-  if (showResults === "never") {
-    throw new AppError("Results not available for this assessment", 403);
+  if (showResults === 'never') {
+    throw new AppError('Results not available for this assessment', 403);
   }
 
   // Get detailed results
@@ -677,14 +677,14 @@ const getAssessmentResults = catchAsync(async (req, res) => {
     results: session.results,
     answers: session.assessmentId.attemptSettings.allowReview
       ? session.answers.map((answer) => ({
-          questionId: answer.questionId,
-          userAnswer: answer.userAnswer,
-          isCorrect: answer.isCorrect,
-          pointsEarned: answer.pointsEarned,
-          maxPoints: answer.maxPoints,
-          timeSpent: answer.timeSpent,
-          feedback: answer.aiEvaluation?.feedback,
-        }))
+        questionId: answer.questionId,
+        userAnswer: answer.userAnswer,
+        isCorrect: answer.isCorrect,
+        pointsEarned: answer.pointsEarned,
+        maxPoints: answer.maxPoints,
+        timeSpent: answer.timeSpent,
+        feedback: answer.aiEvaluation?.feedback,
+      }))
       : undefined,
   };
 
@@ -708,7 +708,7 @@ const getAssessmentHistory = catchAsync(async (req, res) => {
   if (status) query.status = status;
 
   const sessions = await AssessmentSession.find(query)
-    .populate("assessmentId", "title type category")
+    .populate('assessmentId', 'title type category')
     .sort({ startTime: -1 })
     .limit(parseInt(limit))
     .skip(parseInt(offset))
@@ -729,14 +729,14 @@ const getAssessmentHistory = catchAsync(async (req, res) => {
     startTime: session.startTime,
     endTime: session.endTime,
     duration: Math.round(
-      ((session.endTime || new Date()) - session.startTime) / (1000 * 60)
+      ((session.endTime || new Date()) - session.startTime) / (1000 * 60),
     ), // minutes
     results: session.results
       ? {
-          finalScore: session.results.finalScore,
-          passed: session.results.passed,
-          grade: session.results.grade,
-        }
+        finalScore: session.results.finalScore,
+        passed: session.results.passed,
+        grade: session.results.grade,
+      }
       : null,
   }));
 
@@ -759,25 +759,25 @@ const getAssessmentHistory = catchAsync(async (req, res) => {
  */
 const getAssessmentAnalytics = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { timeRange = "30d" } = req.query;
+  const { timeRange = '30d' } = req.query;
 
   console.log(`📈 Getting assessment analytics for user: ${userId}`);
 
   // Get user's assessment sessions
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "7d":
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
-    case "1y":
-      dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
+  case '1y':
+    dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
+    break;
   }
 
   const analytics = await AssessmentSession.aggregate([
@@ -789,30 +789,30 @@ const getAssessmentAnalytics = catchAsync(async (req, res) => {
     },
     {
       $lookup: {
-        from: "assessments",
-        localField: "assessmentId",
-        foreignField: "_id",
-        as: "assessment",
+        from: 'assessments',
+        localField: 'assessmentId',
+        foreignField: '_id',
+        as: 'assessment',
       },
     },
     {
-      $unwind: "$assessment",
+      $unwind: '$assessment',
     },
     {
       $group: {
         _id: null,
         totalAttempts: { $sum: 1 },
         completedAttempts: {
-          $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] },
         },
         passedAttempts: {
-          $sum: { $cond: ["$results.passed", 1, 0] },
+          $sum: { $cond: ['$results.passed', 1, 0] },
         },
-        averageScore: { $avg: "$results.finalScore" },
-        totalTimeSpent: { $sum: "$timeTracking.totalTimeSpent" },
-        categoriesAttempted: { $addToSet: "$assessment.category" },
-        difficultyLevels: { $addToSet: "$assessment.difficulty" },
-        assessmentTypes: { $addToSet: "$assessment.type" },
+        averageScore: { $avg: '$results.finalScore' },
+        totalTimeSpent: { $sum: '$timeTracking.totalTimeSpent' },
+        categoriesAttempted: { $addToSet: '$assessment.category' },
+        difficultyLevels: { $addToSet: '$assessment.difficulty' },
+        assessmentTypes: { $addToSet: '$assessment.type' },
       },
     },
   ]);
@@ -881,19 +881,19 @@ const submitAssessmentFeedback = catchAsync(async (req, res) => {
   const session = await AssessmentSession.findOne({
     userId,
     assessmentId,
-    status: "completed",
+    status: 'completed',
   });
 
   if (!session) {
     throw new AppError(
-      "Can only provide feedback after completing assessment",
-      400
+      'Can only provide feedback after completing assessment',
+      400,
     );
   }
 
   // In a real implementation, you would store this feedback
   // For now, we'll just acknowledge receipt
-  console.log("Assessment feedback received:", {
+  console.log('Assessment feedback received:', {
     userId,
     assessmentId,
     rating,
@@ -906,7 +906,7 @@ const submitAssessmentFeedback = catchAsync(async (req, res) => {
     success: true,
     data: {
       message:
-        "Thank you for your feedback! It helps us improve our assessments.",
+        'Thank you for your feedback! It helps us improve our assessments.',
       feedbackId: `feedback_${Date.now()}`,
     },
   });

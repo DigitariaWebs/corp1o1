@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { authConfig } = require("../config/auth");
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { authConfig } = require('../config/auth');
 
 // Notification settings schema
 const notificationSettingsSchema = new mongoose.Schema(
@@ -23,7 +23,7 @@ const notificationSettingsSchema = new mongoose.Schema(
       default: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Learning profile schema
@@ -31,13 +31,13 @@ const learningProfileSchema = new mongoose.Schema(
   {
     learningStyle: {
       type: String,
-      enum: ["visual", "auditory", "kinesthetic", "reading", "balanced"],
-      default: "balanced",
+      enum: ['visual', 'auditory', 'kinesthetic', 'reading', 'balanced'],
+      default: 'balanced',
     },
     preferredPace: {
       type: String,
-      enum: ["slow", "medium", "fast"],
-      default: "medium",
+      enum: ['slow', 'medium', 'fast'],
+      default: 'medium',
     },
     optimalSessionDuration: {
       type: Number,
@@ -47,8 +47,8 @@ const learningProfileSchema = new mongoose.Schema(
     },
     aiPersonality: {
       type: String,
-      enum: ["ARIA", "SAGE", "COACH"],
-      default: "ARIA",
+      enum: ['ARIA', 'SAGE', 'COACH'],
+      default: 'ARIA',
     },
     adaptiveMode: {
       type: Boolean,
@@ -65,7 +65,7 @@ const learningProfileSchema = new mongoose.Schema(
           validator: function (v) {
             return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(v);
           },
-          message: "Best learning hours must be in HH:MM format",
+          message: 'Best learning hours must be in HH:MM format',
         },
       },
     ],
@@ -79,11 +79,11 @@ const learningProfileSchema = new mongoose.Schema(
       {
         type: String,
         enum: [
-          "progress_tracking",
-          "achievements",
-          "competition",
-          "personal_growth",
-          "career_advancement",
+          'progress_tracking',
+          'achievements',
+          'competition',
+          'personal_growth',
+          'career_advancement',
         ],
       },
     ],
@@ -92,7 +92,7 @@ const learningProfileSchema = new mongoose.Schema(
       default: () => ({}),
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Refresh token schema
@@ -120,7 +120,7 @@ const refreshTokenSchema = new mongoose.Schema(
       platform: String,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // User schema
@@ -129,30 +129,30 @@ const userSchema = new mongoose.Schema(
     // Clerk integration
     clerkUserId: {
       type: String,
-      required: [true, "Clerk User ID is required"],
+      required: [true, 'Clerk User ID is required'],
       unique: true,
     },
 
     // Basic information
     firstName: {
       type: String,
-      required: [true, "First name is required"],
+      required: [true, 'First name is required'],
       trim: true,
-      minlength: [2, "First name must be at least 2 characters long"],
-      maxlength: [50, "First name cannot exceed 50 characters"],
+      minlength: [2, 'First name must be at least 2 characters long'],
+      maxlength: [50, 'First name cannot exceed 50 characters'],
     },
 
     lastName: {
       type: String,
-      required: [true, "Last name is required"],
+      required: [true, 'Last name is required'],
       trim: true,
-      minlength: [2, "Last name must be at least 2 characters long"],
-      maxlength: [50, "Last name cannot exceed 50 characters"],
+      minlength: [2, 'Last name must be at least 2 characters long'],
+      maxlength: [50, 'Last name cannot exceed 50 characters'],
     },
 
     email: {
       type: String,
-      required: [true, "Email is required"],
+      required: [true, 'Email is required'],
       unique: true,
       lowercase: true,
       trim: true,
@@ -160,22 +160,22 @@ const userSchema = new mongoose.Schema(
         validator: function (v) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
-        message: "Please provide a valid email address",
+        message: 'Please provide a valid email address',
       },
     },
 
     password: {
       type: String,
       required: false, // Not required when using Clerk
-      minlength: [8, "Password must be at least 8 characters long"],
+      minlength: [8, 'Password must be at least 8 characters long'],
       select: false, // Don't include password in queries by default
     },
 
     // Clerk sync metadata
     clerkSyncStatus: {
       type: String,
-      enum: ["pending", "synced", "error"],
-      default: "pending",
+      enum: ['pending', 'synced', 'error'],
+      default: 'pending',
     },
 
     lastClerkSync: {
@@ -191,26 +191,26 @@ const userSchema = new mongoose.Schema(
 
     bio: {
       type: String,
-      maxlength: [500, "Bio cannot exceed 500 characters"],
+      maxlength: [500, 'Bio cannot exceed 500 characters'],
       trim: true,
     },
 
     timezone: {
       type: String,
-      default: "UTC",
+      default: 'UTC',
     },
 
     preferredLanguage: {
       type: String,
-      enum: ["en", "fr", "es", "de"],
-      default: "en",
+      enum: ['en', 'fr', 'es', 'de'],
+      default: 'en',
     },
 
     // Account status
     role: {
       type: String,
-      enum: ["user", "enterprise", "admin"],
-      default: "user",
+      enum: ['user', 'enterprise', 'admin'],
+      default: 'user',
     },
 
     // Company information (for enterprise users)
@@ -218,16 +218,16 @@ const userSchema = new mongoose.Schema(
       name: {
         type: String,
         trim: true,
-        maxlength: [100, "Company name cannot exceed 100 characters"],
+        maxlength: [100, 'Company name cannot exceed 100 characters'],
       },
       industry: {
         type: String,
         trim: true,
-        maxlength: [50, "Industry cannot exceed 50 characters"],
+        maxlength: [50, 'Industry cannot exceed 50 characters'],
       },
       size: {
         type: String,
-        enum: ["1-10", "11-50", "51-200", "201-1000", "1000+"],
+        enum: ['1-10', '11-50', '51-200', '201-1000', '1000+'],
       },
       website: {
         type: String,
@@ -237,18 +237,18 @@ const userSchema = new mongoose.Schema(
             if (!v) return true; // Allow empty
             return /^https?:\/\/.+/.test(v);
           },
-          message: "Website must be a valid URL",
+          message: 'Website must be a valid URL',
         },
       },
       department: {
         type: String,
         trim: true,
-        maxlength: [50, "Department cannot exceed 50 characters"],
+        maxlength: [50, 'Department cannot exceed 50 characters'],
       },
       position: {
         type: String,
         trim: true,
-        maxlength: [100, "Position cannot exceed 100 characters"],
+        maxlength: [100, 'Position cannot exceed 100 characters'],
       },
     },
 
@@ -338,45 +338,45 @@ const userSchema = new mongoose.Schema(
       currentRole: String,
       experience: {
         type: String,
-        enum: ['0-1', '2-3', '4-6', '7-10', '10+']
+        enum: ['0-1', '2-3', '4-6', '7-10', '10+'],
       },
       industry: String,
       company: String,
       primaryGoal: {
         type: String,
-        enum: ['career_growth', 'skill_development', 'career_change', 'certification', 'leadership', 'entrepreneurship']
+        enum: ['career_growth', 'skill_development', 'career_change', 'certification', 'leadership', 'entrepreneurship'],
       },
       careerGoals: [String],
       timeCommitment: {
         type: String,
-        enum: ['15min', '30min', '1hour', 'weekends', 'flexible']
+        enum: ['15min', '30min', '1hour', 'weekends', 'flexible'],
       },
       preferredLearningStyle: {
         type: String,
-        enum: ['hands_on', 'structured', 'bite_sized', 'interactive']
+        enum: ['hands_on', 'structured', 'bite_sized', 'interactive'],
       },
       currentSkills: [String],
       skillsToImprove: [String],
       preferredDomains: [{
         type: String,
-        enum: ['programming', 'design', 'analytics', 'communication', 'leadership', 'business']
+        enum: ['programming', 'design', 'analytics', 'communication', 'leadership', 'business'],
       }],
       assessmentDifficulty: {
         type: String,
-        enum: ['beginner', 'intermediate', 'advanced', 'adaptive']
+        enum: ['beginner', 'intermediate', 'advanced', 'adaptive'],
       },
       contentType: {
         type: String,
-        enum: ['visual', 'text', 'video', 'interactive', 'mixed']
+        enum: ['visual', 'text', 'video', 'interactive', 'mixed'],
       },
       motivationStyle: {
         type: String,
-        enum: ['achievement', 'social', 'autonomy', 'mastery', 'purpose']
+        enum: ['achievement', 'social', 'autonomy', 'mastery', 'purpose'],
       },
       feedbackPreference: {
         type: String,
-        enum: ['immediate', 'detailed', 'encouraging', 'direct']
-      }
+        enum: ['immediate', 'detailed', 'encouraging', 'direct'],
+      },
     },
 
     // AI-generated personalization
@@ -389,23 +389,23 @@ const userSchema = new mongoose.Schema(
         type: Number,
         min: 0,
         max: 100,
-        default: 0
+        default: 0,
       },
       lastUpdated: {
         type: Date,
-        default: Date.now
+        default: Date.now,
       },
-      behaviorBasedUpdates: mongoose.Schema.Types.Mixed
+      behaviorBasedUpdates: mongoose.Schema.Types.Mixed,
     },
 
     // Onboarding status
     onboardingCompleted: {
       type: Boolean,
-      default: false
+      default: false,
     },
     onboardingSkipped: {
       type: Boolean,
-      default: false
+      default: false,
     },
     personalizedAt: Date,
 
@@ -416,8 +416,8 @@ const userSchema = new mongoose.Schema(
     subscription: {
       tier: {
         type: String,
-        enum: ["free", "basic", "premium", "enterprise"],
-        default: "free",
+        enum: ['free', 'basic', 'premium', 'enterprise'],
+        default: 'free',
       },
       expiresAt: Date,
       features: [
@@ -427,8 +427,8 @@ const userSchema = new mongoose.Schema(
       ],
       plan: {
         type: String,
-        enum: ["monthly", "yearly"],
-        default: "monthly",
+        enum: ['monthly', 'yearly'],
+        default: 'monthly',
       },
       stripeCustomerId: String,
       stripeSubscriptionId: String,
@@ -439,8 +439,8 @@ const userSchema = new mongoose.Schema(
       // Overall skill level assessment
       overallLevel: {
         type: String,
-        enum: ["beginner", "intermediate", "advanced", "expert"],
-        default: "beginner",
+        enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+        default: 'beginner',
       },
       
       // Individual skill assessments
@@ -448,13 +448,13 @@ const userSchema = new mongoose.Schema(
         {
           categoryId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "SkillCategory",
+            ref: 'SkillCategory',
             required: true,
           },
           categoryName: String, // Denormalized for performance
           currentLevel: {
             type: String,
-            enum: ["beginner", "intermediate", "advanced", "expert"],
+            enum: ['beginner', 'intermediate', 'advanced', 'expert'],
             required: true,
           },
           lastScore: {
@@ -484,7 +484,7 @@ const userSchema = new mongoose.Schema(
           // Next recommended assessment
           nextRecommendedLevel: {
             type: String,
-            enum: ["beginner", "intermediate", "advanced", "expert"],
+            enum: ['beginner', 'intermediate', 'advanced', 'expert'],
           },
           // AI insights for this skill
           aiInsights: {
@@ -502,15 +502,15 @@ const userSchema = new mongoose.Schema(
         {
           assessmentId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Assessment",
+            ref: 'Assessment',
           },
           sessionId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "AssessmentSession",
+            ref: 'AssessmentSession',
           },
           categoryId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "SkillCategory",
+            ref: 'SkillCategory',
           },
           score: Number,
           passed: Boolean,
@@ -547,8 +547,8 @@ const userSchema = new mongoose.Schema(
     learningBehavior: {
       preferredDifficulty: {
         type: String,
-        enum: ["challenge_seeker", "gradual_learner", "comfort_zone", "adaptive"],
-        default: "adaptive",
+        enum: ['challenge_seeker', 'gradual_learner', 'comfort_zone', 'adaptive'],
+        default: 'adaptive',
       },
       averageSessionDuration: {
         type: Number,
@@ -583,11 +583,11 @@ const userSchema = new mongoose.Schema(
         {
           categoryId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "SkillCategory",
+            ref: 'SkillCategory',
           },
           milestone: {
             type: String,
-            enum: ["first_attempt", "first_pass", "level_up", "mastery", "perfect_score"],
+            enum: ['first_attempt', 'first_pass', 'level_up', 'mastery', 'perfect_score'],
           },
           achievedAt: Date,
           level: String,
@@ -677,46 +677,46 @@ const userSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
 // Unique indexes are declared at field level for clerkUserId and email
 userSchema.index({ clerkSyncStatus: 1 });
 userSchema.index({ lastClerkSync: -1 });
-userSchema.index({ "refreshTokens.token": 1 });
-userSchema.index({ "refreshTokens.expiresAt": 1 });
+userSchema.index({ 'refreshTokens.token': 1 });
+userSchema.index({ 'refreshTokens.expiresAt': 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ lastActiveAt: -1 });
 
 // Assessment-related indexes
-userSchema.index({ "skillsProgress.overallLevel": 1 });
-userSchema.index({ "skillsProgress.skillAssessments.categoryId": 1 });
-userSchema.index({ "skillsProgress.skillAssessments.currentLevel": 1 });
-userSchema.index({ "skillsProgress.skillAssessments.lastAssessmentAt": -1 });
-userSchema.index({ "skillsProgress.recentAssessments.completedAt": -1 });
-userSchema.index({ "achievements.streaks.currentStreak": -1 });
-userSchema.index({ "statistics.totalAssessmentsTaken": -1 });
-userSchema.index({ "statistics.averageAssessmentScore": -1 });
+userSchema.index({ 'skillsProgress.overallLevel': 1 });
+userSchema.index({ 'skillsProgress.skillAssessments.categoryId': 1 });
+userSchema.index({ 'skillsProgress.skillAssessments.currentLevel': 1 });
+userSchema.index({ 'skillsProgress.skillAssessments.lastAssessmentAt': -1 });
+userSchema.index({ 'skillsProgress.recentAssessments.completedAt': -1 });
+userSchema.index({ 'achievements.streaks.currentStreak': -1 });
+userSchema.index({ 'statistics.totalAssessmentsTaken': -1 });
+userSchema.index({ 'statistics.averageAssessmentScore': -1 });
 
 // Virtual for full name
-userSchema.virtual("fullName").get(function () {
+userSchema.virtual('fullName').get(function () {
   return `${this.firstName} ${this.lastName}`;
 });
 
 // Virtual for account locked status
-userSchema.virtual("isLocked").get(function () {
+userSchema.virtual('isLocked').get(function () {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
 // Pre-save middleware to hash password
-userSchema.pre("save", async function (next) {
+userSchema.pre('save', async function (next) {
   // Only hash password if it's been modified
-  if (!this.isModified("password")) return next();
+  if (!this.isModified('password')) return next();
 
   try {
     // Hash password with cost of 12
-    const saltRounds = process.env.NODE_ENV === "test" ? 1 : 12;
+    const saltRounds = process.env.NODE_ENV === 'test' ? 1 : 12;
     this.password = await bcrypt.hash(this.password, saltRounds);
     next();
   } catch (error) {
@@ -725,10 +725,10 @@ userSchema.pre("save", async function (next) {
 });
 
 // Pre-save middleware to clean expired refresh tokens
-userSchema.pre("save", function (next) {
+userSchema.pre('save', function (next) {
   // Remove expired refresh tokens
   this.refreshTokens = this.refreshTokens.filter(
-    (token) => token.expiresAt > new Date() && token.isActive
+    (token) => token.expiresAt > new Date() && token.isActive,
   );
 
   // Limit number of active refresh tokens
@@ -746,7 +746,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
-    throw new Error("Password comparison failed");
+    throw new Error('Password comparison failed');
   }
 };
 
@@ -771,7 +771,7 @@ userSchema.methods.generateAccessToken = function () {
 userSchema.methods.generateRefreshToken = function (deviceInfo = {}) {
   const payload = {
     userId: this._id,
-    type: "refresh",
+    type: 'refresh',
     iat: Math.floor(Date.now() / 1000),
   };
 
@@ -799,7 +799,7 @@ userSchema.methods.generateRefreshToken = function (deviceInfo = {}) {
 // Instance method to revoke refresh token
 userSchema.methods.revokeRefreshToken = function (token) {
   const tokenIndex = this.refreshTokens.findIndex(
-    (t) => t.token === token && t.isActive
+    (t) => t.token === token && t.isActive,
   );
 
   if (tokenIndex !== -1) {
@@ -879,7 +879,7 @@ userSchema.methods.toSafeObject = function () {
 // Update skill assessment after completing an assessment
 userSchema.methods.updateSkillAssessment = function (categoryId, categoryName, level, score, sessionData) {
   const existingSkillIndex = this.skillsProgress.skillAssessments.findIndex(
-    skill => skill.categoryId.toString() === categoryId.toString()
+    skill => skill.categoryId.toString() === categoryId.toString(),
   );
 
   const assessmentData = {
@@ -952,37 +952,37 @@ userSchema.methods.updateSkillAssessment = function (categoryId, categoryName, l
 
 // Calculate skill level based on score
 userSchema.methods.calculateLevelFromScore = function (score) {
-  if (score >= 90) return "expert";
-  if (score >= 80) return "advanced";
-  if (score >= 70) return "intermediate";
-  return "beginner";
+  if (score >= 90) return 'expert';
+  if (score >= 80) return 'advanced';
+  if (score >= 70) return 'intermediate';
+  return 'beginner';
 };
 
 // Check if level change represents progression
 userSchema.methods.isLevelProgression = function (currentLevel, newLevel) {
-  const levels = ["beginner", "intermediate", "advanced", "expert"];
+  const levels = ['beginner', 'intermediate', 'advanced', 'expert'];
   return levels.indexOf(newLevel) > levels.indexOf(currentLevel);
 };
 
 // Get user's skill level for a specific category
 userSchema.methods.getSkillLevel = function (categoryId) {
   const skill = this.skillsProgress.skillAssessments.find(
-    skill => skill.categoryId.toString() === categoryId.toString()
+    skill => skill.categoryId.toString() === categoryId.toString(),
   );
-  return skill ? skill.currentLevel : "beginner";
+  return skill ? skill.currentLevel : 'beginner';
 };
 
 // Get user's best score for a category
 userSchema.methods.getBestScore = function (categoryId) {
   const skill = this.skillsProgress.skillAssessments.find(
-    skill => skill.categoryId.toString() === categoryId.toString()
+    skill => skill.categoryId.toString() === categoryId.toString(),
   );
   return skill ? skill.bestScore : 0;
 };
 
 // Add achievement
 userSchema.methods.addAchievement = function (type, data) {
-  if (type === "skill_milestone") {
+  if (type === 'skill_milestone') {
     this.achievements.skillMilestones.push({
       categoryId: data.categoryId,
       milestone: data.milestone,
@@ -990,7 +990,7 @@ userSchema.methods.addAchievement = function (type, data) {
       level: data.level,
       score: data.score,
     });
-  } else if (type === "badge") {
+  } else if (type === 'badge') {
     this.achievements.badges.push({
       badgeId: data.badgeId,
       name: data.name,
@@ -1010,7 +1010,7 @@ userSchema.methods.updateStreak = function (passed) {
     this.achievements.streaks.currentStreak += 1;
     this.achievements.streaks.longestStreak = Math.max(
       this.achievements.streaks.longestStreak,
-      this.achievements.streaks.currentStreak
+      this.achievements.streaks.currentStreak,
     );
   } else {
     this.achievements.streaks.currentStreak = 0;
@@ -1023,14 +1023,14 @@ userSchema.methods.updateStreak = function (passed) {
 // Get assessment readiness for a category
 userSchema.methods.getAssessmentReadiness = function (categoryId) {
   const skill = this.skillsProgress.skillAssessments.find(
-    skill => skill.categoryId.toString() === categoryId.toString()
+    skill => skill.categoryId.toString() === categoryId.toString(),
   );
   
   if (!skill) {
     return {
       ready: true,
-      recommendedLevel: "beginner",
-      reason: "First assessment",
+      recommendedLevel: 'beginner',
+      reason: 'First assessment',
     };
   }
 
@@ -1042,7 +1042,7 @@ userSchema.methods.getAssessmentReadiness = function (categoryId) {
   if (hoursSinceLastAttempt < 1) {
     return {
       ready: false,
-      reason: "Please wait before retaking assessment",
+      reason: 'Please wait before retaking assessment',
       waitTime: Math.ceil(1 - hoursSinceLastAttempt),
     };
   }
@@ -1123,18 +1123,18 @@ userSchema.statics.updateFromClerk = async function (clerkUser) {
   return await this.findOneAndUpdate(
     { clerkUserId: clerkUser.id },
     updateData,
-    { new: true }
+    { new: true },
   );
 };
 
 // Static method to find by credentials (keep for legacy support)
 userSchema.statics.findByCredentials = async function (email, password) {
   const user = await this.findOne({ email }).select(
-    "+password +loginAttempts +lockUntil"
+    '+password +loginAttempts +lockUntil',
   );
 
   if (!user) {
-    throw new Error("Invalid login credentials");
+    throw new Error('Invalid login credentials');
   }
 
   // Check if account is locked
@@ -1142,7 +1142,7 @@ userSchema.statics.findByCredentials = async function (email, password) {
     // Increment login attempts and throw error
     await user.incLoginAttempts();
     throw new Error(
-      "Account temporarily locked due to too many failed login attempts"
+      'Account temporarily locked due to too many failed login attempts',
     );
   }
 
@@ -1151,7 +1151,7 @@ userSchema.statics.findByCredentials = async function (email, password) {
   if (!isMatch) {
     // Increment login attempts on failed login
     await user.incLoginAttempts();
-    throw new Error("Invalid login credentials");
+    throw new Error('Invalid login credentials');
   }
 
   // Reset login attempts on successful login
@@ -1162,6 +1162,6 @@ userSchema.statics.findByCredentials = async function (email, password) {
   return user;
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

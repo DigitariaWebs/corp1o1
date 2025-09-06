@@ -1,6 +1,6 @@
 // controllers/onboardingController.js
-const { onboardingService } = require("../services/onboardingService");
-const { catchAsync } = require("../middleware/errorHandler");
+const { onboardingService } = require('../services/onboardingService');
+const { catchAsync } = require('../middleware/errorHandler');
 
 /**
  * Start onboarding session after Clerk signup
@@ -17,7 +17,7 @@ const startOnboarding = catchAsync(async (req, res) => {
   res.status(201).json({
     success: true,
     data: onboardingData,
-    message: "Onboarding session started successfully"
+    message: 'Onboarding session started successfully',
   });
 });
 
@@ -36,7 +36,7 @@ const submitAnswer = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: result,
-    message: "Answer submitted successfully"
+    message: 'Answer submitted successfully',
   });
 });
 
@@ -54,7 +54,7 @@ const getSessionStatus = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: status,
-    message: "Session status retrieved successfully"
+    message: 'Session status retrieved successfully',
   });
 });
 
@@ -72,7 +72,7 @@ const resumeSession = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: sessionData,
-    message: "Session resumed successfully"
+    message: 'Session resumed successfully',
   });
 });
 
@@ -81,9 +81,9 @@ const resumeSession = catchAsync(async (req, res) => {
  * GET /api/onboarding/questions
  */
 const getOnboardingQuestions = catchAsync(async (req, res) => {
-  console.log("📋 Getting onboarding questions");
+  console.log('📋 Getting onboarding questions');
 
-  const OnboardingQuestion = require("../models/OnboardingQuestion");
+  const OnboardingQuestion = require('../models/OnboardingQuestion');
   const questions = await OnboardingQuestion.getOnboardingFlow();
 
   res.status(200).json({
@@ -97,11 +97,11 @@ const getOnboardingQuestions = catchAsync(async (req, res) => {
         category: q.category,
         options: q.options,
         expectedLength: q.expectedLength,
-        flow: q.flow
+        flow: q.flow,
       })),
-      totalQuestions: questions.length
+      totalQuestions: questions.length,
     },
-    message: "Onboarding questions retrieved successfully"
+    message: 'Onboarding questions retrieved successfully',
   });
 });
 
@@ -114,20 +114,20 @@ const getOnboardingProgress = catchAsync(async (req, res) => {
 
   console.log(`📈 Getting onboarding progress for user: ${userId}`);
 
-  const OnboardingSession = require("../models/OnboardingSession");
+  const OnboardingSession = require('../models/OnboardingSession');
   const sessions = await OnboardingSession.getUserOnboardingHistory(userId);
 
   const progress = {
     totalSessions: sessions.length,
-    completedSessions: sessions.filter(s => s.status === "completed").length,
-    currentSession: sessions.find(s => s.status === "in_progress") || null,
-    lastCompletedSession: sessions.find(s => s.status === "completed") || null
+    completedSessions: sessions.filter(s => s.status === 'completed').length,
+    currentSession: sessions.find(s => s.status === 'in_progress') || null,
+    lastCompletedSession: sessions.find(s => s.status === 'completed') || null,
   };
 
   res.status(200).json({
     success: true,
     data: progress,
-    message: "Onboarding progress retrieved successfully"
+    message: 'Onboarding progress retrieved successfully',
   });
 });
 
@@ -140,20 +140,20 @@ const getOnboardingResults = catchAsync(async (req, res) => {
 
   console.log(`🏁 Getting onboarding results: ${sessionId}`);
 
-  const OnboardingSession = require("../models/OnboardingSession");
+  const OnboardingSession = require('../models/OnboardingSession');
   const session = await OnboardingSession.findOne({ sessionId });
 
   if (!session) {
     return res.status(404).json({
       success: false,
-      message: "Onboarding session not found"
+      message: 'Onboarding session not found',
     });
   }
 
-  if (session.status !== "completed") {
+  if (session.status !== 'completed') {
     return res.status(400).json({
       success: false,
-      message: "Onboarding session not completed yet"
+      message: 'Onboarding session not completed yet',
     });
   }
 
@@ -167,14 +167,14 @@ const getOnboardingResults = catchAsync(async (req, res) => {
       questionId: answer.questionId,
       question: answer.question,
       answer: answer.answer,
-      aiAnalysis: answer.aiAnalysis
-    }))
+      aiAnalysis: answer.aiAnalysis,
+    })),
   };
 
   res.status(200).json({
     success: true,
     data: results,
-    message: "Onboarding results retrieved successfully"
+    message: 'Onboarding results retrieved successfully',
   });
 });
 
@@ -187,16 +187,16 @@ const getRecommendations = catchAsync(async (req, res) => {
 
   console.log(`🎯 Getting recommendations for user: ${userId}`);
 
-  const OnboardingSession = require("../models/OnboardingSession");
+  const OnboardingSession = require('../models/OnboardingSession');
   const session = await OnboardingSession.findOne({ 
     userId, 
-    status: "completed" 
+    status: 'completed', 
   }).sort({ completedAt: -1 });
 
   if (!session) {
     return res.status(404).json({
       success: false,
-      message: "No completed onboarding session found"
+      message: 'No completed onboarding session found',
     });
   }
 
@@ -205,17 +205,17 @@ const getRecommendations = catchAsync(async (req, res) => {
     recommendedPrebuilt: await onboardingService.getRecommendedPrebuiltAssessments(session.aiProfile),
     aiProfile: session.aiProfile,
     nextSteps: [
-      "Start with your personalized assessments",
-      "Complete recommended prebuilt assessments",
-      "Review your AI-generated learning profile",
-      "Set up your learning goals and preferences"
-    ]
+      'Start with your personalized assessments',
+      'Complete recommended prebuilt assessments',
+      'Review your AI-generated learning profile',
+      'Set up your learning goals and preferences',
+    ],
   };
 
   res.status(200).json({
     success: true,
     data: recommendations,
-    message: "Recommendations retrieved successfully"
+    message: 'Recommendations retrieved successfully',
   });
 });
 
@@ -230,47 +230,47 @@ const skipOnboarding = catchAsync(async (req, res) => {
   console.log(`⏭️ Skipping onboarding for user: ${userId}`);
 
   // Create a minimal onboarding session
-  const OnboardingSession = require("../models/OnboardingSession");
+  const OnboardingSession = require('../models/OnboardingSession');
   const session = new OnboardingSession({
-    sessionId: require("uuid").v4(),
+    sessionId: require('uuid').v4(),
     userId,
     clerkUserId,
-    status: "completed",
+    status: 'completed',
     totalQuestions: 0,
     questionsAnswered: 0,
     completedAt: new Date(),
     aiProfile: {
-      learningStyle: { primary: "adaptive", secondary: "visual", confidence: 50, reasoning: "Default profile" },
-      experienceLevel: { overall: "intermediate", technical: "intermediate", business: "intermediate", confidence: 50, reasoning: "Default profile" },
-      careerGoals: ["Professional development"],
-      interests: ["Learning and growth"],
-      motivation: "Skill development",
-      timeAvailability: "moderate",
-      preferredFormat: "interactive",
-      strengths: ["Adaptability"],
-      areasForGrowth: ["Technical skills"],
-      recommendedPaths: ["General development"]
+      learningStyle: { primary: 'adaptive', secondary: 'visual', confidence: 50, reasoning: 'Default profile' },
+      experienceLevel: { overall: 'intermediate', technical: 'intermediate', business: 'intermediate', confidence: 50, reasoning: 'Default profile' },
+      careerGoals: ['Professional development'],
+      interests: ['Learning and growth'],
+      motivation: 'Skill development',
+      timeAvailability: 'moderate',
+      preferredFormat: 'interactive',
+      strengths: ['Adaptability'],
+      areasForGrowth: ['Technical skills'],
+      recommendedPaths: ['General development'],
     },
     generatedAssessments: [],
     aiProcessingStatus: {
-      profileAnalysis: { status: "completed", completedAt: new Date() },
-      assessmentGeneration: { status: "completed", completedAt: new Date() }
-    }
+      profileAnalysis: { status: 'completed', completedAt: new Date() },
+      assessmentGeneration: { status: 'completed', completedAt: new Date() },
+    },
   });
 
   await session.save();
 
   // Update user profile with default values
-  const User = require("../models/User");
+  const User = require('../models/User');
   const user = await User.findById(userId);
   if (user) {
     user.learningProfile = {
       ...user.learningProfile,
-      currentLevel: "intermediate",
-      learningStyle: "adaptive",
-      goals: ["Professional development"],
-      interests: ["Learning and growth"],
-      aiPersonality: "ARIA"
+      currentLevel: 'intermediate',
+      learningStyle: 'adaptive',
+      goals: ['Professional development'],
+      interests: ['Learning and growth'],
+      aiPersonality: 'ARIA',
     };
     await user.save();
   }
@@ -279,11 +279,11 @@ const skipOnboarding = catchAsync(async (req, res) => {
     success: true,
     data: {
       sessionId: session.sessionId,
-      message: "Onboarding skipped successfully",
+      message: 'Onboarding skipped successfully',
       aiProfile: session.aiProfile,
       generatedAssessments: [],
-      recommendedAssessments: await onboardingService.getRecommendedPrebuiltAssessments(session.aiProfile)
-    }
+      recommendedAssessments: await onboardingService.getRecommendedPrebuiltAssessments(session.aiProfile),
+    },
   });
 });
 
@@ -296,5 +296,5 @@ module.exports = {
   getOnboardingProgress,
   getOnboardingResults,
   getRecommendations,
-  skipOnboarding
+  skipOnboarding,
 };

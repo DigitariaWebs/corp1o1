@@ -1,8 +1,8 @@
 // services/adaptationEngine.js
-const AdaptationRule = require("../models/AdaptationRule");
-const LearningAnalytics = require("../models/LearningAnalytics");
-const User = require("../models/User");
-const { analyticsService } = require("./analyticsService");
+const AdaptationRule = require('../models/AdaptationRule');
+const LearningAnalytics = require('../models/LearningAnalytics');
+const User = require('../models/User');
+const { analyticsService } = require('./analyticsService');
 
 class AdaptationEngine {
   /**
@@ -14,7 +14,7 @@ class AdaptationEngine {
       const analytics = await LearningAnalytics.getLatestAnalytics(userId);
       if (!analytics) {
         console.log(
-          `No analytics data for user ${userId}, skipping adaptations`
+          `No analytics data for user ${userId}, skipping adaptations`,
         );
         return;
       }
@@ -30,7 +30,7 @@ class AdaptationEngine {
 
       // Get applicable adaptation rules
       const applicableRules = await AdaptationRule.getApplicableRules(
-        userContext
+        userContext,
       );
 
       const adaptationsApplied = [];
@@ -40,7 +40,7 @@ class AdaptationEngine {
         const shouldApply = await this.evaluateRule(
           rule,
           analytics,
-          userContext
+          userContext,
         );
 
         if (shouldApply && !rule.isInCooldown()) {
@@ -110,23 +110,23 @@ class AdaptationEngine {
         const contentResult = await this.applyContentAdaptations(
           userId,
           actions.content,
-          analytics
+          analytics,
         );
-        results.actionsApplied.push({ type: "content", ...contentResult });
+        results.actionsApplied.push({ type: 'content', ...contentResult });
       }
 
       // Apply AI personality adaptations
       if (
         actions.aiPersonality &&
         Object.keys(actions.aiPersonality).some(
-          (key) => actions.aiPersonality[key]
+          (key) => actions.aiPersonality[key],
         )
       ) {
         const aiResult = await this.applyAIAdaptations(
           userId,
-          actions.aiPersonality
+          actions.aiPersonality,
         );
-        results.actionsApplied.push({ type: "aiPersonality", ...aiResult });
+        results.actionsApplied.push({ type: 'aiPersonality', ...aiResult });
       }
 
       // Apply pace adaptations
@@ -136,24 +136,24 @@ class AdaptationEngine {
       ) {
         const paceResult = await this.applyPaceAdaptations(
           userId,
-          actions.pace
+          actions.pace,
         );
-        results.actionsApplied.push({ type: "pace", ...paceResult });
+        results.actionsApplied.push({ type: 'pace', ...paceResult });
       }
 
       // Apply intervention actions
       if (
         actions.intervention &&
         Object.keys(actions.intervention).some(
-          (key) => actions.intervention[key]
+          (key) => actions.intervention[key],
         )
       ) {
         const interventionResult = await this.applyInterventions(
           userId,
-          actions.intervention
+          actions.intervention,
         );
         results.actionsApplied.push({
-          type: "intervention",
+          type: 'intervention',
           ...interventionResult,
         });
       }
@@ -162,15 +162,15 @@ class AdaptationEngine {
       if (
         actions.recommendations &&
         Object.keys(actions.recommendations).some(
-          (key) => actions.recommendations[key]
+          (key) => actions.recommendations[key],
         )
       ) {
         const recommendationResult = await this.applyRecommendationActions(
           userId,
-          actions.recommendations
+          actions.recommendations,
         );
         results.actionsApplied.push({
-          type: "recommendations",
+          type: 'recommendations',
           ...recommendationResult,
         });
       }
@@ -199,7 +199,7 @@ class AdaptationEngine {
         const difficultyAction = await this.adjustContentDifficulty(
           userId,
           contentActions.adjustDifficulty,
-          analytics
+          analytics,
         );
         actions.push(difficultyAction);
       }
@@ -208,7 +208,7 @@ class AdaptationEngine {
       if (contentActions.changeContentFormat) {
         const formatAction = await this.changeContentFormat(
           userId,
-          contentActions.changeContentFormat
+          contentActions.changeContentFormat,
         );
         actions.push(formatAction);
       }
@@ -217,7 +217,7 @@ class AdaptationEngine {
       if (contentActions.addSupplementaryResources) {
         const resourceAction = await this.addSupplementaryResources(
           userId,
-          analytics
+          analytics,
         );
         actions.push(resourceAction);
       }
@@ -231,7 +231,7 @@ class AdaptationEngine {
       return {
         success: true,
         actions,
-        message: "Content adaptations applied successfully",
+        message: 'Content adaptations applied successfully',
       };
     } catch (error) {
       return {
@@ -252,22 +252,22 @@ class AdaptationEngine {
       const actions = [];
 
       // Switch AI personality
-      if (aiActions.switchTo && aiActions.switchTo !== "auto") {
-        updates["learningProfile.aiPersonality"] = aiActions.switchTo;
+      if (aiActions.switchTo && aiActions.switchTo !== 'auto') {
+        updates['learningProfile.aiPersonality'] = aiActions.switchTo;
         actions.push({
-          action: "personality_switch",
+          action: 'personality_switch',
           from: user.learningProfile.aiPersonality,
           to: aiActions.switchTo,
         });
-      } else if (aiActions.switchTo === "auto") {
+      } else if (aiActions.switchTo === 'auto') {
         // Determine optimal personality based on user data
         const optimalPersonality = await this.determineOptimalAIPersonality(
-          userId
+          userId,
         );
         if (optimalPersonality !== user.learningProfile.aiPersonality) {
-          updates["learningProfile.aiPersonality"] = optimalPersonality;
+          updates['learningProfile.aiPersonality'] = optimalPersonality;
           actions.push({
-            action: "auto_personality_switch",
+            action: 'auto_personality_switch',
             from: user.learningProfile.aiPersonality,
             to: optimalPersonality,
           });
@@ -276,19 +276,19 @@ class AdaptationEngine {
 
       // Adjust tone (stored in user preferences)
       if (aiActions.adjustTone) {
-        updates["learningProfile.aiPreferences.tone"] = aiActions.adjustTone;
+        updates['learningProfile.aiPreferences.tone'] = aiActions.adjustTone;
         actions.push({
-          action: "tone_adjustment",
+          action: 'tone_adjustment',
           tone: aiActions.adjustTone,
         });
       }
 
       // Increase support level
       if (aiActions.increaseSupport) {
-        updates["learningProfile.aiPreferences.supportLevel"] = "high";
+        updates['learningProfile.aiPreferences.supportLevel'] = 'high';
         actions.push({
-          action: "support_increase",
-          level: "high",
+          action: 'support_increase',
+          level: 'high',
         });
       }
 
@@ -300,7 +300,7 @@ class AdaptationEngine {
       return {
         success: true,
         actions,
-        message: "AI adaptations applied successfully",
+        message: 'AI adaptations applied successfully',
       };
     } catch (error) {
       return {
@@ -327,8 +327,8 @@ class AdaptationEngine {
         actions.push(
           await this.adjustSessionLength(
             userId,
-            paceActions.adjustSessionLength
-          )
+            paceActions.adjustSessionLength,
+          ),
         );
       }
 
@@ -340,7 +340,7 @@ class AdaptationEngine {
       return {
         success: true,
         actions,
-        message: "Pace adaptations applied successfully",
+        message: 'Pace adaptations applied successfully',
       };
     } catch (error) {
       return {
@@ -384,7 +384,7 @@ class AdaptationEngine {
       return {
         success: true,
         actions,
-        message: "Interventions applied successfully",
+        message: 'Interventions applied successfully',
       };
     } catch (error) {
       return {
@@ -399,7 +399,7 @@ class AdaptationEngine {
    */
   async applyRecommendationActions(userId, recommendationActions) {
     try {
-      const { recommendationService } = require("./recommendationService");
+      const { recommendationService } = require('./recommendationService');
       const actions = [];
 
       // Suggest new path
@@ -409,11 +409,11 @@ class AdaptationEngine {
             userId,
             {
               maxRecommendations: 1,
-              context: { type: "learning_path" },
-            }
+              context: { type: 'learning_path' },
+            },
           );
         actions.push({
-          action: "new_path_suggested",
+          action: 'new_path_suggested',
           recommendations: pathRec.length,
         });
       }
@@ -425,11 +425,11 @@ class AdaptationEngine {
             userId,
             {
               maxRecommendations: 1,
-              context: { type: "review_content" },
-            }
+              context: { type: 'review_content' },
+            },
           );
         actions.push({
-          action: "review_recommended",
+          action: 'review_recommended',
           recommendations: reviewRec.length,
         });
       }
@@ -441,11 +441,11 @@ class AdaptationEngine {
             userId,
             {
               maxRecommendations: 1,
-              context: { type: "next_module" },
-            }
+              context: { type: 'next_module' },
+            },
           );
         actions.push({
-          action: "alternative_module_proposed",
+          action: 'alternative_module_proposed',
           recommendations: altRec.length,
         });
       }
@@ -453,7 +453,7 @@ class AdaptationEngine {
       return {
         success: true,
         actions,
-        message: "Recommendation actions applied successfully",
+        message: 'Recommendation actions applied successfully',
       };
     } catch (error) {
       return {
@@ -469,14 +469,14 @@ class AdaptationEngine {
     // This would integrate with content delivery system
     // For now, store preference in user profile
     const adjustment =
-      direction === "increase" ? 1 : direction === "decrease" ? -1 : 0;
+      direction === 'increase' ? 1 : direction === 'decrease' ? -1 : 0;
 
     await User.findByIdAndUpdate(userId, {
-      $inc: { "learningProfile.difficultyAdjustment": adjustment },
+      $inc: { 'learningProfile.difficultyAdjustment': adjustment },
     });
 
     return {
-      action: "difficulty_adjusted",
+      action: 'difficulty_adjusted',
       direction,
       reason: `Based on ${analytics.progress.completionRate}% completion rate`,
     };
@@ -484,60 +484,60 @@ class AdaptationEngine {
 
   async changeContentFormat(userId, format) {
     await User.findByIdAndUpdate(userId, {
-      "learningProfile.preferredFormat": format,
+      'learningProfile.preferredFormat': format,
     });
 
     return {
-      action: "format_changed",
+      action: 'format_changed',
       format,
-      reason: "Optimizing for learning style",
+      reason: 'Optimizing for learning style',
     };
   }
 
   async addSupplementaryResources(userId, analytics) {
     // Would integrate with resource recommendation system
     return {
-      action: "resources_added",
+      action: 'resources_added',
       resourceCount: 3,
-      reason: "Additional support for struggling areas",
+      reason: 'Additional support for struggling areas',
     };
   }
 
   async enableHints(userId) {
     await User.findByIdAndUpdate(userId, {
-      "learningProfile.hintsEnabled": true,
+      'learningProfile.hintsEnabled': true,
     });
 
     return {
-      action: "hints_enabled",
-      reason: "Providing additional guidance",
+      action: 'hints_enabled',
+      reason: 'Providing additional guidance',
     };
   }
 
   async determineOptimalAIPersonality(userId) {
     const analytics = await LearningAnalytics.getLatestAnalytics(userId);
 
-    if (!analytics) return "ARIA"; // Default
+    if (!analytics) return 'ARIA'; // Default
 
     // Simple heuristic - would be more sophisticated in production
     if (
       analytics.progress.completionRate < 40 &&
       analytics.engagement.focusScore < 50
     ) {
-      return "COACH"; // More motivational
+      return 'COACH'; // More motivational
     } else if (analytics.progress.averageModuleScore > 85) {
-      return "SAGE"; // More challenging
+      return 'SAGE'; // More challenging
     } else {
-      return "ARIA"; // Balanced
+      return 'ARIA'; // Balanced
     }
   }
 
   async suggestBreak(userId) {
     // Would integrate with notification system
     return {
-      action: "break_suggested",
-      duration: "15 minutes",
-      reason: "Preventing burnout",
+      action: 'break_suggested',
+      duration: '15 minutes',
+      reason: 'Preventing burnout',
     };
   }
 
@@ -547,22 +547,22 @@ class AdaptationEngine {
     let newLength;
 
     switch (adjustment) {
-      case "shorter":
-        newLength = Math.max(15, currentLength - 10);
-        break;
-      case "longer":
-        newLength = Math.min(90, currentLength + 15);
-        break;
-      default:
-        newLength = currentLength;
+    case 'shorter':
+      newLength = Math.max(15, currentLength - 10);
+      break;
+    case 'longer':
+      newLength = Math.min(90, currentLength + 15);
+      break;
+    default:
+      newLength = currentLength;
     }
 
     await User.findByIdAndUpdate(userId, {
-      "learningProfile.preferredSessionLength": newLength,
+      'learningProfile.preferredSessionLength': newLength,
     });
 
     return {
-      action: "session_length_adjusted",
+      action: 'session_length_adjusted',
       from: currentLength,
       to: newLength,
       adjustment,
@@ -572,45 +572,45 @@ class AdaptationEngine {
   async recommendSchedule(userId) {
     // Would integrate with scheduling system
     return {
-      action: "schedule_recommended",
-      suggestion: "3 sessions per week, 30 minutes each",
-      reason: "Based on optimal learning patterns",
+      action: 'schedule_recommended',
+      suggestion: '3 sessions per week, 30 minutes each',
+      reason: 'Based on optimal learning patterns',
     };
   }
 
   async sendInterventionNotification(userId) {
     // Would integrate with notification system
     return {
-      action: "notification_sent",
-      type: "intervention",
-      message: "Learning support available",
+      action: 'notification_sent',
+      type: 'intervention',
+      message: 'Learning support available',
     };
   }
 
   async scheduleCheckin(userId) {
     // Would integrate with scheduling system
     return {
-      action: "checkin_scheduled",
+      action: 'checkin_scheduled',
       scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-      type: "automated",
+      type: 'automated',
     };
   }
 
   async offerTutoring(userId) {
     // Would integrate with tutoring system
     return {
-      action: "tutoring_offered",
-      type: "ai_assisted",
-      availability: "immediate",
+      action: 'tutoring_offered',
+      type: 'ai_assisted',
+      availability: 'immediate',
     };
   }
 
   async suggestPeerSupport(userId) {
     // Would integrate with peer matching system
     return {
-      action: "peer_support_suggested",
-      type: "study_group",
-      matchingCriteria: "similar_learning_level",
+      action: 'peer_support_suggested',
+      type: 'study_group',
+      matchingCriteria: 'similar_learning_level',
     };
   }
 
@@ -619,16 +619,16 @@ class AdaptationEngine {
   getCurrentUserCategory(user) {
     // Determine user's current primary learning category
     // This would analyze their recent progress
-    return "General"; // Simplified for now
+    return 'General'; // Simplified for now
   }
 
   getCurrentUserDifficulty(analytics) {
     // Determine appropriate difficulty based on performance
     const avgScore = analytics.progress.averageModuleScore;
 
-    if (avgScore > 85) return "advanced";
-    if (avgScore > 70) return "intermediate";
-    return "beginner";
+    if (avgScore > 85) return 'advanced';
+    if (avgScore > 70) return 'intermediate';
+    return 'beginner';
   }
 
   async performAdvancedRuleEvaluation(rule, analytics, userContext) {
@@ -640,10 +640,10 @@ class AdaptationEngine {
   /**
    * Get adaptation statistics
    */
-  async getAdaptationStats(timeRange = "7d") {
+  async getAdaptationStats(timeRange = '7d') {
     try {
       const startDate = new Date();
-      const days = parseInt(timeRange.replace("d", ""));
+      const days = parseInt(timeRange.replace('d', ''));
       startDate.setDate(startDate.getDate() - days);
 
       const rules = await AdaptationRule.find({
@@ -656,24 +656,24 @@ class AdaptationEngine {
         successfulAdaptations: rules.reduce(
           (sum, rule) =>
             sum + rule.configuration.effectiveness.successfulAdaptations,
-          0
+          0,
         ),
         totalTriggers: rules.reduce(
           (sum, rule) => sum + rule.configuration.effectiveness.totalTriggers,
-          0
+          0,
         ),
       };
 
       stats.successRate =
         stats.totalTriggers > 0
           ? ((stats.successfulAdaptations / stats.totalTriggers) * 100).toFixed(
-              1
-            )
+            1,
+          )
           : 0;
 
       return stats;
     } catch (error) {
-      console.error("Error getting adaptation stats:", error);
+      console.error('Error getting adaptation stats:', error);
       return null;
     }
   }

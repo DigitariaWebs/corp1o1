@@ -1,5 +1,5 @@
 // models/AssessmentSession.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 // Answer schema for individual question responses
 const answerSchema = new mongoose.Schema(
@@ -83,7 +83,7 @@ const answerSchema = new mongoose.Schema(
       previousAnswers: [mongoose.Schema.Types.Mixed],
     },
   },
-  { _id: true }
+  { _id: true },
 );
 
 // Results schema for final assessment results
@@ -119,7 +119,7 @@ const resultsSchema = new mongoose.Schema(
 
     grade: {
       type: String,
-      enum: ["A+", "A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"],
+      enum: ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F'],
       default: null,
     },
 
@@ -178,7 +178,7 @@ const resultsSchema = new mongoose.Schema(
       },
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Main Assessment Session schema
@@ -194,7 +194,7 @@ const assessmentSessionSchema = new mongoose.Schema(
     // User and assessment references
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
       index: true,
     },
@@ -208,7 +208,7 @@ const assessmentSessionSchema = new mongoose.Schema(
 
     assessmentId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Assessment",
+      ref: 'Assessment',
       required: true,
     },
 
@@ -238,8 +238,8 @@ const assessmentSessionSchema = new mongoose.Schema(
     // Session status
     status: {
       type: String,
-      enum: ["in_progress", "completed", "abandoned", "timeout", "paused"],
-      default: "in_progress",
+      enum: ['in_progress', 'completed', 'abandoned', 'timeout', 'paused'],
+      default: 'in_progress',
     },
 
     // User responses
@@ -361,7 +361,7 @@ const assessmentSessionSchema = new mongoose.Schema(
       reviewReason: String,
       reviewedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
         default: null,
       },
       reviewedAt: {
@@ -380,7 +380,7 @@ const assessmentSessionSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
@@ -391,7 +391,7 @@ assessmentSessionSchema.index({ userId: 1, status: 1 });
 assessmentSessionSchema.index({ assessmentId: 1, status: 1 });
 
 // Virtual for session duration
-assessmentSessionSchema.virtual("duration").get(function () {
+assessmentSessionSchema.virtual('duration').get(function () {
   if (this.endTime) {
     return Math.round((this.endTime - this.startTime) / (1000 * 60)); // minutes
   }
@@ -399,12 +399,12 @@ assessmentSessionSchema.virtual("duration").get(function () {
 });
 
 // Virtual for completion status
-assessmentSessionSchema.virtual("isCompleted").get(function () {
-  return this.status === "completed";
+assessmentSessionSchema.virtual('isCompleted').get(function () {
+  return this.status === 'completed';
 });
 
 // Virtual for pass status
-assessmentSessionSchema.virtual("hasPassed").get(function () {
+assessmentSessionSchema.virtual('hasPassed').get(function () {
   return this.results?.passed || false;
 });
 
@@ -414,10 +414,10 @@ assessmentSessionSchema.virtual("hasPassed").get(function () {
 assessmentSessionSchema.methods.addAnswer = function (
   questionId,
   userAnswer,
-  questionData
+  questionData,
 ) {
   const existingAnswerIndex = this.answers.findIndex(
-    (a) => a.questionId === questionId
+    (a) => a.questionId === questionId,
   );
 
   const answerData = {
@@ -444,7 +444,7 @@ assessmentSessionSchema.methods.addAnswer = function (
 
   // Update progress
   this.progress.completionPercentage = Math.round(
-    (this.progress.questionsAnswered / this.progress.totalQuestions) * 100
+    (this.progress.questionsAnswered / this.progress.totalQuestions) * 100,
   );
 
   this.lastActivity = new Date();
@@ -454,7 +454,7 @@ assessmentSessionSchema.methods.addAnswer = function (
 // Calculate time spent on current question
 assessmentSessionSchema.methods.updateQuestionTime = function (
   questionId,
-  additionalTime
+  additionalTime,
 ) {
   const answer = this.answers.find((a) => a.questionId === questionId);
   if (answer) {
@@ -463,7 +463,7 @@ assessmentSessionSchema.methods.updateQuestionTime = function (
 
   // Update in time tracking as well
   const timeEntry = this.timeTracking.questionTimes.find(
-    (t) => t.questionId === questionId
+    (t) => t.questionId === questionId,
   );
   if (timeEntry) {
     timeEntry.timeSpent += additionalTime;
@@ -496,8 +496,8 @@ assessmentSessionSchema.methods.shouldTimeout = function () {
 
 // Pause the session
 assessmentSessionSchema.methods.pause = function () {
-  if (this.status === "in_progress") {
-    this.status = "paused";
+  if (this.status === 'in_progress') {
+    this.status = 'paused';
     this.lastActivity = new Date();
     return this.save();
   }
@@ -506,8 +506,8 @@ assessmentSessionSchema.methods.pause = function () {
 
 // Resume the session
 assessmentSessionSchema.methods.resume = function () {
-  if (this.status === "paused") {
-    this.status = "in_progress";
+  if (this.status === 'paused') {
+    this.status = 'in_progress';
     this.lastActivity = new Date();
     return this.save();
   }
@@ -516,7 +516,7 @@ assessmentSessionSchema.methods.resume = function () {
 
 // Complete the session and calculate results
 assessmentSessionSchema.methods.complete = async function (
-  finalAnswers = null
+  finalAnswers = null,
 ) {
   if (finalAnswers) {
     // Process any final answers
@@ -525,7 +525,7 @@ assessmentSessionSchema.methods.complete = async function (
     }
   }
 
-  this.status = "completed";
+  this.status = 'completed';
   this.endTime = new Date();
   this.lastActivity = new Date();
 
@@ -538,7 +538,7 @@ assessmentSessionSchema.methods.complete = async function (
 // Add security flag
 assessmentSessionSchema.methods.addSecurityFlag = function (
   flagType,
-  description
+  description,
 ) {
   this.environment.securityFlags.push({
     type: flagType,
@@ -548,10 +548,10 @@ assessmentSessionSchema.methods.addSecurityFlag = function (
 
   // Mark for review if serious security concern
   const seriousFlags = [
-    "tab_switch",
-    "copy_paste",
-    "unusual_timing",
-    "browser_tools",
+    'tab_switch',
+    'copy_paste',
+    'unusual_timing',
+    'browser_tools',
   ];
   if (seriousFlags.includes(flagType)) {
     this.notes.reviewRequired = true;
@@ -584,7 +584,7 @@ assessmentSessionSchema.methods.getSummary = function () {
 // Find user's assessment attempts
 assessmentSessionSchema.statics.findUserAttempts = function (
   userId,
-  assessmentId
+  assessmentId,
 ) {
   return this.find({
     userId,
@@ -597,24 +597,24 @@ assessmentSessionSchema.statics.findUserAttempts = function (
 // Get user's best attempt
 assessmentSessionSchema.statics.findBestAttempt = function (
   userId,
-  assessmentId
+  assessmentId,
 ) {
   return this.findOne({
     userId,
     assessmentId,
-    status: "completed",
+    status: 'completed',
   })
-    .sort({ "results.finalScore": -1 })
+    .sort({ 'results.finalScore': -1 })
     .lean();
 };
 
 // Find sessions requiring review
 assessmentSessionSchema.statics.findSessionsForReview = function (
-  options = {}
+  options = {},
 ) {
   const query = {
-    "notes.reviewRequired": true,
-    "notes.reviewedAt": null,
+    'notes.reviewRequired': true,
+    'notes.reviewedAt': null,
   };
 
   if (options.assessmentId) {
@@ -622,27 +622,27 @@ assessmentSessionSchema.statics.findSessionsForReview = function (
   }
 
   return this.find(query)
-    .populate("userId", "firstName lastName email")
-    .populate("assessmentId", "title type category")
+    .populate('userId', 'firstName lastName email')
+    .populate('assessmentId', 'title type category')
     .sort({ startTime: -1 });
 };
 
 // Get assessment session statistics
 assessmentSessionSchema.statics.getSessionStatistics = function (
   assessmentId,
-  timeRange = "30d"
+  timeRange = '30d',
 ) {
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "7d":
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
   }
 
   return this.aggregate([
@@ -654,10 +654,10 @@ assessmentSessionSchema.statics.getSessionStatistics = function (
     },
     {
       $group: {
-        _id: "$status",
+        _id: '$status',
         count: { $sum: 1 },
-        avgScore: { $avg: "$results.finalScore" },
-        avgTime: { $avg: "$timeTracking.totalTimeSpent" },
+        avgScore: { $avg: '$results.finalScore' },
+        avgTime: { $avg: '$timeTracking.totalTimeSpent' },
       },
     },
   ]);
@@ -665,28 +665,28 @@ assessmentSessionSchema.statics.getSessionStatistics = function (
 
 // Cleanup abandoned sessions
 assessmentSessionSchema.statics.cleanupAbandonedSessions = async function (
-  hoursOld = 24
+  hoursOld = 24,
 ) {
   const cutoffTime = new Date();
   cutoffTime.setHours(cutoffTime.getHours() - hoursOld);
 
   const result = await this.updateMany(
     {
-      status: "in_progress",
+      status: 'in_progress',
       lastActivity: { $lt: cutoffTime },
     },
     {
-      status: "abandoned",
+      status: 'abandoned',
       endTime: new Date(),
-    }
+    },
   );
 
   return result.modifiedCount;
 };
 
 const AssessmentSession = mongoose.model(
-  "AssessmentSession",
-  assessmentSessionSchema
+  'AssessmentSession',
+  assessmentSessionSchema,
 );
 
 module.exports = AssessmentSession;

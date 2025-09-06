@@ -13,13 +13,13 @@ async function testOpenAI() {
     const response1 = await openAIService.createChatCompletion(
       [
         { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: 'Say "Hello World" and nothing else.' }
+        { role: 'user', content: 'Say "Hello World" and nothing else.' },
       ],
       {
         model: 'gpt-4o-mini',
         temperature: 0.5,
-        max_tokens: 10
-      }
+        max_tokens: 10,
+      },
     );
     
     console.log('✅ Response 1:', response1.content);
@@ -29,13 +29,13 @@ async function testOpenAI() {
     const response2 = await openAIService.createChatCompletion(
       [
         { role: 'system', content: 'You are a JSON generator. Always respond with valid JSON.' },
-        { role: 'user', content: 'Create a simple JSON object with a greeting field containing "Hello World".' }
+        { role: 'user', content: 'Create a simple JSON object with a greeting field containing "Hello World".' },
       ],
       {
         model: 'gpt-4o-mini',
         temperature: 0.5,
-        max_tokens: 50
-      }
+        max_tokens: 50,
+      },
     );
     
     console.log('✅ Response 2:', response2.content);
@@ -46,7 +46,7 @@ async function testOpenAI() {
       [
         { 
           role: 'system', 
-          content: 'You are an assessment designer. Create learning assessments.'
+          content: 'You are an assessment designer. Create learning assessments.',
         },
         { 
           role: 'user', 
@@ -60,14 +60,14 @@ async function testOpenAI() {
       "difficulty": "beginner"
     }
   ]
-}`
-        }
+}`,
+        },
       ],
       {
         model: 'gpt-4o',
         temperature: 0.5,
-        max_tokens: 200
-      }
+        max_tokens: 200,
+      },
     );
     
     console.log('✅ Response 3:', response3.content);
@@ -78,19 +78,19 @@ async function testOpenAI() {
       [
         { 
           role: 'system', 
-          content: 'You are a JSON generator. Return valid JSON.'
+          content: 'You are a JSON generator. Return valid JSON.',
         },
         { 
           role: 'user', 
-          content: 'Create a JSON object with an assessments array containing one assessment with id, title, and description fields.'
-        }
+          content: 'Create a JSON object with an assessments array containing one assessment with id, title, and description fields.',
+        },
       ],
       {
         model: 'gpt-4o',
         temperature: 0.5,
         max_tokens: 200,
-        response_format: { type: "json_object" }
-      }
+        response_format: { type: 'json_object' },
+      },
     );
     
     console.log('✅ Response 4:', response4.content);

@@ -23,7 +23,7 @@ const connectDatabase = async () => {
 
       // Error handling
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
     };
 
     // Connect to MongoDB
@@ -78,13 +78,13 @@ const checkDatabaseHealth = async () => {
     return {
       status: 'healthy',
       message: 'Database connection is active',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   } catch (error) {
     return {
       status: 'unhealthy',
       message: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 };
@@ -102,5 +102,5 @@ const closeDatabaseConnection = async () => {
 module.exports = {
   connectDatabase,
   checkDatabaseHealth,
-  closeDatabaseConnection
+  closeDatabaseConnection,
 };

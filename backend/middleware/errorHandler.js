@@ -5,24 +5,24 @@ const errorHandler = (err, req, res, next) => {
   error.message = err.message;
 
   // Log error to console in development
-  if (process.env.NODE_ENV === "development") {
-    console.error("Error Stack:", err.stack);
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Error Stack:', err.stack);
   }
 
   // Log error for production monitoring
-  console.error("API Error:", {
+  console.error('API Error:', {
     message: err.message,
-    stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
     url: req.originalUrl,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get("User-Agent"),
+    userAgent: req.get('User-Agent'),
     timestamp: new Date().toISOString(),
   });
 
   // Mongoose bad ObjectId
-  if (err.name === "CastError") {
-    const message = "Resource not found";
+  if (err.name === 'CastError') {
+    const message = 'Resource not found';
     error = {
       message,
       statusCode: 404,
@@ -45,7 +45,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Mongoose validation error
-  if (err.name === "ValidationError") {
+  if (err.name === 'ValidationError') {
     const errors = Object.values(err.errors).map((error) => ({
       field: error.path,
       message: error.message,
@@ -53,7 +53,7 @@ const errorHandler = (err, req, res, next) => {
     }));
 
     error = {
-      message: "Validation failed",
+      message: 'Validation failed',
       statusCode: 400,
       isOperational: true,
       details: errors,
@@ -61,8 +61,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // JWT errors
-  if (err.name === "JsonWebTokenError") {
-    const message = "Invalid token. Please login again";
+  if (err.name === 'JsonWebTokenError') {
+    const message = 'Invalid token. Please login again';
     error = {
       message,
       statusCode: 401,
@@ -70,8 +70,8 @@ const errorHandler = (err, req, res, next) => {
     };
   }
 
-  if (err.name === "TokenExpiredError") {
-    const message = "Token expired. Please login again";
+  if (err.name === 'TokenExpiredError') {
+    const message = 'Token expired. Please login again';
     error = {
       message,
       statusCode: 401,
@@ -80,8 +80,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // File upload errors
-  if (err.code === "LIMIT_FILE_SIZE") {
-    const message = "File size too large";
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    const message = 'File size too large';
     error = {
       message,
       statusCode: 400,
@@ -89,8 +89,8 @@ const errorHandler = (err, req, res, next) => {
     };
   }
 
-  if (err.code === "LIMIT_FILE_COUNT") {
-    const message = "Too many files uploaded";
+  if (err.code === 'LIMIT_FILE_COUNT') {
+    const message = 'Too many files uploaded';
     error = {
       message,
       statusCode: 400,
@@ -100,7 +100,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Rate limiting errors
   if (err.status === 429) {
-    const message = "Too many requests. Please try again later";
+    const message = 'Too many requests. Please try again later';
     error = {
       message,
       statusCode: 429,
@@ -109,8 +109,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Database connection errors
-  if (err.name === "MongoError" || err.name === "MongooseError") {
-    const message = "Database connection error";
+  if (err.name === 'MongoError' || err.name === 'MongooseError') {
+    const message = 'Database connection error';
     error = {
       message,
       statusCode: 500,
@@ -119,8 +119,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Network/External API errors
-  if (err.code === "ENOTFOUND" || err.code === "ECONNREFUSED") {
-    const message = "External service unavailable";
+  if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
+    const message = 'External service unavailable';
     error = {
       message,
       statusCode: 503,
@@ -130,7 +130,7 @@ const errorHandler = (err, req, res, next) => {
 
   // Default error response
   const statusCode = error.statusCode || 500;
-  const message = error.message || "Internal server error";
+  const message = error.message || 'Internal server error';
   const isOperational = error.isOperational || false;
 
   // Determine response based on environment and error type
@@ -148,7 +148,7 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Add additional information in development mode
-  if (process.env.NODE_ENV === "development") {
+  if (process.env.NODE_ENV === 'development') {
     response.stack = err.stack;
     response.errorName = err.name;
   }
@@ -159,10 +159,10 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Different response format for production vs development
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     // Don't leak error details in production for non-operational errors
     if (!isOperational && statusCode >= 500) {
-      response.message = "Something went wrong. Please try again later.";
+      response.message = 'Something went wrong. Please try again later.';
     }
   }
 
@@ -194,24 +194,24 @@ const notFound = (req, res, next) => {
   const error = new AppError(
     `Cannot ${req.method} ${req.originalUrl}`,
     404,
-    true
+    true,
   );
   next(error);
 };
 
 // Unhandled promise rejection handler
-process.on("unhandledRejection", (err, promise) => {
-  console.error("Unhandled Promise Rejection:", err);
+process.on('unhandledRejection', (err, promise) => {
+  console.error('Unhandled Promise Rejection:', err);
 
   // Close server & exit process
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   }
 });
 
 // Uncaught exception handler
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err);
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
 
   // Close server & exit process
   process.exit(1);

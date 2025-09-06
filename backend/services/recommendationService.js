@@ -1,13 +1,15 @@
 // services/recommendationService.js
-const RecommendationEngine = require("../models/RecommendationEngine");
-const LearningAnalytics = require("../models/LearningAnalytics");
-const User = require("../models/User");
-const UserProgress = require("../models/UserProgress");
-const LearningPath = require("../models/LearningPath");
-const LearningModule = require("../models/LearningModule");
-const { openAIService } = require("./openaiService");
-const { analyticsService } = require("./analyticsService");
-const { predictionService } = require("./predictionService");
+const mongoose = require('mongoose');
+const RecommendationEngine = require('../models/RecommendationEngine');
+const LearningAnalytics = require('../models/LearningAnalytics');
+const LearningSession = require('../models/LearningSession');
+const User = require('../models/User');
+const UserProgress = require('../models/UserProgress');
+const LearningPath = require('../models/LearningPath');
+const LearningModule = require('../models/LearningModule');
+const { openAIService } = require('./openaiService');
+const { analyticsService } = require('./analyticsService');
+const { predictionService } = require('./predictionService');
 
 class RecommendationService {
   /**
@@ -28,7 +30,7 @@ class RecommendationService {
       // 1. Content progression recommendations
       const progressionRecs = await this.generateProgressionRecommendations(
         userId,
-        analytics
+        analytics,
       );
       recommendations.push(...progressionRecs);
 
@@ -36,7 +38,7 @@ class RecommendationService {
       if (prioritizeWeakAreas) {
         const skillRecs = await this.generateSkillRecommendations(
           userId,
-          analytics
+          analytics,
         );
         recommendations.push(...skillRecs);
       }
@@ -44,14 +46,14 @@ class RecommendationService {
       // 3. Engagement optimization recommendations
       const engagementRecs = await this.generateEngagementRecommendations(
         userId,
-        analytics
+        analytics,
       );
       recommendations.push(...engagementRecs);
 
       // 4. AI interaction optimization
       const aiRecs = await this.generateAIOptimizationRecommendations(
         userId,
-        analytics
+        analytics,
       );
       recommendations.push(...aiRecs);
 
@@ -59,7 +61,7 @@ class RecommendationService {
       if (includeScheduling) {
         const scheduleRecs = await this.generateScheduleRecommendations(
           userId,
-          analytics
+          analytics,
         );
         recommendations.push(...scheduleRecs);
       }
@@ -68,7 +70,7 @@ class RecommendationService {
       const scoredRecommendations = await this.scoreRecommendations(
         recommendations,
         userId,
-        analytics
+        analytics,
       );
 
       // Select top recommendations
@@ -83,12 +85,12 @@ class RecommendationService {
           user: userId,
           ...rec,
           generatedBy: {
-            algorithm: "hybrid",
-            version: "1.0",
+            algorithm: 'hybrid',
+            version: '1.0',
             factors: rec.scoringFactors,
           },
           timing: {
-            suggestedTiming: rec.urgency || "this_week",
+            suggestedTiming: rec.urgency || 'this_week',
             validUntil: this.calculateValidUntil(rec.type),
           },
         });
@@ -99,7 +101,7 @@ class RecommendationService {
 
       return savedRecommendations;
     } catch (error) {
-      console.error("Error generating personalized recommendations:", error);
+      console.error('Error generating personalized recommendations:', error);
       throw error;
     }
   }
@@ -113,33 +115,33 @@ class RecommendationService {
     // Get current progress
     const currentProgress = await UserProgress.find({
       user: userId,
-      completionStatus: { $in: ["not_started", "in_progress"] },
-    }).populate("learningPath learningModule");
+      completionStatus: { $in: ['not_started', 'in_progress'] },
+    }).populate('learningPath learningModule');
 
     // Recommend continuing current modules
     const inProgress = currentProgress.filter(
-      (p) => p.completionStatus === "in_progress"
+      (p) => p.completionStatus === 'in_progress',
     );
     if (inProgress.length > 0) {
       const module = inProgress[0].learningModule;
       recommendations.push({
-        type: "next_module",
+        type: 'next_module',
         category: module.category,
         title: `Continue ${module.title}`,
         description: `You're ${inProgress[0].progressPercentage}% through this module. Keep up the momentum!`,
         actionable: {
-          primaryAction: "Continue Learning",
+          primaryAction: 'Continue Learning',
           deepLink: `/modules/${module._id}`,
         },
         targeting: {
           targetContent: module._id,
-          targetContentType: "LearningModule",
+          targetContentType: 'LearningModule',
           targetDifficulty: module.difficulty,
         },
         relevanceScore: 95,
         confidenceScore: 90,
         priorityScore: 90,
-        urgency: "immediate",
+        urgency: 'immediate',
       });
     }
 
@@ -147,17 +149,17 @@ class RecommendationService {
     const nextModules = await this.getRecommendedNextModules(userId);
     for (const moduleRec of nextModules.slice(0, 2)) {
       recommendations.push({
-        type: "next_module",
+        type: 'next_module',
         category: moduleRec.category,
         title: `Ready for ${moduleRec.title}`,
-        description: `Based on your progress, this module is a perfect next step`,
+        description: 'Based on your progress, this module is a perfect next step',
         actionable: {
-          primaryAction: "Start Module",
+          primaryAction: 'Start Module',
           deepLink: `/modules/${moduleRec._id}`,
         },
         targeting: {
           targetContent: moduleRec._id,
-          targetContentType: "LearningModule",
+          targetContentType: 'LearningModule',
           targetDifficulty: moduleRec.difficulty,
         },
         relevanceScore: 85,
@@ -188,14 +190,14 @@ class RecommendationService {
 
       if (relevantModules.length > 0) {
         recommendations.push({
-          type: "skill_development",
+          type: 'skill_development',
           category: gap.category,
           title: `Strengthen ${gap.category} Skills`,
           description: `Focus on ${gap.missingSkills.join(
-            ", "
+            ', ',
           )} to improve your ${gap.category} capabilities`,
           actionable: {
-            primaryAction: "Explore Skill Modules",
+            primaryAction: 'Explore Skill Modules',
             deepLink: `/skills/${gap.category.toLowerCase()}`,
           },
           targeting: {
@@ -223,13 +225,13 @@ class RecommendationService {
       const optimalTime = await this.findOptimalLearningTime(userId);
 
       recommendations.push({
-        type: "schedule_optimization",
-        category: "General",
-        title: "Optimize Your Learning Schedule",
+        type: 'schedule_optimization',
+        category: 'General',
+        title: 'Optimize Your Learning Schedule',
         description: `Your focus is highest around ${optimalTime.hour}:00 on ${optimalTime.dayName}s. Try scheduling learning sessions then!`,
         actionable: {
-          primaryAction: "Update Schedule",
-          deepLink: "/profile/schedule",
+          primaryAction: 'Update Schedule',
+          deepLink: '/profile/schedule',
         },
         relevanceScore: 80,
         confidenceScore: 70,
@@ -240,21 +242,21 @@ class RecommendationService {
     // Session length optimization
     const avgSessionDuration = analytics.engagement.averageSessionDuration;
     if (avgSessionDuration > 90 || avgSessionDuration < 15) {
-      const optimalDuration = avgSessionDuration > 90 ? "shorter" : "longer";
+      const optimalDuration = avgSessionDuration > 90 ? 'shorter' : 'longer';
       recommendations.push({
-        type: "study_break",
-        category: "General",
+        type: 'study_break',
+        category: 'General',
         title: `Try ${
-          optimalDuration === "shorter" ? "Shorter" : "Longer"
+          optimalDuration === 'shorter' ? 'Shorter' : 'Longer'
         } Learning Sessions`,
         description: `${
-          optimalDuration === "shorter"
-            ? "Breaking learning into shorter sessions can improve focus and retention"
-            : "Longer sessions might help you get into a deeper learning flow"
+          optimalDuration === 'shorter'
+            ? 'Breaking learning into shorter sessions can improve focus and retention'
+            : 'Longer sessions might help you get into a deeper learning flow'
         }`,
         actionable: {
-          primaryAction: "Adjust Session Length",
-          deepLink: "/profile/preferences",
+          primaryAction: 'Adjust Session Length',
+          deepLink: '/profile/preferences',
         },
         relevanceScore: 75,
         confidenceScore: 65,
@@ -276,18 +278,18 @@ class RecommendationService {
       const user = await User.findById(userId);
       const optimalPersonality = await this.recommendOptimalAIPersonality(
         userId,
-        analytics
+        analytics,
       );
 
       if (optimalPersonality !== user.learningProfile.aiPersonality) {
         recommendations.push({
-          type: "ai_personality",
-          category: "General",
+          type: 'ai_personality',
+          category: 'General',
           title: `Try ${optimalPersonality} AI Assistant`,
           description: `Based on your learning style, ${optimalPersonality} might be a better match for you`,
           actionable: {
-            primaryAction: "Switch AI Personality",
-            deepLink: "/profile/ai-assistant",
+            primaryAction: 'Switch AI Personality',
+            deepLink: '/profile/ai-assistant',
           },
           relevanceScore: 70,
           confidenceScore: 60,
@@ -308,14 +310,14 @@ class RecommendationService {
     // Inconsistent learning pattern
     if (analytics.engagement.sessionCount < 3) {
       recommendations.push({
-        type: "schedule_optimization",
-        category: "General",
-        title: "Build a Consistent Learning Habit",
+        type: 'schedule_optimization',
+        category: 'General',
+        title: 'Build a Consistent Learning Habit',
         description:
-          "Regular, shorter sessions are more effective than sporadic long sessions",
+          'Regular, shorter sessions are more effective than sporadic long sessions',
         actionable: {
-          primaryAction: "Set Learning Schedule",
-          deepLink: "/profile/schedule",
+          primaryAction: 'Set Learning Schedule',
+          deepLink: '/profile/schedule',
         },
         relevanceScore: 85,
         confidenceScore: 80,
@@ -336,28 +338,28 @@ class RecommendationService {
 
       // Trigger specific actions based on recommendation type
       switch (recommendation.type) {
-        case "next_module":
-          await this.handleModuleRecommendationAccepted(recommendation);
-          break;
-        case "schedule_optimization":
-          await this.handleScheduleOptimizationAccepted(recommendation);
-          break;
-        case "ai_personality":
-          await this.handleAIPersonalityChangeAccepted(recommendation);
-          break;
-        case "skill_development":
-          await this.handleSkillDevelopmentAccepted(recommendation);
-          break;
-        default:
-          console.log(
-            `No specific handler for recommendation type: ${recommendation.type}`
-          );
+      case 'next_module':
+        await this.handleModuleRecommendationAccepted(recommendation);
+        break;
+      case 'schedule_optimization':
+        await this.handleScheduleOptimizationAccepted(recommendation);
+        break;
+      case 'ai_personality':
+        await this.handleAIPersonalityChangeAccepted(recommendation);
+        break;
+      case 'skill_development':
+        await this.handleSkillDevelopmentAccepted(recommendation);
+        break;
+      default:
+        console.log(
+          `No specific handler for recommendation type: ${recommendation.type}`,
+        );
       }
 
       // Generate follow-up recommendations if appropriate
       await this.generateFollowUpRecommendations(recommendation);
     } catch (error) {
-      console.error("Error handling accepted recommendation:", error);
+      console.error('Error handling accepted recommendation:', error);
     }
   }
 
@@ -375,7 +377,7 @@ class RecommendationService {
     let filteredRecs = activeRecommendations;
     if (category) {
       filteredRecs = activeRecommendations.filter(
-        (rec) => rec.category === category
+        (rec) => rec.category === category,
       );
     }
 
@@ -402,7 +404,7 @@ class RecommendationService {
     try {
       const module = await LearningModule.findById(moduleId);
       if (!module) {
-        throw new Error("Module not found");
+        throw new Error('Module not found');
       }
 
       const user = await User.findById(userId);
@@ -416,18 +418,18 @@ class RecommendationService {
       // Difficulty adjustment recommendations
       if (userProgress && userProgress.strugglingAreas.length > 0) {
         recommendations.push({
-          type: "review_content",
-          title: "Review Challenging Topics",
-          description: `Focus on: ${userProgress.strugglingAreas.join(", ")}`,
+          type: 'review_content',
+          title: 'Review Challenging Topics',
+          description: `Focus on: ${userProgress.strugglingAreas.join(', ')}`,
           relevanceScore: 90,
-          action: "review_topics",
+          action: 'review_topics',
         });
       }
 
       // Learning style adaptations
       const styleAdaptations = this.getStyleAdaptations(
         module,
-        user.learningProfile.learningStyle
+        user.learningProfile.learningStyle,
       );
       recommendations.push(...styleAdaptations);
 
@@ -437,7 +439,7 @@ class RecommendationService {
 
       return recommendations;
     } catch (error) {
-      console.error("Error getting content recommendations:", error);
+      console.error('Error getting content recommendations:', error);
       throw error;
     }
   }
@@ -452,7 +454,7 @@ class RecommendationService {
       if (!analytics) {
         return {
           message:
-            "Complete more learning activities to get timing recommendations",
+            'Complete more learning activities to get timing recommendations',
           recommendations: [],
         };
       }
@@ -480,7 +482,7 @@ class RecommendationService {
 
       return recommendations;
     } catch (error) {
-      console.error("Error getting timing recommendations:", error);
+      console.error('Error getting timing recommendations:', error);
       throw error;
     }
   }
@@ -496,7 +498,7 @@ class RecommendationService {
       const userContextScore = await this.calculateUserContextScore(
         rec,
         userId,
-        analytics
+        analytics,
       );
       const timingScore = this.calculateTimingScore(rec);
       const relevanceScore = rec.relevanceScore || 50;
@@ -509,18 +511,18 @@ class RecommendationService {
           confidenceScore * 0.2 +
           priorityScore * 0.2 +
           userContextScore * 0.2 +
-          timingScore * 0.1
+          timingScore * 0.1,
       );
 
       scoredRecommendations.push({
         ...rec,
         overallScore,
         scoringFactors: [
-          { name: "relevance", weight: 0.3, value: relevanceScore },
-          { name: "confidence", weight: 0.2, value: confidenceScore },
-          { name: "priority", weight: 0.2, value: priorityScore },
-          { name: "userContext", weight: 0.2, value: userContextScore },
-          { name: "timing", weight: 0.1, value: timingScore },
+          { name: 'relevance', weight: 0.3, value: relevanceScore },
+          { name: 'confidence', weight: 0.2, value: confidenceScore },
+          { name: 'priority', weight: 0.2, value: priorityScore },
+          { name: 'userContext', weight: 0.2, value: userContextScore },
+          { name: 'timing', weight: 0.1, value: timingScore },
         ],
       });
     }
@@ -536,20 +538,20 @@ class RecommendationService {
       { $match: { user: mongoose.Types.ObjectId(userId) } },
       {
         $lookup: {
-          from: "learningmodules",
-          localField: "learningModule",
-          foreignField: "_id",
-          as: "module",
+          from: 'learningmodules',
+          localField: 'learningModule',
+          foreignField: '_id',
+          as: 'module',
         },
       },
-      { $unwind: "$module" },
+      { $unwind: '$module' },
       {
         $group: {
-          _id: "$module.category",
-          avgScore: { $avg: "$finalScore" },
+          _id: '$module.category',
+          avgScore: { $avg: '$finalScore' },
           completedCount: {
             $sum: {
-              $cond: [{ $eq: ["$completionStatus", "completed"] }, 1, 0],
+              $cond: [{ $eq: ['$completionStatus', 'completed'] }, 1, 0],
             },
           },
           totalCount: { $sum: 1 },
@@ -566,13 +568,13 @@ class RecommendationService {
         skillGaps.push({
           category: category._id,
           currentLevel: this.scoreToLevel(category.avgScore),
-          recommendedLevel: "intermediate",
+          recommendedLevel: 'intermediate',
           confidence: 75,
           priority: 100 - category.avgScore,
           relevanceScore: 100 - category.avgScore,
           missingSkills: await this.getMissingSkillsForCategory(
             category._id,
-            userId
+            userId,
           ),
         });
       }
@@ -584,14 +586,14 @@ class RecommendationService {
   async findOptimalLearningTime(userId) {
     // Analyze user's session history to find optimal times
     const sessions = await LearningSession.find({ user: userId })
-      .select("startTime duration engagementScore")
+      .select('startTime duration engagementScore')
       .limit(50);
 
     if (sessions.length < 5) {
       return {
         hour: 10, // Default morning time
         dayOfWeek: 1, // Monday
-        dayName: "Monday",
+        dayName: 'Monday',
         confidence: 0,
       };
     }
@@ -633,13 +635,13 @@ class RecommendationService {
 
     if (bestSlot) {
       const dayNames = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
       ];
       return {
         hour: bestSlot.hour,
@@ -652,7 +654,7 @@ class RecommendationService {
     return {
       hour: 10,
       dayOfWeek: 1,
-      dayName: "Monday",
+      dayName: 'Monday',
       confidence: 0,
     };
   }
@@ -667,11 +669,11 @@ class RecommendationService {
       analytics.progress.completionRate < 40 &&
       analytics.engagement.focusScore < 50
     ) {
-      return "COACH"; // More motivational for struggling users
+      return 'COACH'; // More motivational for struggling users
     } else if (analytics.progress.averageModuleScore > 85) {
-      return "SAGE"; // More challenging for high performers
+      return 'SAGE'; // More challenging for high performers
     } else {
-      return "ARIA"; // Balanced for average performers
+      return 'ARIA'; // Balanced for average performers
     }
   }
 
@@ -691,22 +693,22 @@ class RecommendationService {
   }
 
   getPriorityLevel(priorityScore) {
-    if (priorityScore >= 80) return "high";
-    if (priorityScore >= 50) return "medium";
-    return "low";
+    if (priorityScore >= 80) return 'high';
+    if (priorityScore >= 50) return 'medium';
+    return 'low';
   }
 
   estimateActionTime(recommendation) {
     const timeEstimates = {
-      next_module: "30-45 minutes",
-      skill_development: "1-2 hours",
-      schedule_optimization: "5-10 minutes",
-      ai_personality: "Immediate",
-      study_break: "15-30 minutes",
-      review_content: "20-30 minutes",
+      next_module: '30-45 minutes',
+      skill_development: '1-2 hours',
+      schedule_optimization: '5-10 minutes',
+      ai_personality: 'Immediate',
+      study_break: '15-30 minutes',
+      review_content: '20-30 minutes',
     };
 
-    return timeEstimates[recommendation.type] || "15-30 minutes";
+    return timeEstimates[recommendation.type] || '15-30 minutes';
   }
 
   async calculateUserContextScore(recommendation, userId, analytics) {
@@ -717,7 +719,7 @@ class RecommendationService {
     const user = await User.findById(userId);
     if (
       user.learningProfile.goals.some((goal) =>
-        recommendation.category.toLowerCase().includes(goal.toLowerCase())
+        recommendation.category.toLowerCase().includes(goal.toLowerCase()),
       )
     ) {
       score += 20;
@@ -725,9 +727,9 @@ class RecommendationService {
 
     // Boost score if recommendation addresses current struggles
     if (
-      recommendation.type === "skill_development" &&
+      recommendation.type === 'skill_development' &&
       analytics.performance.strugglePatterns.some(
-        (pattern) => pattern.category === recommendation.category
+        (pattern) => pattern.category === recommendation.category,
       )
     ) {
       score += 25;
@@ -737,8 +739,8 @@ class RecommendationService {
     const recentDeclines = await RecommendationEngine.countDocuments({
       user: userId,
       type: recommendation.type,
-      "userInteraction.response": "declined",
-      "timing.generatedAt": {
+      'userInteraction.response': 'declined',
+      'timing.generatedAt': {
         $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
       },
     });
@@ -758,8 +760,8 @@ class RecommendationService {
 
     // Boost score for learning-related recommendations during typical learning hours
     if (
-      ["next_module", "skill_development", "review_content"].includes(
-        recommendation.type
+      ['next_module', 'skill_development', 'review_content'].includes(
+        recommendation.type,
       )
     ) {
       if (hour >= 9 && hour <= 22) {
@@ -773,7 +775,7 @@ class RecommendationService {
     }
 
     // Schedule optimization recommendations are good anytime
-    if (recommendation.type === "schedule_optimization") {
+    if (recommendation.type === 'schedule_optimization') {
       score += 15;
     }
 

@@ -1,10 +1,10 @@
-const User = require("../models/User");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const User = require('../models/User');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 const {
   validateName,
   validateTextContent,
   sanitizeUserInput,
-} = require("../utils/validators");
+} = require('../utils/validators');
 
 // Helper function to find user by either Clerk ID or MongoDB ID
 const findUserByRequest = async (req) => {
@@ -22,7 +22,7 @@ const getProfile = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
 
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update last active timestamp
@@ -44,22 +44,22 @@ const updateProfile = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Validate and sanitize name fields if provided
   if (firstName) {
-    const nameValidation = validateName(firstName, "First name");
+    const nameValidation = validateName(firstName, 'First name');
     if (!nameValidation.isValid) {
-      throw new AppError(nameValidation.errors.join(", "), 400);
+      throw new AppError(nameValidation.errors.join(', '), 400);
     }
     user.firstName = nameValidation.sanitized;
   }
 
   if (lastName) {
-    const nameValidation = validateName(lastName, "Last name");
+    const nameValidation = validateName(lastName, 'Last name');
     if (!nameValidation.isValid) {
-      throw new AppError(nameValidation.errors.join(", "), 400);
+      throw new AppError(nameValidation.errors.join(', '), 400);
     }
     user.lastName = nameValidation.sanitized;
   }
@@ -69,10 +69,10 @@ const updateProfile = catchAsync(async (req, res) => {
     const bioValidation = validateTextContent(bio, {
       maxLength: 500,
       allowEmpty: true,
-      fieldName: "Bio",
+      fieldName: 'Bio',
     });
     if (!bioValidation.isValid) {
-      throw new AppError(bioValidation.errors.join(", "), 400);
+      throw new AppError(bioValidation.errors.join(', '), 400);
     }
     user.bio = bioValidation.sanitized;
   }
@@ -87,7 +87,7 @@ const updateProfile = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Profile updated successfully",
+    message: 'Profile updated successfully',
     data: {
       user: user.toSafeObject(),
     },
@@ -109,7 +109,7 @@ const updateLearningProfile = catchAsync(async (req, res) => {
 
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update learning profile fields
@@ -139,7 +139,7 @@ const updateLearningProfile = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Learning profile updated successfully",
+    message: 'Learning profile updated successfully',
     data: {
       learningProfile: user.learningProfile,
     },
@@ -150,12 +150,12 @@ const updateLearningProfile = catchAsync(async (req, res) => {
 const getUserStatistics = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Calculate additional statistics
   const accountAge = Math.floor(
-    (new Date() - user.createdAt) / (1000 * 60 * 60 * 24)
+    (new Date() - user.createdAt) / (1000 * 60 * 60 * 24),
   );
   const avgLearningTimePerDay =
     accountAge > 0
@@ -172,7 +172,7 @@ const getUserStatistics = catchAsync(async (req, res) => {
     },
     learning: {
       totalLearningTime: `${Math.round(
-        user.statistics.totalLearningTime
+        user.statistics.totalLearningTime,
       )} minutes`,
       averagePerDay: `${avgLearningTimePerDay} minutes/day`,
       pathsEnrolled: user.statistics.pathsEnrolled,
@@ -181,9 +181,9 @@ const getUserStatistics = catchAsync(async (req, res) => {
       completionRate:
         user.statistics.pathsEnrolled > 0
           ? Math.round(
-              (user.statistics.pathsCompleted / user.statistics.pathsEnrolled) *
-                100
-            )
+            (user.statistics.pathsCompleted / user.statistics.pathsEnrolled) *
+                100,
+          )
           : 0,
     },
     preferences: {
@@ -212,7 +212,7 @@ const deleteAccount = catchAsync(async (req, res) => {
   // Get user 
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // For hard delete, we don't require password confirmation (Clerk handles auth)
@@ -220,13 +220,13 @@ const deleteAccount = catchAsync(async (req, res) => {
   if (!isHardDelete && confirmPassword) {
     let userWithPassword;
     if (req.clerkUserId) {
-      userWithPassword = await User.findOne({ clerkUserId: req.clerkUserId }).select("+password");
+      userWithPassword = await User.findOne({ clerkUserId: req.clerkUserId }).select('+password');
     } else {
-      userWithPassword = await User.findById(req.userId).select("+password");
+      userWithPassword = await User.findById(req.userId).select('+password');
     }
     const isPasswordValid = await userWithPassword.comparePassword(confirmPassword);
     if (!isPasswordValid) {
-      throw new AppError("Password is incorrect", 400);
+      throw new AppError('Password is incorrect', 400);
     }
   }
 
@@ -253,7 +253,7 @@ const deleteAccount = catchAsync(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Account has been permanently deleted",
+      message: 'Account has been permanently deleted',
     });
   } else {
     // SOFT DELETE - Deactivate account instead of permanent deletion
@@ -269,7 +269,7 @@ const deleteAccount = catchAsync(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Account has been deactivated successfully",
+      message: 'Account has been deactivated successfully',
     });
   }
 });
@@ -278,13 +278,13 @@ const deleteAccount = catchAsync(async (req, res) => {
 const uploadProfileImage = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // TODO: Implement file upload logic with cloud storage
   res.status(200).json({
     success: true,
-    message: "Profile image upload will be implemented in a future update",
+    message: 'Profile image upload will be implemented in a future update',
     data: {
       user: user.toSafeObject(),
     },
@@ -295,7 +295,7 @@ const uploadProfileImage = catchAsync(async (req, res) => {
 const getPreferences = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   const preferences = {
@@ -322,7 +322,7 @@ const updatePreferences = catchAsync(async (req, res) => {
 
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update basic preferences
@@ -351,7 +351,7 @@ const updatePreferences = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Preferences updated successfully",
+    message: 'Preferences updated successfully',
     data: {
       preferences: {
         timezone: user.timezone,
@@ -366,14 +366,14 @@ const updatePreferences = catchAsync(async (req, res) => {
 const getDashboardData = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Calculate streak (placeholder - will be enhanced in future phases)
   const daysSinceLastActive = user.statistics.lastActiveAt
     ? Math.floor(
-        (new Date() - user.statistics.lastActiveAt) / (1000 * 60 * 60 * 24)
-      )
+      (new Date() - user.statistics.lastActiveAt) / (1000 * 60 * 60 * 24),
+    )
     : null;
 
   const currentStreak =
@@ -419,7 +419,7 @@ const getDashboardData = catchAsync(async (req, res) => {
 const exportUserData = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   const userData = {
@@ -437,14 +437,14 @@ const exportUserData = catchAsync(async (req, res) => {
     statistics: user.statistics,
     subscription: user.subscription,
     exportDate: new Date().toISOString(),
-    exportVersion: "1.0",
+    exportVersion: '1.0',
   };
 
   console.log(`📤 Data export requested for user: ${user.email}`);
 
   res.status(200).json({
     success: true,
-    message: "User data exported successfully",
+    message: 'User data exported successfully',
     data: userData,
   });
 });
@@ -453,7 +453,7 @@ const exportUserData = catchAsync(async (req, res) => {
 const updateActivity = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   user.statistics.lastActiveAt = new Date();
@@ -461,7 +461,7 @@ const updateActivity = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Activity updated",
+    message: 'Activity updated',
     data: {
       lastActiveAt: user.statistics.lastActiveAt,
     },
@@ -472,7 +472,7 @@ const updateActivity = catchAsync(async (req, res) => {
 const getSettings = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   const settings = {
@@ -494,7 +494,7 @@ const getSettings = catchAsync(async (req, res) => {
       isActive: user.isActive,
     },
     privacy: {
-      profileVisibility: "public", // Default for now
+      profileVisibility: 'public', // Default for now
       shareProgress: true, // Default for now
     },
   };
@@ -511,23 +511,23 @@ const updateSettings = catchAsync(async (req, res) => {
 
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update profile settings
   if (profile) {
     if (profile.firstName) {
-      const nameValidation = validateName(profile.firstName, "First name");
+      const nameValidation = validateName(profile.firstName, 'First name');
       if (!nameValidation.isValid) {
-        throw new AppError(nameValidation.errors.join(", "), 400);
+        throw new AppError(nameValidation.errors.join(', '), 400);
       }
       user.firstName = nameValidation.sanitized;
     }
 
     if (profile.lastName) {
-      const nameValidation = validateName(profile.lastName, "Last name");
+      const nameValidation = validateName(profile.lastName, 'Last name');
       if (!nameValidation.isValid) {
-        throw new AppError(nameValidation.errors.join(", "), 400);
+        throw new AppError(nameValidation.errors.join(', '), 400);
       }
       user.lastName = nameValidation.sanitized;
     }
@@ -536,10 +536,10 @@ const updateSettings = catchAsync(async (req, res) => {
       const bioValidation = validateTextContent(profile.bio, {
         maxLength: 500,
         allowEmpty: true,
-        fieldName: "Bio",
+        fieldName: 'Bio',
       });
       if (!bioValidation.isValid) {
-        throw new AppError(bioValidation.errors.join(", "), 400);
+        throw new AppError(bioValidation.errors.join(', '), 400);
       }
       user.bio = bioValidation.sanitized;
     }
@@ -573,7 +573,7 @@ const updateSettings = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Settings updated successfully",
+    message: 'Settings updated successfully',
     data: {
       user: user.toSafeObject(),
     },
@@ -584,7 +584,7 @@ const updateSettings = catchAsync(async (req, res) => {
 const getOnboardingStatus = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Calculate onboarding progress based on user data
@@ -620,7 +620,7 @@ const updateOnboardingStep = catchAsync(async (req, res) => {
 
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // Update the specific onboarding step
@@ -679,7 +679,7 @@ function getNextOnboardingStep(steps) {
 const uploadAvatar = catchAsync(async (req, res) => {
   const user = await findUserByRequest(req);
   if (!user) {
-    throw new AppError("User not found", 404);
+    throw new AppError('User not found', 404);
   }
 
   // TODO: Implement actual file upload with cloud storage (AWS S3, Cloudinary, etc.)
@@ -696,7 +696,7 @@ const uploadAvatar = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Avatar upload will be implemented in a future update",
+    message: 'Avatar upload will be implemented in a future update',
     data: {
       user: user.toSafeObject(),
       uploadedUrl: avatarUrl || null,

@@ -1,5 +1,5 @@
-const jwt = require("jsonwebtoken");
-const { authConfig } = require("../config/auth");
+const jwt = require('jsonwebtoken');
+const { authConfig } = require('../config/auth');
 
 // Generate access token
 const generateAccessToken = (payload) => {
@@ -18,7 +18,7 @@ const generateAccessToken = (payload) => {
       audience: authConfig.jwt.audience,
     });
   } catch (error) {
-    throw new Error("Failed to generate access token");
+    throw new Error('Failed to generate access token');
   }
 };
 
@@ -27,7 +27,7 @@ const generateRefreshToken = (payload) => {
   try {
     const tokenPayload = {
       userId: payload.userId,
-      type: "refresh",
+      type: 'refresh',
       iat: Math.floor(Date.now() / 1000),
     };
 
@@ -38,7 +38,7 @@ const generateRefreshToken = (payload) => {
       audience: authConfig.jwt.audience,
     });
   } catch (error) {
-    throw new Error("Failed to generate refresh token");
+    throw new Error('Failed to generate refresh token');
   }
 };
 
@@ -51,16 +51,16 @@ const verifyAccessToken = (token) => {
       audience: authConfig.jwt.audience,
     });
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      throw new Error("Token expired");
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('Token expired');
     }
-    if (error.name === "JsonWebTokenError") {
-      throw new Error("Invalid token");
+    if (error.name === 'JsonWebTokenError') {
+      throw new Error('Invalid token');
     }
-    if (error.name === "NotBeforeError") {
-      throw new Error("Token not active");
+    if (error.name === 'NotBeforeError') {
+      throw new Error('Token not active');
     }
-    throw new Error("Token verification failed");
+    throw new Error('Token verification failed');
   }
 };
 
@@ -73,16 +73,16 @@ const verifyRefreshToken = (token) => {
       audience: authConfig.jwt.audience,
     });
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      throw new Error("Refresh token expired");
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('Refresh token expired');
     }
-    if (error.name === "JsonWebTokenError") {
-      throw new Error("Invalid refresh token");
+    if (error.name === 'JsonWebTokenError') {
+      throw new Error('Invalid refresh token');
     }
-    if (error.name === "NotBeforeError") {
-      throw new Error("Refresh token not active");
+    if (error.name === 'NotBeforeError') {
+      throw new Error('Refresh token not active');
     }
-    throw new Error("Refresh token verification failed");
+    throw new Error('Refresh token verification failed');
   }
 };
 
@@ -91,7 +91,7 @@ const decodeToken = (token) => {
   try {
     return jwt.decode(token, { complete: true });
   } catch (error) {
-    throw new Error("Failed to decode token");
+    throw new Error('Failed to decode token');
   }
 };
 
@@ -157,23 +157,23 @@ const createTokenPair = (payload, deviceInfo = {}) => {
 
     // Calculate expiration times
     const accessTokenExpires = new Date(
-      Date.now() + parseExpirationTime(authConfig.jwt.expiresIn)
+      Date.now() + parseExpirationTime(authConfig.jwt.expiresIn),
     );
     const refreshTokenExpires = new Date(
-      Date.now() + parseExpirationTime(authConfig.jwt.refreshExpiresIn)
+      Date.now() + parseExpirationTime(authConfig.jwt.refreshExpiresIn),
     );
 
     return {
       accessToken,
       refreshToken,
-      tokenType: "Bearer",
+      tokenType: 'Bearer',
       expiresIn: parseExpirationTime(authConfig.jwt.expiresIn) / 1000, // in seconds
       accessTokenExpires,
       refreshTokenExpires,
       deviceInfo,
     };
   } catch (error) {
-    throw new Error("Failed to create token pair");
+    throw new Error('Failed to create token pair');
   }
 };
 
@@ -188,7 +188,7 @@ const parseExpirationTime = (expirationString) => {
 
   const match = expirationString.match(/^(\d+)([smhd])$/);
   if (!match) {
-    throw new Error("Invalid expiration format");
+    throw new Error('Invalid expiration format');
   }
 
   const [, amount, unit] = match;
@@ -198,18 +198,18 @@ const parseExpirationTime = (expirationString) => {
 // Validate token structure
 const validateTokenStructure = (token) => {
   try {
-    if (!token || typeof token !== "string") {
+    if (!token || typeof token !== 'string') {
       return false;
     }
 
-    const parts = token.split(".");
+    const parts = token.split('.');
     if (parts.length !== 3) {
       return false;
     }
 
     // Try to decode header and payload
-    const header = JSON.parse(Buffer.from(parts[0], "base64").toString());
-    const payload = JSON.parse(Buffer.from(parts[1], "base64").toString());
+    const header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
+    const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
 
     // Check required fields
     if (!header.alg || !header.typ) {
@@ -229,9 +229,9 @@ const validateTokenStructure = (token) => {
 // Extract device information from request
 const extractDeviceInfo = (req) => {
   return {
-    userAgent: req.get("User-Agent") || "Unknown",
-    ip: req.ip || req.connection.remoteAddress || "Unknown",
-    platform: req.get("X-Platform") || "Web",
+    userAgent: req.get('User-Agent') || 'Unknown',
+    ip: req.ip || req.connection.remoteAddress || 'Unknown',
+    platform: req.get('X-Platform') || 'Web',
   };
 };
 
@@ -240,18 +240,18 @@ const generatePasswordResetToken = (userId) => {
   try {
     const payload = {
       userId,
-      type: "password_reset",
+      type: 'password_reset',
       iat: Math.floor(Date.now() / 1000),
     };
 
     return jwt.sign(payload, authConfig.jwt.secret, {
-      expiresIn: "1h", // Password reset tokens expire in 1 hour
+      expiresIn: '1h', // Password reset tokens expire in 1 hour
       algorithm: authConfig.jwt.algorithm,
       issuer: authConfig.jwt.issuer,
       audience: authConfig.jwt.audience,
     });
   } catch (error) {
-    throw new Error("Failed to generate password reset token");
+    throw new Error('Failed to generate password reset token');
   }
 };
 
@@ -264,16 +264,16 @@ const verifyPasswordResetToken = (token) => {
       audience: authConfig.jwt.audience,
     });
 
-    if (decoded.type !== "password_reset") {
-      throw new Error("Invalid token type");
+    if (decoded.type !== 'password_reset') {
+      throw new Error('Invalid token type');
     }
 
     return decoded;
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      throw new Error("Password reset token expired");
+    if (error.name === 'TokenExpiredError') {
+      throw new Error('Password reset token expired');
     }
-    throw new Error("Invalid password reset token");
+    throw new Error('Invalid password reset token');
   }
 };
 

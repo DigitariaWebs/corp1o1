@@ -1,10 +1,10 @@
 // controllers/recommendationController.js
-const { catchAsync } = require("../middleware/errorHandler");
-const RecommendationEngine = require("../models/RecommendationEngine");
-const LearningAnalytics = require("../models/LearningAnalytics");
-const User = require("../models/User");
-const { recommendationService } = require("../services/recommendationService");
-const { analyticsService } = require("../services/analyticsService");
+const { catchAsync } = require('../middleware/errorHandler');
+const RecommendationEngine = require('../models/RecommendationEngine');
+const LearningAnalytics = require('../models/LearningAnalytics');
+const User = require('../models/User');
+const { recommendationService } = require('../services/recommendationService');
+const { analyticsService } = require('../services/analyticsService');
 
 /**
  * @desc    Get user's recommendations with filtering
@@ -13,13 +13,13 @@ const { analyticsService } = require("../services/analyticsService");
  */
 const getRecommendations = catchAsync(async (req, res) => {
   const {
-    type = "all",
-    category = "all",
-    status = "pending",
-    priority = "all",
+    type = 'all',
+    category = 'all',
+    status = 'pending',
+    priority = 'all',
     limit = 10,
     offset = 0,
-    sortBy = "relevance",
+    sortBy = 'relevance',
     includeExpired = false,
   } = req.query;
   const userId = req.user.id;
@@ -27,16 +27,16 @@ const getRecommendations = catchAsync(async (req, res) => {
   // Build query
   const query = { user: userId };
 
-  if (type !== "all") query.type = type;
-  if (category !== "all") query.category = category;
-  if (status !== "all") query["userInteraction.status"] = status;
+  if (type !== 'all') query.type = type;
+  if (category !== 'all') query.category = category;
+  if (status !== 'all') query['userInteraction.status'] = status;
 
   if (!includeExpired) {
-    query["timing.validUntil"] = { $gt: new Date() };
+    query['timing.validUntil'] = { $gt: new Date() };
   }
 
   // Handle priority filtering
-  if (priority !== "all") {
+  if (priority !== 'all') {
     const priorityRanges = {
       high: { $gte: 80 },
       medium: { $gte: 50, $lt: 80 },
@@ -47,8 +47,8 @@ const getRecommendations = catchAsync(async (req, res) => {
 
   // Build sort options
   const sortOptions = {
-    relevance: { overallScore: -1, "timing.generatedAt": -1 },
-    date: { "timing.generatedAt": -1 },
+    relevance: { overallScore: -1, 'timing.generatedAt': -1 },
+    date: { 'timing.generatedAt': -1 },
     priority: { priorityScore: -1, overallScore: -1 },
     confidence: { confidenceScore: -1, overallScore: -1 },
   };
@@ -57,7 +57,7 @@ const getRecommendations = catchAsync(async (req, res) => {
     .sort(sortOptions[sortBy])
     .skip(offset)
     .limit(limit)
-    .populate("targeting.targetContent")
+    .populate('targeting.targetContent')
     .lean();
 
   // Get total count for pagination
@@ -72,12 +72,12 @@ const getRecommendations = catchAsync(async (req, res) => {
           0,
           Math.ceil(
             (new Date(rec.timing.validUntil) - new Date()) /
-              (1000 * 60 * 60 * 24)
-          )
+              (1000 * 60 * 60 * 24),
+          ),
         ),
         isUrgent: rec.timing.isUrgent || rec.timeRemaining <= 1,
       };
-    })
+    }),
   );
 
   res.status(200).json({
@@ -113,17 +113,17 @@ const getRecommendationById = catchAsync(async (req, res) => {
   const recommendation = await RecommendationEngine.findOne({
     _id: id,
     user: userId,
-  }).populate("targeting.targetContent");
+  }).populate('targeting.targetContent');
 
   if (!recommendation) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
+      error: 'Recommendation not found',
     });
   }
 
   // Mark as viewed if not already
-  if (recommendation.userInteraction.status === "pending") {
+  if (recommendation.userInteraction.status === 'pending') {
     await recommendation.markAsViewed();
   }
 
@@ -135,13 +135,13 @@ const getRecommendationById = catchAsync(async (req, res) => {
       { type: recommendation.type },
       { category: recommendation.category },
       {
-        "targeting.targetSkills": {
+        'targeting.targetSkills': {
           $in: recommendation.targeting.targetSkills,
         },
       },
     ],
-    "userInteraction.status": { $in: ["pending", "viewed"] },
-    "timing.validUntil": { $gt: new Date() },
+    'userInteraction.status': { $in: ['pending', 'viewed'] },
+    'timing.validUntil': { $gt: new Date() },
   })
     .sort({ overallScore: -1 })
     .limit(3)
@@ -157,8 +157,8 @@ const getRecommendationById = catchAsync(async (req, res) => {
           0,
           Math.ceil(
             (recommendation.timing.validUntil - new Date()) /
-              (1000 * 60 * 60 * 24)
-          )
+              (1000 * 60 * 60 * 24),
+          ),
         ),
         isExpired: recommendation.timing.isExpired,
       },
@@ -184,24 +184,24 @@ const respondToRecommendation = catchAsync(async (req, res) => {
   if (!recommendation) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
+      error: 'Recommendation not found',
     });
   }
 
   if (
-    recommendation.userInteraction.status === "accepted" ||
-    recommendation.userInteraction.status === "declined"
+    recommendation.userInteraction.status === 'accepted' ||
+    recommendation.userInteraction.status === 'declined'
   ) {
     return res.status(409).json({
       success: false,
-      error: "Already responded to this recommendation",
+      error: 'Already responded to this recommendation',
     });
   }
 
   if (recommendation.timing.isExpired) {
     return res.status(410).json({
       success: false,
-      error: "Recommendation has expired",
+      error: 'Recommendation has expired',
     });
   }
 
@@ -209,14 +209,14 @@ const respondToRecommendation = catchAsync(async (req, res) => {
   await recommendation.recordResponse(response, feedback);
 
   // If accepted, trigger follow-up actions
-  if (response === "accepted") {
+  if (response === 'accepted') {
     await recommendationService.handleAcceptedRecommendation(recommendation);
   }
 
   // Update recommendation effectiveness tracking
   await recommendationService.updateRecommendationMetrics(
     recommendation,
-    response
+    response,
   );
 
   res.status(200).json({
@@ -225,7 +225,7 @@ const respondToRecommendation = catchAsync(async (req, res) => {
       recommendation,
       message: `Recommendation ${response} successfully`,
       nextSteps:
-        response === "accepted"
+        response === 'accepted'
           ? await recommendationService.getNextSteps(recommendation)
           : null,
     },
@@ -245,7 +245,7 @@ const getRecommendationsByType = catchAsync(async (req, res) => {
   const recommendations = await RecommendationEngine.getRecommendationsByType(
     userId,
     type,
-    parseInt(limit)
+    parseInt(limit),
   );
 
   // Enhance with additional context
@@ -283,9 +283,9 @@ const generatePersonalizedRecommendations = catchAsync(async (req, res) => {
   if (!analytics) {
     return res.status(400).json({
       success: false,
-      error: "Insufficient user data",
+      error: 'Insufficient user data',
       message:
-        "Complete more learning activities to generate personalized recommendations",
+        'Complete more learning activities to generate personalized recommendations',
     });
   }
 
@@ -307,16 +307,16 @@ const generatePersonalizedRecommendations = catchAsync(async (req, res) => {
       context: {
         userLevel:
           analytics.progress.completionRate > 75
-            ? "advanced"
+            ? 'advanced'
             : analytics.progress.completionRate > 40
-            ? "intermediate"
-            : "beginner",
-        primaryFocus: context.category || "General",
+              ? 'intermediate'
+              : 'beginner',
+        primaryFocus: context.category || 'General',
         recommendationCount: recommendations.length,
       },
       metadata: {
         generatedAt: new Date().toISOString(),
-        basedOn: "User analytics, learning patterns, and preferences",
+        basedOn: 'User analytics, learning patterns, and preferences',
       },
     },
   });
@@ -336,7 +336,7 @@ const getNextSteps = catchAsync(async (req, res) => {
     {
       limit: parseInt(limit),
       category,
-    }
+    },
   );
 
   res.status(200).json({
@@ -345,8 +345,8 @@ const getNextSteps = catchAsync(async (req, res) => {
       nextSteps,
       message:
         nextSteps.length > 0
-          ? "Here are your personalized next steps"
-          : "Complete current activities to unlock next steps",
+          ? 'Here are your personalized next steps'
+          : 'Complete current activities to unlock next steps',
     },
   });
 });
@@ -427,7 +427,7 @@ const markAsViewed = catchAsync(async (req, res) => {
   if (!recommendation) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
+      error: 'Recommendation not found',
     });
   }
 
@@ -436,7 +436,7 @@ const markAsViewed = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Recommendation marked as viewed",
+      message: 'Recommendation marked as viewed',
       recommendation,
     },
   });
@@ -460,7 +460,7 @@ const provideFeedback = catchAsync(async (req, res) => {
   if (!recommendation) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
+      error: 'Recommendation not found',
     });
   }
 
@@ -474,7 +474,7 @@ const provideFeedback = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Feedback recorded successfully",
+      message: 'Feedback recorded successfully',
       feedback,
     },
   });
@@ -486,35 +486,35 @@ const provideFeedback = catchAsync(async (req, res) => {
  * @access  Private
  */
 const getRecommendationHistory = catchAsync(async (req, res) => {
-  const { timeRange = "30d", status = "all", limit = 20 } = req.query;
+  const { timeRange = '30d', status = 'all', limit = 20 } = req.query;
   const userId = req.user.id;
 
   // Calculate date range
-  const days = parseInt(timeRange.replace("d", "")) || 30;
+  const days = parseInt(timeRange.replace('d', '')) || 30;
   const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
   const query = {
     user: userId,
-    "timing.generatedAt": { $gte: startDate },
+    'timing.generatedAt': { $gte: startDate },
   };
 
-  if (status !== "all") {
-    query["userInteraction.status"] = status;
+  if (status !== 'all') {
+    query['userInteraction.status'] = status;
   }
 
   const history = await RecommendationEngine.find(query)
-    .sort({ "timing.generatedAt": -1 })
+    .sort({ 'timing.generatedAt': -1 })
     .limit(parseInt(limit))
     .lean();
 
   // Calculate summary statistics
   const stats = {
     total: history.length,
-    accepted: history.filter((r) => r.userInteraction.response === "accepted")
+    accepted: history.filter((r) => r.userInteraction.response === 'accepted')
       .length,
-    declined: history.filter((r) => r.userInteraction.response === "declined")
+    declined: history.filter((r) => r.userInteraction.response === 'declined')
       .length,
-    dismissed: history.filter((r) => r.userInteraction.status === "dismissed")
+    dismissed: history.filter((r) => r.userInteraction.status === 'dismissed')
       .length,
   };
 
@@ -538,9 +538,9 @@ const getRecommendationHistory = catchAsync(async (req, res) => {
  */
 const getRecommendationStats = catchAsync(async (req, res) => {
   const {
-    timeRange = "30d",
+    timeRange = '30d',
     includeComparison = false,
-    groupBy = "type",
+    groupBy = 'type',
   } = req.query;
   const userId = req.user.id;
 
@@ -552,7 +552,7 @@ const getRecommendationStats = catchAsync(async (req, res) => {
   let comparison = null;
   if (includeComparison) {
     comparison = await recommendationService.getRecommendationComparison(
-      userId
+      userId,
     );
   }
 
@@ -583,19 +583,19 @@ const dismissRecommendation = catchAsync(async (req, res) => {
   if (!recommendation) {
     return res.status(404).json({
       success: false,
-      error: "Recommendation not found",
+      error: 'Recommendation not found',
     });
   }
 
   // Mark as dismissed instead of deleting
-  recommendation.userInteraction.status = "dismissed";
+  recommendation.userInteraction.status = 'dismissed';
   recommendation.userInteraction.respondedAt = new Date();
   await recommendation.save();
 
   res.status(200).json({
     success: true,
     data: {
-      message: "Recommendation dismissed successfully",
+      message: 'Recommendation dismissed successfully',
     },
   });
 });
@@ -606,7 +606,7 @@ const dismissRecommendation = catchAsync(async (req, res) => {
  * @access  Private
  */
 const requestSpecificRecommendation = catchAsync(async (req, res) => {
-  const { requestType, details, urgency = "medium" } = req.body;
+  const { requestType, details, urgency = 'medium' } = req.body;
   const userId = req.user.id;
 
   const recommendation =
@@ -614,14 +614,14 @@ const requestSpecificRecommendation = catchAsync(async (req, res) => {
       userId,
       requestType,
       details,
-      urgency
+      urgency,
     );
 
   res.status(201).json({
     success: true,
     data: {
       recommendation,
-      message: "Custom recommendation generated successfully",
+      message: 'Custom recommendation generated successfully',
     },
   });
 });
@@ -661,7 +661,7 @@ const getBatchRecommendations = catchAsync(async (req, res) => {
     userId,
     recommendationIds,
     action,
-    feedback
+    feedback,
   );
 
   res.status(200).json({

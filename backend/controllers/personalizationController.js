@@ -8,20 +8,20 @@ const { catchAsync } = require('../middleware/errorHandler');
  * POST /api/personalization/generate
  */
 const generatePersonalizedExperience = catchAsync(async (req, res) => {
-  console.log(`🎯 [CONTROLLER] generatePersonalizedExperience started`);
-  console.log(`🎯 [CONTROLLER] req.user:`, req.user ? req.user._id : 'NO USER');
-  console.log(`🎯 [CONTROLLER] req.body:`, JSON.stringify(req.body, null, 2));
+  console.log('🎯 [CONTROLLER] generatePersonalizedExperience started');
+  console.log('🎯 [CONTROLLER] req.user:', req.user ? req.user._id : 'NO USER');
+  console.log('🎯 [CONTROLLER] req.body:', JSON.stringify(req.body, null, 2));
   
   const userId = req.user._id;
   const { onboardingData } = req.body;
 
   console.log(`🎯 [CONTROLLER] Generating personalized experience for user: ${userId}`);
-  console.log(`🎯 [CONTROLLER] Onboarding data:`, JSON.stringify(onboardingData, null, 2));
+  console.log('🎯 [CONTROLLER] Onboarding data:', JSON.stringify(onboardingData, null, 2));
 
   // Generate personalized content using AI
   const personalizedExperience = await personalizationService.generatePersonalizedExperience(
     onboardingData,
-    userId
+    userId,
   );
 
   // Update user with onboarding data and personalization
@@ -30,8 +30,8 @@ const generatePersonalizedExperience = catchAsync(async (req, res) => {
       'onboardingData': onboardingData,
       'personalization': personalizedExperience,
       'onboardingCompleted': true,
-      'personalizedAt': new Date()
-    }
+      'personalizedAt': new Date(),
+    },
   });
 
   console.log(`✅ [CONTROLLER] Personalized experience generated with ${personalizedExperience.confidence}% confidence`);
@@ -40,11 +40,11 @@ const generatePersonalizedExperience = catchAsync(async (req, res) => {
     success: true,
     data: {
       personalization: personalizedExperience,
-      message: 'Personalized experience generated successfully'
-    }
+      message: 'Personalized experience generated successfully',
+    },
   };
 
-  console.log(`🎯 [CONTROLLER] Sending response:`, JSON.stringify(responseData, null, 2));
+  console.log('🎯 [CONTROLLER] Sending response:', JSON.stringify(responseData, null, 2));
 
   res.status(200).json(responseData);
 });
@@ -61,7 +61,7 @@ const getPersonalization = catchAsync(async (req, res) => {
   if (!user || !user.personalization) {
     return res.status(404).json({
       success: false,
-      message: 'No personalization found. Please complete onboarding first.'
+      message: 'No personalization found. Please complete onboarding first.',
     });
   }
 
@@ -69,8 +69,8 @@ const getPersonalization = catchAsync(async (req, res) => {
     success: true,
     data: {
       personalization: user.personalization,
-      onboardingData: user.onboardingData
-    }
+      onboardingData: user.onboardingData,
+    },
   });
 });
 
@@ -89,7 +89,7 @@ const updatePersonalization = catchAsync(async (req, res) => {
   if (!user || !user.personalization) {
     return res.status(404).json({
       success: false,
-      message: 'No personalization found to update'
+      message: 'No personalization found to update',
     });
   }
 
@@ -97,7 +97,7 @@ const updatePersonalization = catchAsync(async (req, res) => {
   const updates = await personalizationService.updatePersonalization(
     userId,
     behaviorData,
-    feedbackData
+    feedbackData,
   );
 
   // Update user's personalization
@@ -105,13 +105,13 @@ const updatePersonalization = catchAsync(async (req, res) => {
     ...user.personalization,
     lastUpdated: new Date(),
     behaviorBasedUpdates: updates,
-    confidence: Math.min(100, user.personalization.confidence + 5) // Improve confidence with more data
+    confidence: Math.min(100, user.personalization.confidence + 5), // Improve confidence with more data
   };
 
   await User.findByIdAndUpdate(userId, {
     $set: {
-      'personalization': updatedPersonalization
-    }
+      'personalization': updatedPersonalization,
+    },
   });
 
   res.status(200).json({
@@ -119,8 +119,8 @@ const updatePersonalization = catchAsync(async (req, res) => {
     data: {
       updates,
       personalization: updatedPersonalization,
-      message: 'Personalization updated successfully'
-    }
+      message: 'Personalization updated successfully',
+    },
   });
 });
 
@@ -136,15 +136,15 @@ const generateContextualContent = catchAsync(async (req, res) => {
 
   const contextualContent = await personalizationService.generateContextualContent(
     userId,
-    currentContext
+    currentContext,
   );
 
   res.status(200).json({
     success: true,
     data: {
       contextualContent,
-      generatedAt: new Date()
-    }
+      generatedAt: new Date(),
+    },
   });
 });
 
@@ -160,16 +160,16 @@ const resetPersonalization = catchAsync(async (req, res) => {
   await User.findByIdAndUpdate(userId, {
     $unset: {
       'personalization': 1,
-      'onboardingData': 1
+      'onboardingData': 1,
     },
     $set: {
-      'onboardingCompleted': false
-    }
+      'onboardingCompleted': false,
+    },
   });
 
   res.status(200).json({
     success: true,
-    message: 'Personalization reset successfully. User can complete onboarding again.'
+    message: 'Personalization reset successfully. User can complete onboarding again.',
   });
 });
 
@@ -185,7 +185,7 @@ const getPersonalizationAnalytics = catchAsync(async (req, res) => {
   if (!user || !user.personalization) {
     return res.status(404).json({
       success: false,
-      message: 'No personalization data found'
+      message: 'No personalization data found',
     });
   }
 
@@ -198,12 +198,12 @@ const getPersonalizationAnalytics = catchAsync(async (req, res) => {
       Object.keys(user.personalization.behaviorBasedUpdates).length : 0,
     domains: user.onboardingData?.preferredDomains || [],
     learningStyle: user.onboardingData?.preferredLearningStyle || 'not_set',
-    goals: user.onboardingData?.primaryGoal || 'not_set'
+    goals: user.onboardingData?.primaryGoal || 'not_set',
   };
 
   res.status(200).json({
     success: true,
-    data: { analytics }
+    data: { analytics },
   });
 });
 
@@ -215,7 +215,7 @@ function calculateDataCompleteness(onboardingData) {
   
   const fields = [
     'primaryGoal', 'currentRole', 'experience', 
-    'timeCommitment', 'preferredLearningStyle', 'preferredDomains'
+    'timeCommitment', 'preferredLearningStyle', 'preferredDomains',
   ];
   
   const completed = fields.filter(field => {
@@ -232,5 +232,5 @@ module.exports = {
   updatePersonalization,
   generateContextualContent,
   resetPersonalization,
-  getPersonalizationAnalytics
+  getPersonalizationAnalytics,
 };

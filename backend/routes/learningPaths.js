@@ -1,12 +1,12 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 // Import middleware
-const { authenticate, optionalAuth } = require("../middleware/auth");
+const { authenticate, optionalAuth } = require('../middleware/auth');
 const {
   validateMongoId,
   validatePagination,
-} = require("../middleware/validation");
+} = require('../middleware/validation');
 
 // Import controllers
 const {
@@ -20,7 +20,7 @@ const {
   getEnrolledPaths,
   getRecommendations,
   searchPaths,
-} = require("../controllers/learningPathController");
+} = require('../controllers/learningPathController');
 
 // Public routes (optional authentication for personalization)
 
@@ -30,7 +30,7 @@ const {
  * @access  Public (enhanced with auth)
  * @query   page, limit, sort, order, category, difficulty, search, featured, trending, minRating, maxHours, skills
  */
-router.get("/", optionalAuth, validatePagination, getAllLearningPaths);
+router.get('/', optionalAuth, validatePagination, getAllLearningPaths);
 
 /**
  * @route   GET /api/learning-paths/search
@@ -38,7 +38,7 @@ router.get("/", optionalAuth, validatePagination, getAllLearningPaths);
  * @access  Public (enhanced with auth)
  * @query   q (required), category, difficulty, page, limit
  */
-router.get("/search", optionalAuth, validatePagination, searchPaths);
+router.get('/search', optionalAuth, validatePagination, searchPaths);
 
 /**
  * @route   GET /api/learning-paths/featured
@@ -46,7 +46,7 @@ router.get("/search", optionalAuth, validatePagination, searchPaths);
  * @access  Public (enhanced with auth)
  * @query   limit
  */
-router.get("/featured", optionalAuth, getFeaturedPaths);
+router.get('/featured', optionalAuth, getFeaturedPaths);
 
 /**
  * @route   GET /api/learning-paths/trending
@@ -54,7 +54,7 @@ router.get("/featured", optionalAuth, getFeaturedPaths);
  * @access  Public (enhanced with auth)
  * @query   limit
  */
-router.get("/trending", optionalAuth, getTrendingPaths);
+router.get('/trending', optionalAuth, getTrendingPaths);
 
 /**
  * @route   GET /api/learning-paths/recommendations
@@ -62,7 +62,7 @@ router.get("/trending", optionalAuth, getTrendingPaths);
  * @access  Public (enhanced with auth)
  * @query   limit
  */
-router.get("/recommendations", optionalAuth, getRecommendations);
+router.get('/recommendations', optionalAuth, getRecommendations);
 
 /**
  * @route   GET /api/learning-paths/category/:category
@@ -70,7 +70,7 @@ router.get("/recommendations", optionalAuth, getRecommendations);
  * @access  Public (enhanced with auth)
  * @query   limit
  */
-router.get("/category/:category", optionalAuth, getPathsByCategory);
+router.get('/category/:category', optionalAuth, getPathsByCategory);
 
 // Protected routes (authentication required)
 
@@ -80,14 +80,14 @@ router.get("/category/:category", optionalAuth, getPathsByCategory);
  * @access  Private
  * @query   status (all, in_progress, completed, paused, abandoned)
  */
-router.get("/enrolled", authenticate, getEnrolledPaths);
+router.get('/enrolled', authenticate, getEnrolledPaths);
 
 /**
  * @route   POST /api/learning-paths/:pathId/enroll
  * @desc    Enroll user in a learning path
  * @access  Private
  */
-router.post("/:pathId/enroll", authenticate, validateMongoId, enrollInPath);
+router.post('/:pathId/enroll', authenticate, validateMongoId, enrollInPath);
 
 /**
  * @route   DELETE /api/learning-paths/:pathId/enroll
@@ -95,10 +95,10 @@ router.post("/:pathId/enroll", authenticate, validateMongoId, enrollInPath);
  * @access  Private
  */
 router.delete(
-  "/:pathId/enroll",
+  '/:pathId/enroll',
   authenticate,
   validateMongoId,
-  unenrollFromPath
+  unenrollFromPath,
 );
 
 /**
@@ -107,36 +107,36 @@ router.delete(
  * @access  Public (enhanced with auth)
  * @note    Must come after specific routes to avoid conflicts
  */
-router.get("/:pathId", optionalAuth, validateMongoId, getLearningPath);
+router.get('/:pathId', optionalAuth, validateMongoId, getLearningPath);
 
 // Health check for learning paths routes
-router.get("/health/check", (req, res) => {
+router.get('/health/check', (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Learning paths service is healthy",
+    message: 'Learning paths service is healthy',
     timestamp: new Date().toISOString(),
     endpoints: {
       public: [
-        "GET /api/learning-paths",
-        "GET /api/learning-paths/search",
-        "GET /api/learning-paths/featured",
-        "GET /api/learning-paths/trending",
-        "GET /api/learning-paths/recommendations",
-        "GET /api/learning-paths/category/:category",
-        "GET /api/learning-paths/:pathId",
+        'GET /api/learning-paths',
+        'GET /api/learning-paths/search',
+        'GET /api/learning-paths/featured',
+        'GET /api/learning-paths/trending',
+        'GET /api/learning-paths/recommendations',
+        'GET /api/learning-paths/category/:category',
+        'GET /api/learning-paths/:pathId',
       ],
       private: [
-        "GET /api/learning-paths/enrolled",
-        "POST /api/learning-paths/:pathId/enroll",
-        "DELETE /api/learning-paths/:pathId/enroll",
+        'GET /api/learning-paths/enrolled',
+        'POST /api/learning-paths/:pathId/enroll',
+        'DELETE /api/learning-paths/:pathId/enroll',
       ],
     },
     features: [
-      "Path browsing and search",
-      "Personalized recommendations",
-      "Enrollment management",
-      "Progress tracking integration",
-      "Category-based filtering",
+      'Path browsing and search',
+      'Personalized recommendations',
+      'Enrollment management',
+      'Progress tracking integration',
+      'Category-based filtering',
     ],
   });
 });

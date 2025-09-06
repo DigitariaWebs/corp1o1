@@ -6,51 +6,51 @@ const performanceMetricsSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   bestScore: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   assessmentScores: [{
     attemptNumber: Number,
     score: Number,
     timestamp: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
-    timeSpent: Number // in minutes
+    timeSpent: Number, // in minutes
   }],
   totalAssessmentAttempts: {
     type: Number,
-    default: 0
+    default: 0,
   },
   strengths: [{
     skill: String,
     confidenceLevel: {
       type: Number,
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   }],
   weaknesses: [{
     skill: String,
     improvementNeeded: {
       type: Number,
       min: 0,
-      max: 100
+      max: 100,
     },
-    recommendedActions: [String]
+    recommendedActions: [String],
   }],
   skillDevelopment: [{
     skill: String,
     initialLevel: Number,
     currentLevel: Number,
     targetLevel: Number,
-    progressRate: Number // skill points per hour
-  }]
+    progressRate: Number, // skill points per hour
+  }],
 }, { _id: false });
 
 // AI insights schema
@@ -58,44 +58,44 @@ const aiInsightsSchema = new mongoose.Schema({
   personalizedContent: [{
     adaptationType: {
       type: String,
-      enum: ['difficulty_adjust', 'learning_style', 'pacing', 'content_format', 'additional_resources']
+      enum: ['difficulty_adjust', 'learning_style', 'pacing', 'content_format', 'additional_resources'],
     },
     reason: String,
     effectiveness: {
       type: Number,
       min: 0,
-      max: 100
+      max: 100,
     },
     appliedAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     userFeedback: {
       helpful: Boolean,
       rating: {
         type: Number,
         min: 1,
-        max: 5
+        max: 5,
       },
-      comments: String
-    }
+      comments: String,
+    },
   }],
   recommendedNextSteps: [{
     type: {
       type: String,
-      enum: ['continue', 'review', 'practice', 'advance', 'reassess']
+      enum: ['continue', 'review', 'practice', 'advance', 'reassess'],
     },
     priority: {
       type: String,
       enum: ['low', 'medium', 'high'],
-      default: 'medium'
+      default: 'medium',
     },
     description: String,
     estimatedImpact: {
       type: Number,
       min: 0,
-      max: 100
-    }
+      max: 100,
+    },
   }],
   learningPatterns: {
     preferredStudyTimes: [String], // e.g., ['09:00', '14:00']
@@ -103,92 +103,92 @@ const aiInsightsSchema = new mongoose.Schema({
     bestPerformingContentTypes: [String],
     strugglingContentTypes: [String],
     engagementTriggers: [String],
-    motivationFactors: [String]
+    motivationFactors: [String],
   },
   predictedCompletionDate: {
     type: Date,
-    default: null
+    default: null,
   },
   confidenceInterval: {
     type: Number,
     min: 0,
     max: 100,
-    default: 80
+    default: 80,
   },
   adaptationHistory: [{
     date: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     adaptationType: String,
     trigger: String,
     result: String,
-    effectiveness: Number
-  }]
+    effectiveness: Number,
+  }],
 }, { _id: false });
 
 // Learning analytics schema
 const learningAnalyticsSchema = new mongoose.Schema({
   totalTimeSpent: {
     type: Number,
-    default: 0 // in minutes
+    default: 0, // in minutes
   },
   activeTimeSpent: {
     type: Number,
-    default: 0 // time actually engaging with content
+    default: 0, // time actually engaging with content
   },
   sessionsCount: {
     type: Number,
-    default: 0
+    default: 0,
   },
   averageSessionDuration: {
     type: Number,
-    default: 0
+    default: 0,
   },
   longestSession: {
     type: Number,
-    default: 0
+    default: 0,
   },
   shortestSession: {
     type: Number,
-    default: 0
+    default: 0,
   },
   engagementScore: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   focusScore: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   retentionScore: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   consistencyScore: {
     type: Number,
     default: 0,
     min: 0,
-    max: 100
+    max: 100,
   },
   weeklyGoalProgress: {
     currentWeek: {
       target: Number, // minutes
       achieved: Number,
-      percentage: Number
+      percentage: Number,
     },
     streak: {
       current: Number,
       longest: Number,
-      lastActiveDate: Date
-    }
-  }
+      lastActiveDate: Date,
+    },
+  },
 }, { _id: false });
 
 // User progress schema
@@ -197,19 +197,19 @@ const userProgressSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'User ID is required']
+    required: [true, 'User ID is required'],
   },
   
   pathId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningPath',
-    default: null // null for global progress tracking
+    default: null, // null for global progress tracking
   },
   
   moduleId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'LearningModule',
-    default: null // null for path-level progress
+    default: null, // null for path-level progress
   },
   
   // Progress tracking
@@ -218,42 +218,42 @@ const userProgressSchema = new mongoose.Schema({
       type: Number,
       default: 0,
       min: 0,
-      max: 100
+      max: 100,
     },
     completed: {
       type: Boolean,
-      default: false
+      default: false,
     },
     timeSpent: {
       type: Number,
-      default: 0 // in minutes
+      default: 0, // in minutes
     },
     engagementScore: {
       type: Number,
       default: 0,
       min: 0,
-      max: 100
+      max: 100,
     },
     lastAccessed: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     firstAccessed: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     completedAt: {
       type: Date,
-      default: null
+      default: null,
     },
     currentStreak: {
       type: Number,
-      default: 0
+      default: 0,
     },
     longestStreak: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   
   // Detailed performance metrics
@@ -269,45 +269,45 @@ const userProgressSchema = new mongoose.Schema({
   milestones: [{
     type: {
       type: String,
-      enum: ['started', '25_percent', '50_percent', '75_percent', 'completed', 'mastered', 'assessment_passed']
+      enum: ['started', '25_percent', '50_percent', '75_percent', 'completed', 'mastered', 'assessment_passed'],
     },
     achievedAt: {
       type: Date,
-      default: Date.now
+      default: Date.now,
     },
     value: Number, // score, percentage, etc.
     celebrated: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   }],
   
   // User goals and targets
   goals: {
     targetCompletionDate: {
       type: Date,
-      default: null
+      default: null,
     },
     dailyTimeGoal: {
       type: Number,
-      default: 30 // minutes
+      default: 30, // minutes
     },
     weeklyTimeGoal: {
       type: Number,
-      default: 210 // 30 minutes * 7 days
+      default: 210, // 30 minutes * 7 days
     },
     skillLevelTarget: {
       type: String,
       enum: ['beginner', 'intermediate', 'advanced', 'expert'],
-      default: null
+      default: null,
     },
     customGoals: [{
       description: String,
       targetValue: Number,
       currentValue: Number,
       deadline: Date,
-      achieved: Boolean
-    }]
+      achieved: Boolean,
+    }],
   },
   
   // User feedback and ratings
@@ -316,68 +316,68 @@ const userProgressSchema = new mongoose.Schema({
       type: Number,
       min: 1,
       max: 5,
-      default: null
+      default: null,
     },
     difficultyRating: {
       type: String,
       enum: ['too_easy', 'just_right', 'too_hard'],
-      default: null
+      default: null,
     },
     paceRating: {
       type: String,
       enum: ['too_slow', 'just_right', 'too_fast'],
-      default: null
+      default: null,
     },
     engagementRating: {
       type: Number,
       min: 1,
       max: 5,
-      default: null
+      default: null,
     },
     comments: String,
     improvementSuggestions: [String],
     wouldRecommend: {
       type: Boolean,
-      default: null
-    }
+      default: null,
+    },
   },
   
   // Status and metadata
   status: {
     type: String,
     enum: ['not_started', 'in_progress', 'completed', 'paused', 'abandoned'],
-    default: 'not_started'
+    default: 'not_started',
   },
   
   enrollmentDate: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   lastActivityDate: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   
   // Adaptive learning settings
   adaptiveSettings: {
     difficultyAdjustment: {
       type: Boolean,
-      default: true
+      default: true,
     },
     contentPersonalization: {
       type: Boolean,
-      default: true
+      default: true,
     },
     pacingAdjustment: {
       type: Boolean,
-      default: true
+      default: true,
     },
     aiRecommendations: {
       type: Boolean,
-      default: true
-    }
-  }
+      default: true,
+    },
+  },
 }, {
   timestamps: true,
   toJSON: {
@@ -386,8 +386,8 @@ const userProgressSchema = new mongoose.Schema({
       delete ret._id;
       delete ret.__v;
       return ret;
-    }
-  }
+    },
+  },
 });
 
 // Compound indexes for efficient queries
@@ -455,7 +455,7 @@ userProgressSchema.methods.updateMilestones = function() {
         this.milestones.push({
           type: milestoneType,
           achievedAt: new Date(),
-          value: threshold
+          value: threshold,
         });
       }
     }
@@ -475,7 +475,7 @@ userProgressSchema.methods.updateAnalytics = function() {
   const assessmentPerformance = this.performance.averageScore / 100;
   
   this.analytics.engagementScore = Math.round(
-    (timeRatio * 30 + progressRatio * 40 + assessmentPerformance * 30) * 100
+    (timeRatio * 30 + progressRatio * 40 + assessmentPerformance * 30) * 100,
   );
   
   // Update weekly goal progress
@@ -530,7 +530,7 @@ userProgressSchema.methods.recordAssessment = function(assessmentData) {
     attemptNumber,
     score,
     timeSpent,
-    timestamp: new Date()
+    timestamp: new Date(),
   });
   
   this.performance.totalAssessmentAttempts += 1;
@@ -551,7 +551,7 @@ userProgressSchema.methods.recordAssessment = function(assessmentData) {
       this.milestones.push({
         type: 'assessment_passed',
         achievedAt: new Date(),
-        value: score
+        value: score,
       });
     }
   }
@@ -567,7 +567,7 @@ userProgressSchema.methods.applyAIAdaptation = function(adaptationData) {
     adaptationType,
     reason,
     effectiveness: 0, // Will be updated based on user feedback
-    appliedAt: new Date()
+    appliedAt: new Date(),
   });
   
   this.aiInsights.adaptationHistory.push({
@@ -575,7 +575,7 @@ userProgressSchema.methods.applyAIAdaptation = function(adaptationData) {
     adaptationType,
     trigger,
     result: 'applied',
-    effectiveness: 0
+    effectiveness: 0,
   });
   
   return this.save();
@@ -591,7 +591,7 @@ userProgressSchema.methods.getRecommendations = function() {
       type: 'engagement',
       priority: 'high',
       message: 'Try switching to a different learning style or taking breaks between sessions',
-      action: 'adjust_learning_style'
+      action: 'adjust_learning_style',
     });
   }
   
@@ -602,7 +602,7 @@ userProgressSchema.methods.getRecommendations = function() {
       type: 'pace',
       priority: 'medium',
       message: 'Consider increasing your daily study time to stay on track',
-      action: 'increase_daily_goal'
+      action: 'increase_daily_goal',
     });
   }
   
@@ -612,7 +612,7 @@ userProgressSchema.methods.getRecommendations = function() {
       type: 'review',
       priority: 'high',
       message: 'Review previous modules to strengthen your foundation',
-      action: 'review_content'
+      action: 'review_content',
     });
   }
   
@@ -631,9 +631,9 @@ userProgressSchema.statics.getUserProgressSummary = async function(userId) {
         totalTimeSpent: { $sum: '$analytics.totalTimeSpent' },
         averageEngagement: { $avg: '$analytics.engagementScore' },
         totalAssessments: { $sum: '$performance.totalAssessmentAttempts' },
-        averageAssessmentScore: { $avg: '$performance.averageScore' }
-      }
-    }
+        averageAssessmentScore: { $avg: '$performance.averageScore' },
+      },
+    },
   ]);
   
   return progressData[0] || {
@@ -642,7 +642,7 @@ userProgressSchema.statics.getUserProgressSummary = async function(userId) {
     totalTimeSpent: 0,
     averageEngagement: 0,
     totalAssessments: 0,
-    averageAssessmentScore: 0
+    averageAssessmentScore: 0,
   };
 };
 
@@ -650,20 +650,20 @@ userProgressSchema.statics.getUserProgressSummary = async function(userId) {
 userProgressSchema.statics.getLearningAnalytics = function(userId, timeRange = '30d') {
   const dateThreshold = new Date();
   switch (timeRange) {
-    case '7d':
-      dateThreshold.setDate(dateThreshold.getDate() - 7);
-      break;
-    case '30d':
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case '90d':
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
+  case '7d':
+    dateThreshold.setDate(dateThreshold.getDate() - 7);
+    break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
   }
   
   return this.find({
     userId,
-    lastActivityDate: { $gte: dateThreshold }
+    lastActivityDate: { $gte: dateThreshold },
   }).populate('pathId', 'title category difficulty')
     .populate('moduleId', 'title difficulty content.type');
 };

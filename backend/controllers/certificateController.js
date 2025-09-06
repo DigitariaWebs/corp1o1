@@ -1,10 +1,10 @@
 // controllers/certificateController.js
-const Certificate = require("../models/Certificate");
-const Assessment = require("../models/Assessment");
-const LearningPath = require("../models/LearningPath");
-const User = require("../models/User");
-const { certificateService } = require("../services/certificateService");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
+const Certificate = require('../models/Certificate');
+const Assessment = require('../models/Assessment');
+const LearningPath = require('../models/LearningPath');
+const User = require('../models/User');
+const { certificateService } = require('../services/certificateService');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 /**
  * Get user's certificates
@@ -20,11 +20,11 @@ const getUserCertificates = catchAsync(async (req, res) => {
   if (type) filters.type = type;
   if (category) filters.category = category;
   if (status) filters.status = status;
-  if (isValid !== undefined) filters.isValid = isValid === "true";
+  if (isValid !== undefined) filters.isValid = isValid === 'true';
 
   const certificates = await certificateService.getUserCertificates(
     userId,
-    filters
+    filters,
   );
 
   // Apply pagination
@@ -65,10 +65,10 @@ const getUserCertificates = catchAsync(async (req, res) => {
       summary: {
         total: certificates.length,
         byStatus: {
-          issued: certificates.filter((c) => c.status === "issued").length,
-          revoked: certificates.filter((c) => c.status === "revoked").length,
+          issued: certificates.filter((c) => c.status === 'issued').length,
+          revoked: certificates.filter((c) => c.status === 'revoked').length,
           expired: certificates.filter(
-            (c) => c.validUntil && new Date(c.validUntil) < new Date()
+            (c) => c.validUntil && new Date(c.validUntil) < new Date(),
           ).length,
         },
         byType: certificates.reduce((acc, cert) => {
@@ -93,7 +93,7 @@ const getCertificateDetails = catchAsync(async (req, res) => {
   const { certificateId } = req.params;
 
   console.log(
-    `🔍 Getting certificate details: ${certificateId} for user: ${userId}`
+    `🔍 Getting certificate details: ${certificateId} for user: ${userId}`,
   );
 
   const certificate = await Certificate.findOne({
@@ -102,11 +102,11 @@ const getCertificateDetails = catchAsync(async (req, res) => {
   });
 
   if (!certificate) {
-    throw new AppError("Certificate not found", 404);
+    throw new AppError('Certificate not found', 404);
   }
 
   // Track view access
-  await certificate.trackAccess("view");
+  await certificate.trackAccess('view');
 
   res.status(200).json({
     success: true,
@@ -144,11 +144,11 @@ const getCertificateDetails = catchAsync(async (req, res) => {
         },
         blockchain: certificate.blockchain?.isBlockchainEnabled
           ? {
-              network: certificate.blockchain.network,
-              tokenId: certificate.blockchain.tokenId,
-              transactionHash: certificate.blockchain.transactionHash,
-              nftImageUrl: certificate.blockchain.nftImageUrl,
-            }
+            network: certificate.blockchain.network,
+            tokenId: certificate.blockchain.tokenId,
+            transactionHash: certificate.blockchain.transactionHash,
+            nftImageUrl: certificate.blockchain.nftImageUrl,
+          }
           : null,
       },
     },
@@ -162,7 +162,7 @@ const getCertificateDetails = catchAsync(async (req, res) => {
 const downloadCertificate = catchAsync(async (req, res) => {
   const userId = req.user._id;
   const { certificateId } = req.params;
-  const { format = "pdf" } = req.query;
+  const { format = 'pdf' } = req.query;
 
   console.log(`💾 Downloading certificate: ${certificateId} as ${format}`);
 
@@ -172,11 +172,11 @@ const downloadCertificate = catchAsync(async (req, res) => {
   });
 
   if (!certificate) {
-    throw new AppError("Certificate not found", 404);
+    throw new AppError('Certificate not found', 404);
   }
 
   // Track download access
-  await certificate.trackAccess("download");
+  await certificate.trackAccess('download');
 
   // In a real implementation, you would:
   // 1. Generate PDF/image on-demand or serve from storage
@@ -189,7 +189,7 @@ const downloadCertificate = catchAsync(async (req, res) => {
       downloadUrl: certificate.assets.pdfUrl,
       format,
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-      message: "Certificate download prepared",
+      message: 'Certificate download prepared',
     },
   });
 });
@@ -211,11 +211,11 @@ const shareCertificate = catchAsync(async (req, res) => {
   });
 
   if (!certificate) {
-    throw new AppError("Certificate not found", 404);
+    throw new AppError('Certificate not found', 404);
   }
 
   if (!certificate.sharing.allowSharing) {
-    throw new AppError("Certificate sharing is not allowed", 403);
+    throw new AppError('Certificate sharing is not allowed', 403);
   }
 
   // Track sharing activity
@@ -245,12 +245,12 @@ const checkAssessmentCertificateEligibility = catchAsync(async (req, res) => {
   const { assessmentId } = req.params;
 
   console.log(
-    `✅ Checking certificate eligibility: Assessment ${assessmentId} for user: ${userId}`
+    `✅ Checking certificate eligibility: Assessment ${assessmentId} for user: ${userId}`,
   );
 
   const eligibility = await certificateService.checkCertificateEligibility(
     userId,
-    assessmentId
+    assessmentId,
   );
 
   res.status(200).json({
@@ -260,20 +260,20 @@ const checkAssessmentCertificateEligibility = catchAsync(async (req, res) => {
       reason: eligibility.reason,
       assessment: eligibility.assessment
         ? {
-            id: eligibility.assessment._id,
-            title: eligibility.assessment.title,
-            type: eligibility.assessment.type,
-            category: eligibility.assessment.category,
-            certification: eligibility.assessment.certification,
-          }
+          id: eligibility.assessment._id,
+          title: eligibility.assessment.title,
+          type: eligibility.assessment.type,
+          category: eligibility.assessment.category,
+          certification: eligibility.assessment.certification,
+        }
         : null,
       bestAttempt: eligibility.bestAttempt
         ? {
-            sessionId: eligibility.bestAttempt.sessionId,
-            finalScore: eligibility.bestAttempt.results.finalScore,
-            passed: eligibility.bestAttempt.results.passed,
-            completedAt: eligibility.bestAttempt.endTime,
-          }
+          sessionId: eligibility.bestAttempt.sessionId,
+          finalScore: eligibility.bestAttempt.results.finalScore,
+          passed: eligibility.bestAttempt.results.passed,
+          completedAt: eligibility.bestAttempt.endTime,
+        }
         : null,
     },
   });
@@ -289,20 +289,20 @@ const generateAssessmentCertificate = catchAsync(async (req, res) => {
   const options = req.body;
 
   console.log(
-    `🎓 Generating assessment certificate: ${assessmentId} for user: ${userId}`
+    `🎓 Generating assessment certificate: ${assessmentId} for user: ${userId}`,
   );
 
   const certificate = await certificateService.generateCertificate(
     userId,
     assessmentId,
-    options
+    options,
   );
 
   res.status(201).json({
     success: true,
     data: {
       certificate: certificate.getSummary(),
-      message: "Certificate generated successfully!",
+      message: 'Certificate generated successfully!',
     },
   });
 });
@@ -322,14 +322,14 @@ const generatePathCertificate = catchAsync(async (req, res) => {
     await certificateService.generatePathCompletionCertificate(
       userId,
       pathId,
-      options
+      options,
     );
 
   res.status(201).json({
     success: true,
     data: {
       certificate: certificate.getSummary(),
-      message: "Path completion certificate generated successfully!",
+      message: 'Path completion certificate generated successfully!',
     },
   });
 });
@@ -344,7 +344,7 @@ const verifyCertificate = catchAsync(async (req, res) => {
   console.log(`🔍 Verifying certificate: ${verificationCode}`);
 
   const verification = await certificateService.verifyCertificate(
-    verificationCode
+    verificationCode,
   );
 
   if (!verification.valid) {
@@ -370,7 +370,7 @@ const verifyCertificate = catchAsync(async (req, res) => {
         issueDate: verification.certificate.issueDate,
         validUntil: verification.certificate.validUntil,
         issuedBy: verification.certificate.issuedBy || {
-          organization: "Sokol Learning Platform",
+          organization: 'Sokol Learning Platform',
         },
         skillsVerified: verification.certificate.skillsVerified,
         achievementData: {
@@ -392,7 +392,7 @@ const verifyCertificate = catchAsync(async (req, res) => {
  */
 const getCertificateAnalytics = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { timeRange = "1y" } = req.query;
+  const { timeRange = '1y' } = req.query;
 
   console.log(`📊 Getting certificate analytics for user: ${userId}`);
 
@@ -402,22 +402,22 @@ const getCertificateAnalytics = catchAsync(async (req, res) => {
   // Filter by time range
   const dateThreshold = new Date();
   switch (timeRange) {
-    case "30d":
-      dateThreshold.setDate(dateThreshold.getDate() - 30);
-      break;
-    case "90d":
-      dateThreshold.setDate(dateThreshold.getDate() - 90);
-      break;
-    case "1y":
-      dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
-      break;
-    case "all":
-      dateThreshold.setFullYear(2020); // Far back date
-      break;
+  case '30d':
+    dateThreshold.setDate(dateThreshold.getDate() - 30);
+    break;
+  case '90d':
+    dateThreshold.setDate(dateThreshold.getDate() - 90);
+    break;
+  case '1y':
+    dateThreshold.setFullYear(dateThreshold.getFullYear() - 1);
+    break;
+  case 'all':
+    dateThreshold.setFullYear(2020); // Far back date
+    break;
   }
 
   const filteredCertificates = certificates.filter(
-    (cert) => new Date(cert.issueDate) >= dateThreshold
+    (cert) => new Date(cert.issueDate) >= dateThreshold,
   );
 
   // Calculate analytics
@@ -427,17 +427,17 @@ const getCertificateAnalytics = catchAsync(async (req, res) => {
       recent: filteredCertificates.length,
       valid: certificates.filter(
         (c) =>
-          c.status === "issued" &&
-          (!c.validUntil || new Date(c.validUntil) > new Date())
+          c.status === 'issued' &&
+          (!c.validUntil || new Date(c.validUntil) > new Date()),
       ).length,
-      revoked: certificates.filter((c) => c.status === "revoked").length,
+      revoked: certificates.filter((c) => c.status === 'revoked').length,
       expired: certificates.filter(
-        (c) => c.validUntil && new Date(c.validUntil) < new Date()
+        (c) => c.validUntil && new Date(c.validUntil) < new Date(),
       ).length,
     },
-    byType: this.groupByField(filteredCertificates, "type"),
-    byCategory: this.groupByField(filteredCertificates, "category"),
-    byLevel: this.groupByField(filteredCertificates, "level"),
+    byType: this.groupByField(filteredCertificates, 'type'),
+    byCategory: this.groupByField(filteredCertificates, 'category'),
+    byLevel: this.groupByField(filteredCertificates, 'level'),
     skillsVerified: this.analyzeSkillsVerified(filteredCertificates),
     timeline: this.createTimeline(filteredCertificates, timeRange),
     averageScore: this.calculateAverageScore(filteredCertificates),
@@ -470,15 +470,15 @@ const updateCertificateSettings = catchAsync(async (req, res) => {
   });
 
   if (!certificate) {
-    throw new AppError("Certificate not found", 404);
+    throw new AppError('Certificate not found', 404);
   }
 
   // Update settings
-  if (typeof isPublic === "boolean") {
+  if (typeof isPublic === 'boolean') {
     certificate.sharing.isPublic = isPublic;
   }
 
-  if (typeof allowSharing === "boolean") {
+  if (typeof allowSharing === 'boolean') {
     certificate.sharing.allowSharing = allowSharing;
   }
 
@@ -487,7 +487,7 @@ const updateCertificateSettings = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      message: "Certificate settings updated successfully",
+      message: 'Certificate settings updated successfully',
       settings: {
         isPublic: certificate.sharing.isPublic,
         allowSharing: certificate.sharing.allowSharing,
@@ -504,78 +504,78 @@ const getCertificateTemplates = catchAsync(async (req, res) => {
   const { category } = req.query;
 
   console.log(
-    `🎨 Getting certificate templates for category: ${category || "all"}`
+    `🎨 Getting certificate templates for category: ${category || 'all'}`,
   );
 
   // In a real implementation, you would fetch templates from database
   const templates = [
     {
-      id: "default_template",
-      name: "Classic Certificate",
-      description: "Traditional certificate design with elegant borders",
-      category: "general",
-      previewUrl: "/templates/classic-preview.png",
+      id: 'default_template',
+      name: 'Classic Certificate',
+      description: 'Traditional certificate design with elegant borders',
+      category: 'general',
+      previewUrl: '/templates/classic-preview.png',
       colors: {
-        primary: "#0066cc",
-        secondary: "#f0f8ff",
-        background: "#ffffff",
+        primary: '#0066cc',
+        secondary: '#f0f8ff',
+        background: '#ffffff',
       },
     },
     {
-      id: "leadership_template",
-      name: "Leadership Excellence",
-      description: "Professional template for leadership certifications",
-      category: "Communication & Leadership",
-      previewUrl: "/templates/leadership-preview.png",
+      id: 'leadership_template',
+      name: 'Leadership Excellence',
+      description: 'Professional template for leadership certifications',
+      category: 'Communication & Leadership',
+      previewUrl: '/templates/leadership-preview.png',
       colors: {
-        primary: "#3b82f6",
-        secondary: "#e0e7ff",
-        background: "#f8f9ff",
+        primary: '#3b82f6',
+        secondary: '#e0e7ff',
+        background: '#f8f9ff',
       },
     },
     {
-      id: "creative_template",
-      name: "Creative Arts",
+      id: 'creative_template',
+      name: 'Creative Arts',
       description:
-        "Vibrant template for creativity and innovation certificates",
-      category: "Innovation & Creativity",
-      previewUrl: "/templates/creative-preview.png",
+        'Vibrant template for creativity and innovation certificates',
+      category: 'Innovation & Creativity',
+      previewUrl: '/templates/creative-preview.png',
       colors: {
-        primary: "#a855f7",
-        secondary: "#f3e8ff",
-        background: "#fef7ff",
+        primary: '#a855f7',
+        secondary: '#f3e8ff',
+        background: '#fef7ff',
       },
     },
     {
-      id: "technical_template",
-      name: "Technical Skills",
-      description: "Modern template for technical skill certifications",
-      category: "Technical Skills",
-      previewUrl: "/templates/technical-preview.png",
+      id: 'technical_template',
+      name: 'Technical Skills',
+      description: 'Modern template for technical skill certifications',
+      category: 'Technical Skills',
+      previewUrl: '/templates/technical-preview.png',
       colors: {
-        primary: "#22c55e",
-        secondary: "#dcfce7",
-        background: "#f0fdf4",
+        primary: '#22c55e',
+        secondary: '#dcfce7',
+        background: '#f0fdf4',
       },
     },
     {
-      id: "business_template",
-      name: "Business Strategy",
-      description: "Corporate template for business and strategy certificates",
-      category: "Business Strategy",
-      previewUrl: "/templates/business-preview.png",
+      id: 'business_template',
+      name: 'Business Strategy',
+      description: 'Corporate template for business and strategy certificates',
+      category: 'Business Strategy',
+      previewUrl: '/templates/business-preview.png',
       colors: {
-        primary: "#eab308",
-        secondary: "#fef3c7",
-        background: "#fefce8",
+        primary: '#eab308',
+        secondary: '#fef3c7',
+        background: '#fefce8',
       },
     },
   ];
 
   const filteredTemplates = category
     ? templates.filter(
-        (t) => t.category === category || t.category === "general"
-      )
+      (t) => t.category === category || t.category === 'general',
+    )
     : templates;
 
   res.status(200).json({
@@ -590,7 +590,7 @@ const getCertificateTemplates = catchAsync(async (req, res) => {
 // Helper methods for analytics
 function groupByField(certificates, field) {
   const grouped = certificates.reduce((acc, cert) => {
-    const value = cert[field] || "unknown";
+    const value = cert[field] || 'unknown';
     acc[value] = (acc[value] || 0) + 1;
     return acc;
   }, {});
@@ -628,7 +628,7 @@ function analyzeSkillsVerified(certificates) {
   // Calculate averages
   Object.keys(skills).forEach((skillName) => {
     skills[skillName].averageScore = Math.round(
-      skills[skillName].averageScore / skills[skillName].count
+      skills[skillName].averageScore / skills[skillName].count,
     );
   });
 
@@ -649,18 +649,18 @@ function createTimeline(certificates, timeRange) {
     let key;
 
     switch (timeRange) {
-      case "30d":
-        key = date.toISOString().split("T")[0]; // Daily
-        break;
-      case "90d":
-      case "1y":
-        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-          2,
-          "0"
-        )}`; // Monthly
-        break;
-      default:
-        key = date.getFullYear().toString(); // Yearly
+    case '30d':
+      key = date.toISOString().split('T')[0]; // Daily
+      break;
+    case '90d':
+    case '1y':
+      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+        2,
+        '0',
+      )}`; // Monthly
+      break;
+    default:
+      key = date.getFullYear().toString(); // Yearly
     }
 
     timeline[key] = (timeline[key] || 0) + 1;
@@ -676,8 +676,8 @@ function calculateAverageScore(certificates) {
 
   return scores.length > 0
     ? Math.round(
-        (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100
-      ) / 100
+      (scores.reduce((sum, score) => sum + score, 0) / scores.length) * 100,
+    ) / 100
     : 0;
 }
 

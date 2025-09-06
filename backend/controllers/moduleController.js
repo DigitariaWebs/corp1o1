@@ -1,25 +1,25 @@
-const LearningModule = require("../models/LearningModule");
-const LearningPath = require("../models/LearningPath");
-const UserProgress = require("../models/UserProgress");
-const LearningSession = require("../models/LearningSession");
-const User = require("../models/User");
-const { AppError, catchAsync } = require("../middleware/errorHandler");
-const { generateSessionId } = require("../utils/helpers");
+const LearningModule = require('../models/LearningModule');
+const LearningPath = require('../models/LearningPath');
+const UserProgress = require('../models/UserProgress');
+const LearningSession = require('../models/LearningSession');
+const User = require('../models/User');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
+const { generateSessionId } = require('../utils/helpers');
 
 // Get module by ID with personalized content
 const getModule = catchAsync(async (req, res) => {
   const { moduleId } = req.params;
 
   const module = await LearningModule.findById(moduleId)
-    .populate("pathId", "title category difficulty")
+    .populate('pathId', 'title category difficulty')
     .lean();
 
   if (!module) {
-    throw new AppError("Module not found", 404);
+    throw new AppError('Module not found', 404);
   }
 
-  if (module.status !== "published" || !module.isActive) {
-    throw new AppError("Module is not available", 403);
+  if (module.status !== 'published' || !module.isActive) {
+    throw new AppError('Module is not available', 403);
   }
 
   // Check if user has access to this module
@@ -30,18 +30,18 @@ const getModule = catchAsync(async (req, res) => {
     const userCompletedModules = await UserProgress.find({
       userId: req.user._id,
       moduleId: { $exists: true },
-      "progress.completed": true,
-    }).distinct("moduleId");
+      'progress.completed': true,
+    }).distinct('moduleId');
 
     const accessCheck = module.checkAccess(
-      userCompletedModules.map((id) => id.toString())
+      userCompletedModules.map((id) => id.toString()),
     );
     hasAccess = accessCheck.canAccess;
     accessReason = accessCheck.reason;
   }
 
   if (!hasAccess) {
-    throw new AppError(accessReason || "Access denied to this module", 403);
+    throw new AppError(accessReason || 'Access denied to this module', 403);
   }
 
   // Get user's progress for this module
@@ -92,17 +92,17 @@ const getModule = catchAsync(async (req, res) => {
       navigation: {
         previous: previousModule
           ? {
-              id: previousModule._id,
-              title: previousModule.title,
-              order: previousModule.order,
-            }
+            id: previousModule._id,
+            title: previousModule.title,
+            order: previousModule.order,
+          }
           : null,
         next: nextModule
           ? {
-              id: nextModule._id,
-              title: nextModule.title,
-              order: nextModule.order,
-            }
+            id: nextModule._id,
+            title: nextModule.title,
+            order: nextModule.order,
+          }
           : null,
       },
     },
@@ -116,7 +116,7 @@ const getPathModules = catchAsync(async (req, res) => {
   // Verify path exists
   const path = await LearningPath.findById(pathId);
   if (!path) {
-    throw new AppError("Learning path not found", 404);
+    throw new AppError('Learning path not found', 404);
   }
 
   const modules = await LearningModule.getByPath(pathId);
@@ -153,12 +153,12 @@ const getPathModules = catchAsync(async (req, res) => {
       isLocked: module.isLocked,
       userProgress: progress
         ? {
-            percentage: progress.progress.percentage,
-            completed: progress.progress.completed,
-            timeSpent: progress.progress.timeSpent,
-            lastAccessed: progress.progress.lastAccessed,
-            engagementScore: progress.analytics?.engagementScore || 0,
-          }
+          percentage: progress.progress.percentage,
+          completed: progress.progress.completed,
+          timeSpent: progress.progress.timeSpent,
+          lastAccessed: progress.progress.lastAccessed,
+          engagementScore: progress.analytics?.engagementScore || 0,
+        }
         : null,
       isCompleted: progress ? progress.progress.completed : false,
       canAccess: !module.isLocked, // Simplified for list view
@@ -187,16 +187,16 @@ const getPathModules = catchAsync(async (req, res) => {
 // Start a learning session for a module
 const startSession = catchAsync(async (req, res) => {
   const { moduleId } = req.params;
-  const { environment = "other", initialMood = "neutral" } = req.body;
+  const { environment = 'other', initialMood = 'neutral' } = req.body;
 
   const module = await LearningModule.findById(moduleId);
   if (!module) {
-    throw new AppError("Module not found", 404);
+    throw new AppError('Module not found', 404);
   }
 
   // Check module access
-  if (module.status !== "published" || !module.isActive) {
-    throw new AppError("Module is not available", 403);
+  if (module.status !== 'published' || !module.isActive) {
+    throw new AppError('Module is not available', 403);
   }
 
   // Find or create user progress for this module
@@ -210,7 +210,7 @@ const startSession = catchAsync(async (req, res) => {
       userId: req.user._id,
       pathId: module.pathId,
       moduleId: moduleId,
-      status: "in_progress",
+      status: 'in_progress',
       enrollmentDate: new Date(),
     });
     await userProgress.save();
@@ -226,7 +226,7 @@ const startSession = catchAsync(async (req, res) => {
     pathId: module.pathId,
     moduleId: moduleId,
     startTime: new Date(),
-    status: "active",
+    status: 'active',
     learningObjectives: module.learningObjectives,
     userState: {
       initialMood,
@@ -234,8 +234,8 @@ const startSession = catchAsync(async (req, res) => {
     },
     environment: { location: environment },
     deviceInfo: {
-      userAgent: req.get("User-Agent"),
-      platform: req.get("X-Platform") || "web",
+      userAgent: req.get('User-Agent'),
+      platform: req.get('X-Platform') || 'web',
       timezone: req.user.timezone,
     },
   });
@@ -243,7 +243,7 @@ const startSession = catchAsync(async (req, res) => {
   await session.save();
 
   // Add session start activity
-  session.addActivity("session_start", {
+  session.addActivity('session_start', {
     moduleId: moduleId,
     pathId: module.pathId,
   });
@@ -258,12 +258,12 @@ const startSession = catchAsync(async (req, res) => {
   await userProgress.save();
 
   console.log(
-    `✅ Session started for user ${req.user.email} on module: ${module.title}`
+    `✅ Session started for user ${req.user.email} on module: ${module.title}`,
   );
 
   res.status(201).json({
     success: true,
-    message: "Learning session started successfully",
+    message: 'Learning session started successfully',
     data: {
       sessionId,
       module: {
@@ -298,11 +298,11 @@ const updateProgress = catchAsync(async (req, res) => {
     sessionId,
     userId: req.user._id,
     moduleId: moduleId,
-    status: { $in: ["active", "paused"] },
+    status: { $in: ['active', 'paused'] },
   });
 
   if (!session) {
-    throw new AppError("Active learning session not found", 404);
+    throw new AppError('Active learning session not found', 404);
   }
 
   // Find user progress
@@ -312,7 +312,7 @@ const updateProgress = catchAsync(async (req, res) => {
   });
 
   if (!userProgress) {
-    throw new AppError("User progress not found", 404);
+    throw new AppError('User progress not found', 404);
   }
 
   // Update session with content interactions
@@ -323,7 +323,7 @@ const updateProgress = catchAsync(async (req, res) => {
   }
 
   // Add progress update activity
-  session.addActivity("progress_update", {
+  session.addActivity('progress_update', {
     progressPercentage,
     timeSpent,
     engagementScore,
@@ -333,7 +333,7 @@ const updateProgress = catchAsync(async (req, res) => {
   if (progressPercentage !== undefined) {
     userProgress.progress.percentage = Math.max(
       userProgress.progress.percentage,
-      progressPercentage
+      progressPercentage,
     );
   }
 
@@ -357,13 +357,13 @@ const updateProgress = catchAsync(async (req, res) => {
   if (strugglingAreas.length > 0) {
     strugglingAreas.forEach((area) => {
       const existingWeakness = userProgress.performance.weaknesses.find(
-        (w) => w.skill === area.skill
+        (w) => w.skill === area.skill,
       );
 
       if (existingWeakness) {
         existingWeakness.improvementNeeded = Math.max(
           existingWeakness.improvementNeeded,
-          area.difficulty
+          area.difficulty,
         );
       } else {
         userProgress.performance.weaknesses.push({
@@ -386,7 +386,7 @@ const updateProgress = catchAsync(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: "Progress updated successfully",
+    message: 'Progress updated successfully',
     data: {
       progress: {
         percentage: userProgress.progress.percentage,
@@ -404,14 +404,14 @@ const completeModule = catchAsync(async (req, res) => {
   const {
     sessionId,
     finalEngagementScore,
-    finalMood = "satisfied",
+    finalMood = 'satisfied',
     feedback = {},
     finalEnergyLevel,
   } = req.body;
 
   const module = await LearningModule.findById(moduleId);
   if (!module) {
-    throw new AppError("Module not found", 404);
+    throw new AppError('Module not found', 404);
   }
 
   // Find user progress
@@ -421,13 +421,13 @@ const completeModule = catchAsync(async (req, res) => {
   });
 
   if (!userProgress) {
-    throw new AppError("User progress not found", 404);
+    throw new AppError('User progress not found', 404);
   }
 
   if (userProgress.progress.completed) {
     return res.status(200).json({
       success: true,
-      message: "Module already completed",
+      message: 'Module already completed',
       data: {
         progress: userProgress,
         alreadyCompleted: true,
@@ -443,9 +443,9 @@ const completeModule = catchAsync(async (req, res) => {
     });
 
     if (session) {
-      session.status = "completed";
+      session.status = 'completed';
       session.endTime = new Date();
-      session.completionReason = "natural_end";
+      session.completionReason = 'natural_end';
       session.userState.finalMood = finalMood;
       if (finalEnergyLevel) {
         session.userState.energyLevel.final = finalEnergyLevel;
@@ -456,7 +456,7 @@ const completeModule = catchAsync(async (req, res) => {
         session.feedback = { ...session.feedback, ...feedback };
       }
 
-      session.addActivity("session_end", { completed: true });
+      session.addActivity('session_end', { completed: true });
       await session.save();
     }
   }
@@ -465,7 +465,7 @@ const completeModule = catchAsync(async (req, res) => {
   userProgress.progress.completed = true;
   userProgress.progress.percentage = 100;
   userProgress.progress.completedAt = new Date();
-  userProgress.status = "completed";
+  userProgress.status = 'completed';
 
   // Add completion feedback
   if (Object.keys(feedback).length > 0) {
@@ -488,7 +488,7 @@ const completeModule = catchAsync(async (req, res) => {
       userId: req.user._id,
       pathId: module.pathId,
       moduleId: { $exists: true },
-      "progress.completed": true,
+      'progress.completed': true,
     });
 
     const completionPercentage =
@@ -498,15 +498,15 @@ const completeModule = catchAsync(async (req, res) => {
     if (completionPercentage === 100) {
       pathProgress.progress.completed = true;
       pathProgress.progress.completedAt = new Date();
-      pathProgress.status = "completed";
+      pathProgress.status = 'completed';
 
       // Update user and path statistics
       await Promise.all([
         User.findByIdAndUpdate(req.user._id, {
-          $inc: { "statistics.pathsCompleted": 1 },
+          $inc: { 'statistics.pathsCompleted': 1 },
         }),
         LearningPath.findByIdAndUpdate(module.pathId, {
-          $inc: { "metadata.studentsCompleted": 1 },
+          $inc: { 'metadata.studentsCompleted': 1 },
         }),
       ]);
     }
@@ -517,29 +517,29 @@ const completeModule = catchAsync(async (req, res) => {
   // Get next module suggestion
   const nextModule = await LearningModule.getNextModule(
     module.pathId,
-    module.order
+    module.order,
   );
 
   console.log(`✅ Module completed by user ${req.user.email}: ${module.title}`);
 
   res.status(200).json({
     success: true,
-    message: "Module completed successfully!",
+    message: 'Module completed successfully!',
     data: {
       progress: userProgress,
       pathCompletion: pathProgress
         ? {
-            percentage: pathProgress.progress.percentage,
-            completed: pathProgress.progress.completed,
-          }
+          percentage: pathProgress.progress.percentage,
+          completed: pathProgress.progress.completed,
+        }
         : null,
       nextModule: nextModule
         ? {
-            id: nextModule._id,
-            title: nextModule.title,
-            difficulty: nextModule.difficulty,
-            duration: nextModule.content.duration,
-          }
+          id: nextModule._id,
+          title: nextModule.title,
+          difficulty: nextModule.difficulty,
+          duration: nextModule.content.duration,
+        }
         : null,
       achievements: [], // Could add achievement logic here
     },
@@ -552,11 +552,11 @@ const getModuleAssessment = catchAsync(async (req, res) => {
 
   const module = await LearningModule.findById(moduleId).lean();
   if (!module) {
-    throw new AppError("Module not found", 404);
+    throw new AppError('Module not found', 404);
   }
 
   if (!module.hasAssessment || !module.assessment) {
-    throw new AppError("No assessment available for this module", 404);
+    throw new AppError('No assessment available for this module', 404);
   }
 
   // Check if user has access
@@ -567,8 +567,8 @@ const getModuleAssessment = catchAsync(async (req, res) => {
 
   if (!userProgress) {
     throw new AppError(
-      "You must start the module before taking assessment",
-      403
+      'You must start the module before taking assessment',
+      403,
     );
   }
 
@@ -585,11 +585,11 @@ const getModuleAssessment = catchAsync(async (req, res) => {
     question: q.question,
     type: q.type,
     options:
-      q.type === "multiple_choice"
+      q.type === 'multiple_choice'
         ? q.options.map((opt) => ({
-            _id: opt._id,
-            text: opt.text,
-          }))
+          _id: opt._id,
+          text: opt.text,
+        }))
         : undefined,
     points: q.points,
   }));
@@ -620,11 +620,11 @@ const submitAssessment = catchAsync(async (req, res) => {
 
   const module = await LearningModule.findById(moduleId);
   if (!module) {
-    throw new AppError("Module not found", 404);
+    throw new AppError('Module not found', 404);
   }
 
   if (!module.hasAssessment) {
-    throw new AppError("No assessment available for this module", 404);
+    throw new AppError('No assessment available for this module', 404);
   }
 
   const userProgress = await UserProgress.findOne({
@@ -633,7 +633,7 @@ const submitAssessment = catchAsync(async (req, res) => {
   });
 
   if (!userProgress) {
-    throw new AppError("User progress not found", 404);
+    throw new AppError('User progress not found', 404);
   }
 
   // Check attempts limit
@@ -641,7 +641,7 @@ const submitAssessment = catchAsync(async (req, res) => {
     userProgress.performance.totalAssessmentAttempts >=
     module.assessment.maxAttempts
   ) {
-    throw new AppError("Maximum assessment attempts exceeded", 403);
+    throw new AppError('Maximum assessment attempts exceeded', 403);
   }
 
   // Calculate score
@@ -683,8 +683,8 @@ const submitAssessment = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: passed
-      ? "Assessment passed successfully!"
-      : "Assessment completed. Review and try again.",
+      ? 'Assessment passed successfully!'
+      : 'Assessment completed. Review and try again.',
     data: {
       score: scorePercentage,
       passed,
@@ -702,21 +702,22 @@ const submitAssessment = catchAsync(async (req, res) => {
 // Helper function to check answer correctness
 const checkAnswer = (question, userAnswer) => {
   switch (question.type) {
-    case "multiple_choice":
-      const correctOption = question.options.find((opt) => opt.isCorrect);
-      return correctOption && correctOption._id.toString() === userAnswer;
+  case 'multiple_choice': {
+    const correctOption = question.options.find((opt) => opt.isCorrect);
+    return correctOption && correctOption._id.toString() === userAnswer;
+  }
 
-    case "true_false":
-      return question.correctAnswer === userAnswer;
+  case 'true_false':
+    return question.correctAnswer === userAnswer;
 
-    case "short_answer":
-      return (
-        question.correctAnswer.toLowerCase().trim() ===
+  case 'short_answer':
+    return (
+      question.correctAnswer.toLowerCase().trim() ===
         userAnswer.toLowerCase().trim()
-      );
+    );
 
-    default:
-      return false;
+  default:
+    return false;
   }
 };
 
@@ -727,19 +728,19 @@ const pauseSession = catchAsync(async (req, res) => {
   const session = await LearningSession.findOne({
     sessionId,
     userId: req.user._id,
-    status: "active",
+    status: 'active',
   });
 
   if (!session) {
-    throw new AppError("Active session not found", 404);
+    throw new AppError('Active session not found', 404);
   }
 
-  session.addActivity("session_pause");
+  session.addActivity('session_pause');
   await session.save();
 
   res.status(200).json({
     success: true,
-    message: "Session paused successfully",
+    message: 'Session paused successfully',
   });
 });
 
@@ -750,19 +751,19 @@ const resumeSession = catchAsync(async (req, res) => {
   const session = await LearningSession.findOne({
     sessionId,
     userId: req.user._id,
-    status: "paused",
+    status: 'paused',
   });
 
   if (!session) {
-    throw new AppError("Paused session not found", 404);
+    throw new AppError('Paused session not found', 404);
   }
 
-  session.addActivity("session_resume");
+  session.addActivity('session_resume');
   await session.save();
 
   res.status(200).json({
     success: true,
-    message: "Session resumed successfully",
+    message: 'Session resumed successfully',
   });
 });
 

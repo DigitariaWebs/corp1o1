@@ -1,5 +1,5 @@
 // models/OnboardingQuestion.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const onboardingQuestionSchema = new mongoose.Schema(
   {
@@ -22,21 +22,21 @@ const onboardingQuestionSchema = new mongoose.Schema(
 
     type: {
       type: String,
-      enum: ["multiple_choice", "multiple_select", "short_answer", "essay"],
+      enum: ['multiple_choice', 'multiple_select', 'short_answer', 'essay'],
       required: true,
     },
 
     category: {
       type: String,
       enum: [
-        "learning_style",
-        "career_goals", 
-        "technical_background",
-        "experience_level",
-        "interests",
-        "motivation",
-        "time_availability",
-        "preferred_format"
+        'learning_style',
+        'career_goals', 
+        'technical_background',
+        'experience_level',
+        'interests',
+        'motivation',
+        'time_availability',
+        'preferred_format',
       ],
       required: true,
     },
@@ -105,12 +105,12 @@ const onboardingQuestionSchema = new mongoose.Schema(
 
     version: {
       type: String,
-      default: "1.0.0",
+      default: '1.0.0',
     },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       default: null,
     },
   },
@@ -124,7 +124,7 @@ const onboardingQuestionSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 // Indexes for performance
@@ -135,8 +135,8 @@ onboardingQuestionSchema.index({ questionId: 1 }, { unique: true });
 // Static methods
 onboardingQuestionSchema.statics.getOnboardingFlow = function () {
   return this.find({ isActive: true })
-    .sort({ "flow.order": 1 })
-    .select("-aiAnalysisPrompt -scoring.weight -scoring.categories");
+    .sort({ 'flow.order': 1 })
+    .select('-aiAnalysisPrompt -scoring.weight -scoring.categories');
 };
 
 onboardingQuestionSchema.statics.getQuestionWithAnalysis = function (questionId) {
@@ -144,9 +144,9 @@ onboardingQuestionSchema.statics.getQuestionWithAnalysis = function (questionId)
 };
 
 onboardingQuestionSchema.statics.getQuestionsByCategory = function (category) {
-  return this.find({ category, isActive: true }).sort({ "flow.order": 1 });
+  return this.find({ category, isActive: true }).sort({ 'flow.order': 1 });
 };
 
-const OnboardingQuestion = mongoose.model("OnboardingQuestion", onboardingQuestionSchema);
+const OnboardingQuestion = mongoose.model('OnboardingQuestion', onboardingQuestionSchema);
 
 module.exports = OnboardingQuestion;

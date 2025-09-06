@@ -1,29 +1,29 @@
 // models/RecommendationEngine.js
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const recommendationEngineSchema = new mongoose.Schema(
   {
     // User reference
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true
+      ref: 'User',
+      required: true,
     },
 
     // Recommendation details
     type: {
       type: String,
       enum: [
-        "next_module",
-        "learning_path",
-        "review_content",
-        "skill_development",
-        "schedule_optimization",
-        "difficulty_adjustment",
-        "ai_personality",
-        "study_break",
-        "peer_collaboration",
-        "assessment_timing",
+        'next_module',
+        'learning_path',
+        'review_content',
+        'skill_development',
+        'schedule_optimization',
+        'difficulty_adjustment',
+        'ai_personality',
+        'study_break',
+        'peer_collaboration',
+        'assessment_timing',
       ],
       required: true,
     },
@@ -31,13 +31,13 @@ const recommendationEngineSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: [
-        "Communication & Leadership",
-        "Innovation & Creativity",
-        "Technical Skills",
-        "Business Strategy",
-        "Personal Development",
-        "Data & Analytics",
-        "General",
+        'Communication & Leadership',
+        'Innovation & Creativity',
+        'Technical Skills',
+        'Business Strategy',
+        'Personal Development',
+        'Data & Analytics',
+        'General',
       ],
       required: true,
     },
@@ -111,11 +111,11 @@ const recommendationEngineSchema = new mongoose.Schema(
       // Current user state when recommendation was generated
       currentModule: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "LearningModule",
+        ref: 'LearningModule',
       },
       currentPath: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "LearningPath",
+        ref: 'LearningPath',
       },
       userProgress: {
         overallCompletion: {
@@ -139,7 +139,7 @@ const recommendationEngineSchema = new mongoose.Schema(
         preferredSessionLength: Number, // minutes
         engagementLevel: {
           type: String,
-          enum: ["low", "medium", "high"],
+          enum: ['low', 'medium', 'high'],
         },
       },
     },
@@ -149,11 +149,11 @@ const recommendationEngineSchema = new mongoose.Schema(
       // Specific content/module this recommendation relates to
       targetContent: {
         type: mongoose.Schema.Types.ObjectId,
-        refPath: "targeting.targetContentType",
+        refPath: 'targeting.targetContentType',
       },
       targetContentType: {
         type: String,
-        enum: ["LearningPath", "LearningModule", "Assessment"],
+        enum: ['LearningPath', 'LearningModule', 'Assessment'],
       },
 
       // Skills this recommendation aims to develop
@@ -162,13 +162,13 @@ const recommendationEngineSchema = new mongoose.Schema(
       // Difficulty level this recommendation addresses
       targetDifficulty: {
         type: String,
-        enum: ["beginner", "intermediate", "advanced", "expert"],
+        enum: ['beginner', 'intermediate', 'advanced', 'expert'],
       },
 
       // Learning style optimization
       learningStyleOptimization: {
         type: String,
-        enum: ["visual", "auditory", "kinesthetic", "reading", "adaptive"],
+        enum: ['visual', 'auditory', 'kinesthetic', 'reading', 'adaptive'],
       },
     },
 
@@ -177,17 +177,17 @@ const recommendationEngineSchema = new mongoose.Schema(
       algorithm: {
         type: String,
         enum: [
-          "collaborative_filtering",
-          "content_based",
-          "hybrid",
-          "ai_driven",
-          "rule_based",
+          'collaborative_filtering',
+          'content_based',
+          'hybrid',
+          'ai_driven',
+          'rule_based',
         ],
         required: true,
       },
       version: {
         type: String,
-        default: "1.0",
+        default: '1.0',
       },
       factors: [
         {
@@ -207,20 +207,20 @@ const recommendationEngineSchema = new mongoose.Schema(
       status: {
         type: String,
         enum: [
-          "pending",
-          "viewed",
-          "accepted",
-          "declined",
-          "dismissed",
-          "expired",
+          'pending',
+          'viewed',
+          'accepted',
+          'declined',
+          'dismissed',
+          'expired',
         ],
-        default: "pending",
+        default: 'pending',
       },
       viewedAt: Date,
       respondedAt: Date,
       response: {
         type: String,
-        enum: ["accepted", "declined", "maybe_later", "not_interested"],
+        enum: ['accepted', 'declined', 'maybe_later', 'not_interested'],
       },
       feedback: {
         helpfulness: {
@@ -297,7 +297,7 @@ const recommendationEngineSchema = new mongoose.Schema(
       },
       suggestedTiming: {
         type: String,
-        enum: ["immediate", "today", "this_week", "next_week", "flexible"],
+        enum: ['immediate', 'today', 'this_week', 'next_week', 'flexible'],
       },
       isUrgent: {
         type: Boolean,
@@ -331,48 +331,48 @@ const recommendationEngineSchema = new mongoose.Schema(
     // Metadata
     version: {
       type: String,
-      default: "1.0",
+      default: '1.0',
     },
   },
   {
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 // Indexes for efficient querying
 recommendationEngineSchema.index({
   user: 1,
-  "userInteraction.status": 1,
-  "timing.generatedAt": -1,
+  'userInteraction.status': 1,
+  'timing.generatedAt': -1,
 });
 recommendationEngineSchema.index({ type: 1, category: 1 });
 recommendationEngineSchema.index({ overallScore: -1 });
-recommendationEngineSchema.index({ "timing.validUntil": 1 }); // For cleanup
-recommendationEngineSchema.index({ "targeting.targetContent": 1 });
+recommendationEngineSchema.index({ 'timing.validUntil': 1 }); // For cleanup
+recommendationEngineSchema.index({ 'targeting.targetContent': 1 });
 
 // Virtual for time remaining until expiration
-recommendationEngineSchema.virtual("timing.timeRemaining").get(function () {
+recommendationEngineSchema.virtual('timing.timeRemaining').get(function () {
   const now = new Date();
   const remaining = this.timing.validUntil.getTime() - now.getTime();
   return Math.max(0, Math.ceil(remaining / (1000 * 60 * 60 * 24))); // days
 });
 
 // Virtual for recommendation age
-recommendationEngineSchema.virtual("timing.age").get(function () {
+recommendationEngineSchema.virtual('timing.age').get(function () {
   const now = new Date();
   const age = now.getTime() - this.timing.generatedAt.getTime();
   return Math.ceil(age / (1000 * 60 * 60 * 24)); // days
 });
 
 // Virtual for is expired
-recommendationEngineSchema.virtual("timing.isExpired").get(function () {
+recommendationEngineSchema.virtual('timing.isExpired').get(function () {
   return new Date() > this.timing.validUntil;
 });
 
 // Calculate overall score before saving
-recommendationEngineSchema.pre("save", function (next) {
+recommendationEngineSchema.pre('save', function (next) {
   // Weight the scores to create overall recommendation strength
   const relevanceWeight = 0.4;
   const confidenceWeight = 0.3;
@@ -381,24 +381,24 @@ recommendationEngineSchema.pre("save", function (next) {
   this.overallScore = Math.round(
     this.relevanceScore * relevanceWeight +
       this.confidenceScore * confidenceWeight +
-      this.priorityScore * priorityWeight
+      this.priorityScore * priorityWeight,
   );
 
   // Ensure valid until date is set
   if (!this.timing.validUntil) {
     const defaultValidDays =
-      this.timing.suggestedTiming === "immediate"
+      this.timing.suggestedTiming === 'immediate'
         ? 1
-        : this.timing.suggestedTiming === "today"
-        ? 2
-        : this.timing.suggestedTiming === "this_week"
-        ? 7
-        : this.timing.suggestedTiming === "next_week"
-        ? 14
-        : 30;
+        : this.timing.suggestedTiming === 'today'
+          ? 2
+          : this.timing.suggestedTiming === 'this_week'
+            ? 7
+            : this.timing.suggestedTiming === 'next_week'
+              ? 14
+              : 30;
 
     this.timing.validUntil = new Date(
-      Date.now() + defaultValidDays * 24 * 60 * 60 * 1000
+      Date.now() + defaultValidDays * 24 * 60 * 60 * 1000,
     );
   }
 
@@ -408,16 +408,16 @@ recommendationEngineSchema.pre("save", function (next) {
 // Static method to get active recommendations for user
 recommendationEngineSchema.statics.getActiveRecommendations = async function (
   userId,
-  limit = 10
+  limit = 10,
 ) {
   return this.find({
     user: userId,
-    "userInteraction.status": { $in: ["pending", "viewed"] },
-    "timing.validUntil": { $gt: new Date() },
+    'userInteraction.status': { $in: ['pending', 'viewed'] },
+    'timing.validUntil': { $gt: new Date() },
   })
-    .sort({ overallScore: -1, "timing.generatedAt": -1 })
+    .sort({ overallScore: -1, 'timing.generatedAt': -1 })
     .limit(limit)
-    .populate("targeting.targetContent")
+    .populate('targeting.targetContent')
     .lean();
 };
 
@@ -425,13 +425,13 @@ recommendationEngineSchema.statics.getActiveRecommendations = async function (
 recommendationEngineSchema.statics.getRecommendationsByType = async function (
   userId,
   type,
-  limit = 5
+  limit = 5,
 ) {
   return this.find({
     user: userId,
     type,
-    "userInteraction.status": { $in: ["pending", "viewed"] },
-    "timing.validUntil": { $gt: new Date() },
+    'userInteraction.status': { $in: ['pending', 'viewed'] },
+    'timing.validUntil': { $gt: new Date() },
   })
     .sort({ overallScore: -1 })
     .limit(limit)
@@ -440,36 +440,36 @@ recommendationEngineSchema.statics.getRecommendationsByType = async function (
 
 // Static method to get recommendation effectiveness stats
 recommendationEngineSchema.statics.getEffectivenessStats = async function (
-  timeRange = 30
+  timeRange = 30,
 ) {
   const startDate = new Date(Date.now() - timeRange * 24 * 60 * 60 * 1000);
 
   return this.aggregate([
     {
       $match: {
-        "timing.generatedAt": { $gte: startDate },
-        "userInteraction.status": { $ne: "pending" },
+        'timing.generatedAt': { $gte: startDate },
+        'userInteraction.status': { $ne: 'pending' },
       },
     },
     {
       $group: {
-        _id: "$type",
+        _id: '$type',
         totalRecommendations: { $sum: 1 },
         acceptedRecommendations: {
           $sum: {
-            $cond: [{ $eq: ["$userInteraction.response", "accepted"] }, 1, 0],
+            $cond: [{ $eq: ['$userInteraction.response', 'accepted'] }, 1, 0],
           },
         },
-        averageRelevanceScore: { $avg: "$relevanceScore" },
-        averageConfidenceScore: { $avg: "$confidenceScore" },
+        averageRelevanceScore: { $avg: '$relevanceScore' },
+        averageConfidenceScore: { $avg: '$confidenceScore' },
         averageFeedbackHelpfulness: {
-          $avg: "$userInteraction.feedback.helpfulness",
+          $avg: '$userInteraction.feedback.helpfulness',
         },
         improvedEngagement: {
-          $sum: { $cond: ["$effectiveness.improvedEngagement", 1, 0] },
+          $sum: { $cond: ['$effectiveness.improvedEngagement', 1, 0] },
         },
         improvedPerformance: {
-          $sum: { $cond: ["$effectiveness.improvedPerformance", 1, 0] },
+          $sum: { $cond: ['$effectiveness.improvedPerformance', 1, 0] },
         },
       },
     },
@@ -477,7 +477,7 @@ recommendationEngineSchema.statics.getEffectivenessStats = async function (
       $addFields: {
         acceptanceRate: {
           $multiply: [
-            { $divide: ["$acceptedRecommendations", "$totalRecommendations"] },
+            { $divide: ['$acceptedRecommendations', '$totalRecommendations'] },
             100,
           ],
         },
@@ -488,8 +488,8 @@ recommendationEngineSchema.statics.getEffectivenessStats = async function (
 
 // Instance method to mark as viewed
 recommendationEngineSchema.methods.markAsViewed = async function () {
-  if (this.userInteraction.status === "pending") {
-    this.userInteraction.status = "viewed";
+  if (this.userInteraction.status === 'pending') {
+    this.userInteraction.status = 'viewed';
     this.userInteraction.viewedAt = new Date();
     await this.save();
   }
@@ -498,17 +498,17 @@ recommendationEngineSchema.methods.markAsViewed = async function () {
 // Instance method to record user response
 recommendationEngineSchema.methods.recordResponse = async function (
   response,
-  feedback = null
+  feedback = null,
 ) {
   this.userInteraction.response = response;
   this.userInteraction.respondedAt = new Date();
 
-  if (response === "accepted") {
-    this.userInteraction.status = "accepted";
-  } else if (response === "declined" || response === "not_interested") {
-    this.userInteraction.status = "declined";
+  if (response === 'accepted') {
+    this.userInteraction.status = 'accepted';
+  } else if (response === 'declined' || response === 'not_interested') {
+    this.userInteraction.status = 'declined';
   } else {
-    this.userInteraction.status = "dismissed";
+    this.userInteraction.status = 'dismissed';
   }
 
   if (feedback) {
@@ -529,7 +529,7 @@ recommendationEngineSchema.methods.recordActionTaken = async function () {
 
 // Instance method to update effectiveness metrics
 recommendationEngineSchema.methods.updateEffectiveness = async function (
-  impactData
+  impactData,
 ) {
   Object.assign(this.effectiveness.impact, impactData);
 
@@ -549,12 +549,12 @@ recommendationEngineSchema.methods.updateEffectiveness = async function (
 recommendationEngineSchema.statics.cleanupExpired = async function () {
   const result = await this.updateMany(
     {
-      "timing.validUntil": { $lt: new Date() },
-      "userInteraction.status": { $in: ["pending", "viewed"] },
+      'timing.validUntil': { $lt: new Date() },
+      'userInteraction.status': { $in: ['pending', 'viewed'] },
     },
     {
-      $set: { "userInteraction.status": "expired" },
-    }
+      $set: { 'userInteraction.status': 'expired' },
+    },
   );
 
   return result.modifiedCount;
@@ -564,17 +564,17 @@ recommendationEngineSchema.statics.cleanupExpired = async function () {
 recommendationEngineSchema.statics.generateRecommendations = async function (
   userId,
   context,
-  maxRecommendations = 5
+  maxRecommendations = 5,
 ) {
   // This would typically integrate with ML models or rule engines
-  const User = mongoose.model("User");
-  const LearningAnalytics = mongoose.model("LearningAnalytics");
+  const User = mongoose.model('User');
+  const LearningAnalytics = mongoose.model('LearningAnalytics');
 
   const user = await User.findById(userId);
   const analytics = await LearningAnalytics.getLatestAnalytics(userId);
 
   if (!user || !analytics) {
-    throw new Error("User or analytics data not found");
+    throw new Error('User or analytics data not found');
   }
 
   const recommendations = [];
@@ -582,10 +582,10 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
   // Generate different types of recommendations based on user state
   if (analytics.progress.completionRate < 50) {
     recommendations.push({
-      type: "schedule_optimization",
-      title: "Optimize Your Learning Schedule",
+      type: 'schedule_optimization',
+      title: 'Optimize Your Learning Schedule',
       description:
-        "Based on your learning patterns, we recommend adjusting your study schedule for better results.",
+        'Based on your learning patterns, we recommend adjusting your study schedule for better results.',
       relevanceScore: 85,
       confidenceScore: 70,
       priorityScore: 80,
@@ -594,10 +594,10 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
 
   if (analytics.engagement.focusScore < 60) {
     recommendations.push({
-      type: "difficulty_adjustment",
-      title: "Content Difficulty Adjustment",
+      type: 'difficulty_adjustment',
+      title: 'Content Difficulty Adjustment',
       description:
-        "We notice you might benefit from content that better matches your current skill level.",
+        'We notice you might benefit from content that better matches your current skill level.',
       relevanceScore: 90,
       confidenceScore: 75,
       priorityScore: 85,
@@ -606,10 +606,10 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
 
   if (analytics.aiInteraction.satisfactionScore < 3) {
     recommendations.push({
-      type: "ai_personality",
-      title: "Try a Different AI Assistant Style",
+      type: 'ai_personality',
+      title: 'Try a Different AI Assistant Style',
       description:
-        "Switch to a different AI personality that might better match your learning preferences.",
+        'Switch to a different AI personality that might better match your learning preferences.',
       relevanceScore: 70,
       confidenceScore: 65,
       priorityScore: 60,
@@ -622,9 +622,9 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
     const recommendation = new this({
       user: userId,
       ...rec,
-      category: context.category || "General",
+      category: context.category || 'General',
       actionable: {
-        primaryAction: "View Details",
+        primaryAction: 'View Details',
         deepLink: `/recommendations/${rec.type}`,
       },
       context: {
@@ -636,11 +636,11 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
         },
       },
       generatedBy: {
-        algorithm: "rule_based",
-        version: "1.0",
+        algorithm: 'rule_based',
+        version: '1.0',
       },
       timing: {
-        suggestedTiming: "this_week",
+        suggestedTiming: 'this_week',
       },
     });
 
@@ -652,6 +652,6 @@ recommendationEngineSchema.statics.generateRecommendations = async function (
 };
 
 module.exports = mongoose.model(
-  "RecommendationEngine",
-  recommendationEngineSchema
+  'RecommendationEngine',
+  recommendationEngineSchema,
 );

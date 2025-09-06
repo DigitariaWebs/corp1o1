@@ -21,16 +21,16 @@ const testPayload = {
       {
         email_address: `test.user.${Date.now()}@example.com`,
         verification: {
-          status: 'verified'
-        }
-      }
+          status: 'verified',
+        },
+      },
     ],
     profile_image_url: 'https://example.com/avatar.jpg',
     created_at: Date.now(),
-    updated_at: Date.now()
+    updated_at: Date.now(),
   },
   object: 'event',
-  type: 'user.created'
+  type: 'user.created',
 };
 
 async function testWebhook() {
@@ -57,9 +57,9 @@ async function testWebhook() {
           'Content-Type': 'application/json',
           'svix-id': headers['svix-id'],
           'svix-timestamp': headers['svix-timestamp'],
-          'svix-signature': headers['svix-signature']
-        }
-      }
+          'svix-signature': headers['svix-signature'],
+        },
+      },
     );
     
     console.log('✅ Webhook response:', response.data);
