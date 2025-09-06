@@ -103,7 +103,6 @@ export default function ReduxAssessmentPage() {
 
   // Local state
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
-  const [textAnswer, setTextAnswer] = useState<string>("");
   const [selectedPersonality, setSelectedPersonality] = useState<keyof typeof AI_PERSONALITIES>('ARIA');
   const [aiMessages, setAiMessages] = useState<Array<{role: 'ai' | 'user', content: string}>>([]);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -120,16 +119,32 @@ export default function ReduxAssessmentPage() {
   // Check for existing session on mount and handle refresh
   useEffect(() => {
     // Check if there's an existing session
-    if (currentSession && currentSession.assessmentId === params.id) {
-      // Session exists, check if it's from a refresh
-      const sessionAge = Date.now() - new Date(currentSession.startTime).getTime();
-      if (sessionAge > 3600000) { // More than 1 hour old
-        // Reset old session
+    if (currentSession) {
+      // If it's a different assessment ID, always reset
+      if (currentSession.assessmentId !== params.id) {
         dispatch(resetAssessment());
-        toast.error("Your previous session has expired. Starting a new assessment.");
-      } else {
-        // Resume existing session
-        toast.info("Resuming your assessment session");
+        toast.info("Starting new assessment");
+        return;
+      }
+      
+      // If the current session is completed, reset for a fresh start
+      if (currentSession.status === 'completed') {
+        dispatch(resetAssessment());
+        toast.info("Previous assessment completed. Starting fresh.");
+        return;
+      }
+      
+      // If same assessment and in progress, check if it's from a refresh
+      if (currentSession.assessmentId === params.id && currentSession.status === 'in_progress') {
+        const sessionAge = Date.now() - new Date(currentSession.startTime).getTime();
+        if (sessionAge > 3600000) { // More than 1 hour old
+          // Reset old session
+          dispatch(resetAssessment());
+          toast.error("Your previous session has expired. Starting a new assessment.");
+        } else {
+          // Resume existing session
+          toast.info("Resuming your assessment session");
+        }
       }
     }
 
@@ -152,21 +167,74 @@ export default function ReduxAssessmentPage() {
     setIsStarting(true);
     
     try {
-      // Start the assessment session
+      const token = await getToken();
+      
+      // First, try to get assessment details from sessionStorage (set by assessment list)
+      let assessmentDetails = null;
+      
+      try {
+        const storedAssessment = sessionStorage.getItem('currentAssessment');
+        if (storedAssessment) {
+          assessmentDetails = JSON.parse(storedAssessment);
+          console.log('📋 Using stored assessment details:', assessmentDetails);
+          // Clear from sessionStorage after using
+          sessionStorage.removeItem('currentAssessment');
+        }
+      } catch (error) {
+        console.warn('⚠️ Error reading stored assessment details:', error);
+      }
+      
+      // If no stored details, try to fetch from API
+      if (!assessmentDetails) {
+        try {
+          const response = await fetch(`/api/assessments/${params.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            assessmentDetails = data.data;
+            console.log('📋 Fetched assessment details from API:', assessmentDetails);
+          } else {
+            console.warn('⚠️ Failed to fetch assessment details from API, using defaults');
+          }
+        } catch (error) {
+          console.warn('⚠️ Error fetching assessment details from API:', error);
+        }
+      }
+
+      // Use actual assessment details or fallback to defaults
+      const assessmentTitle = assessmentDetails?.title || "Assessment";
+      const assessmentCategory = assessmentDetails?.category || "General";
+      const assessmentDifficulty = assessmentDetails?.difficulty || "intermediate";
+      const assessmentTopic = assessmentDetails?.topic || assessmentTitle;
+      
+      console.log('🎯 Generating questions for:', {
+        title: assessmentTitle,
+        topic: assessmentTopic,
+        category: assessmentCategory,
+        difficulty: assessmentDifficulty,
+        description: assessmentDetails?.description
+      });
+
+      // Start the assessment session with real title
       dispatch(startAssessment({
         assessmentId: params.id as string,
-        assessmentTitle: "Assessment", // Placeholder until details fetched
+        assessmentTitle: assessmentTitle,
         aiPersonality: selectedPersonality
       }));
 
-      // Generate questions using AI
-      const token = await getToken();
+      // Generate questions using AI with real assessment details
       const generated = await dispatch(generateAssessmentQuestions({
         assessmentId: params.id as string,
-        title: "Assessment",
-        category: "General",
-        difficulty: "intermediate",
+        title: assessmentTitle,
+        category: assessmentCategory,
+        difficulty: assessmentDifficulty,
         questionCount: 10,
+        topic: assessmentTopic, // Use the topic we defined above
         token: token || null
       })).unwrap();
 
@@ -219,19 +287,36 @@ export default function ReduxAssessmentPage() {
     }
   };
 
-  // Handle text answer change
-  const handleTextAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextAnswer(e.target.value);
+  // Handle skip question
+  const handleSkipQuestion = () => {
+    if (!currentSession) return;
+    
+    const currentQuestion = currentSession.questions[currentSession.currentQuestionIndex];
+    
+    // Mark as skipped in the answers
+    dispatch(answerQuestion({ 
+      questionId: currentQuestion.id, 
+      answer: 'SKIPPED' 
+    }));
+
+    // Add AI message about skipping
+    const personality = AI_PERSONALITIES[selectedPersonality];
+    setAiMessages(prev => [...prev, {
+      role: 'ai',
+      content: `No worries! You skipped this question. Let's move on to the next one. ${personality.traits[0]} approach! 💪`
+    }]);
+
+    // Move to next question
+    handleNextQuestion();
   };
+
 
   // Evaluate current answer
   const handleEvaluateAnswer = async () => {
     if (!currentSession) return;
     
     const currentQuestion = currentSession.questions[currentSession.currentQuestionIndex];
-    const answer = currentQuestion.type === 'text' || currentQuestion.type === 'essay' 
-      ? textAnswer 
-      : selectedAnswer;
+    const answer = selectedAnswer; // Only multiple choice now
 
     if (!answer) {
       toast.error("Please provide an answer before submitting");
@@ -245,25 +330,8 @@ export default function ReduxAssessmentPage() {
         answer 
       }));
 
-      // For text/essay questions, evaluate with AI
-      if (currentQuestion.type === 'text' || currentQuestion.type === 'essay') {
-        const token = await getToken();
-        const result = await dispatch(evaluateAnswer({
-          questionId: currentQuestion.id,
-          question: currentQuestion.question,
-          answer: textAnswer,
-          personality: selectedPersonality,
-          difficulty: currentQuestion.difficulty,
-          points: currentQuestion.points,
-          token: token || null
-        })).unwrap();
-
-        // Show AI feedback
-        setAiMessages(prev => [...prev, {
-          role: 'ai',
-          content: result.evaluation.feedback || "Great answer! Keep up the good work!"
-        }]);
-      } else if (currentQuestion.type === 'multiple_choice') {
+      // Only handle multiple choice questions now
+      if (currentQuestion.type === 'multiple_choice') {
         // For multiple choice, check immediately
         const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
         const personality = AI_PERSONALITIES[selectedPersonality];
@@ -301,7 +369,6 @@ export default function ReduxAssessmentPage() {
     if (currentSession.currentQuestionIndex < currentSession.questions.length - 1) {
       dispatch(nextQuestion());
       setSelectedAnswer("");
-      setTextAnswer("");
       setShowFeedback(false);
     } else {
       // Complete assessment
@@ -313,7 +380,6 @@ export default function ReduxAssessmentPage() {
   const handlePreviousQuestion = () => {
     dispatch(previousQuestion());
     setSelectedAnswer("");
-    setTextAnswer("");
     setShowFeedback(false);
   };
 
@@ -321,20 +387,56 @@ export default function ReduxAssessmentPage() {
   const handleCompleteAssessment = async () => {
     if (!currentSession) return;
 
-    // Calculate final score
-    const totalPoints = currentSession.questions.reduce((sum, q) => sum + q.points, 0);
+    // Calculate final score excluding skipped questions
+    const answeredQuestions = currentSession.questions.filter((q) => {
+      const answer = currentSession.answers[q.id];
+      return answer && answer !== 'SKIPPED';
+    });
+    
+    const skippedQuestions = currentSession.questions.filter((q) => {
+      const answer = currentSession.answers[q.id];
+      return answer === 'SKIPPED';
+    });
+
+    const totalPointsForAnsweredQuestions = answeredQuestions.reduce((sum, q) => sum + q.points, 0);
     const earnedPoints = Object.entries(evaluationResults).reduce((sum, [qId, result]: [string, any]) => {
+      // Don't count skipped questions in the score calculation
+      const question = currentSession.questions.find(q => q.id === qId);
+      const answer = currentSession.answers[qId];
+      if (answer === 'SKIPPED') return sum;
+      
       return sum + (result.score || 0);
     }, 0);
-    const finalScore = Math.round((earnedPoints / totalPoints) * 100);
+
+    const finalScore = totalPointsForAnsweredQuestions > 0 
+      ? Math.round((earnedPoints / totalPointsForAnsweredQuestions) * 100)
+      : 0;
 
     dispatch(completeAssessment({
       score: finalScore,
-      feedback: evaluationResults
+      feedback: {
+        ...evaluationResults,
+        totalQuestions: currentSession.questions.length,
+        answeredQuestions: answeredQuestions.length,
+        skippedQuestions: skippedQuestions.length,
+        finalScore: finalScore
+      }
     }));
 
-    toast.success(`Assessment complete! Your score: ${finalScore}%`);
-    router.push('/assessments');
+    // Clear any stored assessment data to prevent stale data
+    sessionStorage.removeItem('currentAssessment');
+
+    // Show results with skip information
+    const skipMessage = skippedQuestions.length > 0 
+      ? ` (${skippedQuestions.length} questions skipped)`
+      : '';
+      
+    toast.success(`Assessment complete! Your score: ${finalScore}%${skipMessage}`);
+    
+    // Small delay to allow state update before navigation
+    setTimeout(() => {
+      router.push('/assessments');
+    }, 1500);
   };
 
   // Handle time up
@@ -346,6 +448,8 @@ export default function ReduxAssessmentPage() {
   // Handle assessment abandonment
   const handleAbandonAssessment = () => {
     if (confirm("Are you sure you want to abandon this assessment? All progress will be lost.")) {
+      // Clear any stored assessment data
+      sessionStorage.removeItem('currentAssessment');
       dispatch(abandonAssessment());
       router.push('/assessments');
     }
@@ -551,18 +655,6 @@ export default function ReduxAssessmentPage() {
                       </RadioGroup>
                     )}
 
-                    {(currentQuestion.type === 'text' || currentQuestion.type === 'essay') && (
-                      <Textarea
-                        value={textAnswer}
-                        onChange={handleTextAnswerChange}
-                        placeholder={currentQuestion.type === 'essay' 
-                          ? "Write your detailed answer here..." 
-                          : "Type your answer here..."}
-                        className="min-h-[200px] bg-slate-700 border-slate-600 text-white"
-                        disabled={showFeedback}
-                      />
-                    )}
-
                     {/* Hints */}
                     {currentQuestion.hints && currentQuestion.hints.length > 0 && (
                       <div className="mt-4 p-3 bg-blue-500/10 border border-blue-400/30 rounded-lg">
@@ -620,27 +712,34 @@ export default function ReduxAssessmentPage() {
                       </Button>
 
                       {!showFeedback ? (
-                        <Button
-                          onClick={handleEvaluateAnswer}
-                          disabled={
-                            isEvaluating || 
-                            (currentQuestion.type === 'multiple_choice' && !selectedAnswer) ||
-                            ((currentQuestion.type === 'text' || currentQuestion.type === 'essay') && !textAnswer.trim())
-                          }
-                          className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
-                        >
-                          {isEvaluating ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Evaluating...
-                            </>
-                          ) : (
-                            <>
-                              Submit Answer
-                              <Send className="h-4 w-4 ml-2" />
-                            </>
-                          )}
-                        </Button>
+                        <div className="flex gap-3">
+                          <Button
+                            onClick={handleSkipQuestion}
+                            variant="outline"
+                            className="border-amber-400/30 text-amber-400 hover:bg-amber-500/10 hover:border-amber-400/50"
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Skip
+                          </Button>
+                          
+                          <Button
+                            onClick={handleEvaluateAnswer}
+                            disabled={isEvaluating || !selectedAnswer}
+                            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                          >
+                            {isEvaluating ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Evaluating...
+                              </>
+                            ) : (
+                              <>
+                                Submit Answer
+                                <Send className="h-4 w-4 ml-2" />
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       ) : (
                         <Button
                           onClick={handleNextQuestion}
@@ -722,9 +821,32 @@ export default function ReduxAssessmentPage() {
             <Card className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30">
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-white mb-3">Questions</h3>
+                
+                {/* Legend */}
+                <div className="flex flex-wrap gap-2 mb-3 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-cyan-500/20 border border-cyan-400"></div>
+                    <span className="text-gray-400">Current</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-green-500/20"></div>
+                    <span className="text-gray-400">Answered</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-amber-500/20"></div>
+                    <span className="text-gray-400">Skipped</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded bg-slate-700/50"></div>
+                    <span className="text-gray-400">Pending</span>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-5 gap-2">
                   {currentSession.questions.map((q, idx) => {
-                    const isAnswered = currentSession.answers[q.id] !== undefined;
+                    const answer = currentSession.answers[q.id];
+                    const isAnswered = answer !== undefined && answer !== 'SKIPPED';
+                    const isSkipped = answer === 'SKIPPED';
                     const isCurrent = idx === currentSession.currentQuestionIndex;
                     
                     return (
@@ -733,7 +855,6 @@ export default function ReduxAssessmentPage() {
                         onClick={() => {
                           if (idx !== currentSession.currentQuestionIndex) {
                             setSelectedAnswer("");
-                            setTextAnswer("");
                             setShowFeedback(false);
                             // Navigate to question
                             for (let i = currentSession.currentQuestionIndex; i !== idx; ) {
@@ -751,8 +872,10 @@ export default function ReduxAssessmentPage() {
                           "aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-all",
                           isCurrent && "ring-2 ring-cyan-400 bg-cyan-500/20 text-cyan-400",
                           !isCurrent && isAnswered && "bg-green-500/20 text-green-400",
-                          !isCurrent && !isAnswered && "bg-slate-700/50 text-gray-400 hover:bg-slate-700"
+                          !isCurrent && isSkipped && "bg-amber-500/20 text-amber-400",
+                          !isCurrent && !isAnswered && !isSkipped && "bg-slate-700/50 text-gray-400 hover:bg-slate-700"
                         )}
+                        title={isSkipped ? "Question skipped" : isAnswered ? "Question answered" : "Question not answered"}
                       >
                         {idx + 1}
                       </button>

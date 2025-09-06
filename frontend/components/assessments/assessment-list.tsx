@@ -379,6 +379,7 @@ export function AssessmentList({ initialAssessments = [] }: AssessmentListProps)
             category,
             difficulty,
             questionCount,
+            topic: title, // Make sure topic is passed
             token: token || null,
           })
         ).then((action: any) => {
@@ -459,6 +460,25 @@ export function AssessmentList({ initialAssessments = [] }: AssessmentListProps)
     });
 
   const handleStartAssessment = (assessmentId: string) => {
+    // Find the assessment details from our current data
+    const assessment = assessments.find(a => a.id === assessmentId);
+    
+    // Clear any existing assessment data first
+    sessionStorage.removeItem('currentAssessment');
+    
+    if (assessment) {
+      // Store fresh assessment details in sessionStorage so the assessment page can use them
+      sessionStorage.setItem('currentAssessment', JSON.stringify({
+        id: assessment.id,
+        title: assessment.title,
+        category: assessment.category,
+        difficulty: assessment.difficulty,
+        description: assessment.description,
+        topic: assessment.title, // Use title as topic for AI generation
+        tags: assessment.tags
+      }));
+    }
+    
     router.push(`/assessments/${assessmentId}`);
   };
 

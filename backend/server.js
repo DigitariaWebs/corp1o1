@@ -154,6 +154,7 @@ const corsOptions = {
     'Content-Type',
     'Accept',
     'Authorization',
+    'x-dev-auth',
     'x-device-type',
     'x-session-id',
   ],

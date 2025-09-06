@@ -14,7 +14,7 @@ class AIServiceManager {
       assessment: {
         model: process.env.OPENAI_MODEL_ASSESSMENT || 'gpt-4o',
         temperature: parseFloat(process.env.OPENAI_TEMP_ASSESSMENT) || 0.5,
-        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 2000,
+        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 4000, // Increased from 2000
         purpose: 'Complex assessment and question generation',
       },
       evaluation: {
@@ -224,43 +224,47 @@ Customize the skills and descriptions based on the specific domain and topics pr
   async generateQuestions(title, category, topic, difficulty, count, types) {
     const config = this.getServiceConfig('assessment');
     
-    const prompt = `Generate ${count} real, practical assessment questions about ${topic}.
+    const prompt = `You must generate exactly ${count} assessment questions about "${topic}" in valid JSON format.
+
+IMPORTANT: Focus specifically on "${topic}" - create real, practical questions about this exact subject.
 
 Context:
 - Assessment Title: ${title}
-- Category: ${category}
+- Topic/Subject: ${topic}
+- Category: ${category}  
 - Difficulty Level: ${difficulty}
 - Question Types: ${types.join(', ')}
 
-IMPORTANT: Create REAL questions that test actual ${topic} knowledge, not generic placeholders.
+CRITICAL: 
+1. Generate questions SPECIFICALLY about "${topic}" - not generic assessment questions
+2. Return ONLY valid JSON. No explanations, no markdown, no extra text.
+3. Make questions practical and real-world focused for ${topic}
 
-For multiple_choice questions, provide this structure:
+Create a JSON object with this exact structure (ALL questions must be multiple_choice):
 {
-  "id": "q1",
-  "type": "multiple_choice",
-  "question": "[Specific technical question about ${topic}]",
-  "options": ["[Real option A]", "[Real option B]", "[Real option C]", "[Real option D]"],
-  "correctAnswer": "[The correct option]",
-  "points": 10,
-  "difficulty": "${difficulty}",
-  "timeLimit": 120,
-  "hints": ["[Helpful hint specific to the question]"],
-  "explanation": "[Why this answer is correct and what concept it tests]"
+  "questions": [
+    {
+      "id": "q1",
+      "type": "multiple_choice",
+      "question": "Specific technical question about ${topic}",
+      "options": ["Real option A", "Real option B", "Real option C", "Real option D"],
+      "correctAnswer": "Real option B",
+      "points": 10,
+      "difficulty": "${difficulty}",
+      "timeLimit": 120,
+      "hints": ["Specific hint about ${topic}"],
+      "explanation": "Why this answer is correct and what ${topic} concept it tests"
+    }
+  ]
 }
 
-For text/essay questions:
-{
-  "id": "q2",
-  "type": "text",
-  "question": "[Open-ended question about ${topic}]",
-  "points": 15,
-  "difficulty": "${difficulty}",
-  "timeLimit": 180,
-  "hints": ["[Guidance for answering]"],
-  "explanation": "[What makes a good answer]"
-}
-
-Return ONLY a JSON array of ${count} questions. Start with [`;
+CRITICAL REQUIREMENTS for answer randomization:
+1. Generate exactly ${count} multiple choice questions about ${topic}
+2. Each question must have 4 realistic, plausible options
+3. RANDOMLY place the correct answer in positions A, B, C, or D (don't always make A correct)
+4. Vary the correct answer position across questions - mix them up!
+5. Make all wrong options believable but clearly incorrect to someone who knows ${topic}
+6. Test practical ${topic} knowledge that professionals would encounter`;
 
     try {
       console.log(`📝 Generating ${count} questions for ${topic} using ${config.model}`);
@@ -269,40 +273,74 @@ Return ONLY a JSON array of ${count} questions. Start with [`;
         [
           { 
             role: 'system', 
-            content: `You are an expert ${category} educator and assessment designer. Create real, specific questions that test actual ${topic} knowledge and skills. Focus on practical, real-world scenarios and actual technical concepts. Never use placeholder content.`,
+            content: `You are an expert ${category} educator and assessment designer specializing in ${topic}. 
+
+CRITICAL REQUIREMENTS:
+1. You MUST respond with valid JSON only - no explanations, no markdown, no extra text
+2. Generate ONLY multiple choice questions - no text or essay questions
+3. Generate REAL, SPECIFIC questions about "${topic}" - never generic assessment questions  
+4. Focus on practical, real-world ${topic} scenarios and concepts
+5. Test actual ${topic} knowledge, skills, and best practices
+6. Each question should be directly related to ${topic} subject matter
+7. All 4 options should be plausible but only one correct
+8. IMPORTANT: Randomize correct answer positions - don't always put correct answer first!
+9. Mix up correct answers across A, B, C, D positions throughout the question set
+
+Example for "Python for Data Science": Ask about pandas operations, numpy functions, matplotlib syntax, data cleaning methods, etc.
+Example for "JavaScript Fundamentals": Ask about variable types, function syntax, DOM methods, etc.
+Example for "SQL Mastery": Ask about specific query syntax, join types, optimization techniques, etc.
+
+Create multiple choice questions that a ${topic} professional would actually encounter.`,
           },
           { role: 'user', content: prompt },
         ],
         {
           model: config.model,
-          temperature: config.temperature + 0.2, // Slightly higher for variety
-          max_tokens: config.maxTokens * 2, // More tokens for detailed questions
+          temperature: config.temperature + 0.1, // Slightly higher for variety but not too much to avoid formatting issues
+          max_tokens: Math.max(6000, config.maxTokens * 2), // Significantly more tokens to prevent truncation
+          response_format: { type: 'json_object' }, // Force JSON output
         },
       );
 
       // Handle both direct content and nested response formats
-      const content = response.content || response.choices?.[0]?.message?.content || '[]';
+      const content = response.content || response.choices?.[0]?.message?.content || '{"questions":[]}';
       
-      // Clean the response
+      // Clean the response - remove any markdown code blocks if present
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       
-      // Extract JSON array
-      let questions;
+      console.log('📝 Raw AI response (first 500 chars):', cleanContent.substring(0, 500));
+      
+      // Parse the JSON response
+      let parsedResponse;
+      let questions = [];
+      
       try {
-        // First try direct parse
-        questions = JSON.parse(cleanContent);
-      } catch (e) {
-        // Try to extract array from content
-        const arrayMatch = cleanContent.match(/\[[\s\S]*\]/);  
-        if (arrayMatch) {
-          questions = JSON.parse(arrayMatch[0]);
+        // Parse the main JSON object
+        parsedResponse = JSON.parse(cleanContent);
+        
+        // Extract questions from the response
+        if (parsedResponse.questions && Array.isArray(parsedResponse.questions)) {
+          questions = parsedResponse.questions;
+        } else if (Array.isArray(parsedResponse)) {
+          // Handle case where AI returns array directly (backward compatibility)
+          questions = parsedResponse;
         } else {
-          console.error('Failed to parse questions:', cleanContent.substring(0, 200));
+          console.warn('⚠️ Unexpected response structure:', Object.keys(parsedResponse));
           questions = [];
         }
+        
+      } catch (parseError) {
+        console.error('❌ JSON parse failed:', parseError.message);
+        console.error('Raw content snippet:', cleanContent.substring(0, 300));
+        
+        // Try multiple fallback parsing strategies
+        questions = this.tryFallbackParsing(cleanContent);
       }
       
-      console.log(`✅ Generated ${questions.length} questions`);
+      // Validate and fix incomplete questions
+      questions = this.validateAndFixQuestions(questions, count);
+      
+      console.log(`✅ Generated ${questions.length} complete questions`);
       return questions;
       
     } catch (error) {
@@ -451,6 +489,161 @@ Return as JSON object.`;
       const firstKey = this.responseCache.keys().next().value;
       this.responseCache.delete(firstKey);
     }
+  }
+
+  /**
+   * Try multiple fallback parsing strategies for incomplete JSON
+   */
+  tryFallbackParsing(content) {
+    console.log('🔄 Attempting fallback JSON parsing strategies...');
+    
+    // Strategy 1: Try to extract questions array
+    try {
+      const questionsMatch = content.match(/"questions"\s*:\s*\[[\s\S]*?\]/);
+      if (questionsMatch) {
+        const questionsStr = '{' + questionsMatch[0] + '}';
+        const fallbackParse = JSON.parse(questionsStr);
+        console.log('✅ Strategy 1 successful: Extracted questions array');
+        return fallbackParse.questions || [];
+      }
+    } catch (error) {
+      console.log('❌ Strategy 1 failed');
+    }
+    
+    // Strategy 2: Try to fix incomplete JSON by adding closing brackets
+    try {
+      let fixedContent = content.trim();
+      if (!fixedContent.endsWith('}')) {
+        // Count opening vs closing braces
+        const openBraces = (fixedContent.match(/\{/g) || []).length;
+        const closeBraces = (fixedContent.match(/\}/g) || []).length;
+        const missingCloseBraces = openBraces - closeBraces;
+        
+        // Add missing closing braces
+        if (missingCloseBraces > 0) {
+          fixedContent += '}'.repeat(missingCloseBraces);
+        }
+        
+        // Try to close incomplete arrays
+        const openArrays = (fixedContent.match(/\[/g) || []).length;
+        const closeArrays = (fixedContent.match(/\]/g) || []).length;
+        const missingCloseArrays = openArrays - closeArrays;
+        
+        if (missingCloseArrays > 0) {
+          fixedContent = fixedContent.replace(/,$/, '') + ']'.repeat(missingCloseArrays);
+        }
+      }
+      
+      const parsed = JSON.parse(fixedContent);
+      console.log('✅ Strategy 2 successful: Fixed incomplete JSON');
+      return parsed.questions || parsed || [];
+      
+    } catch (error) {
+      console.log('❌ Strategy 2 failed');
+    }
+    
+    // Strategy 3: Try to extract individual question objects
+    try {
+      const questionObjects = [];
+      const questionMatches = content.matchAll(/\{[^{}]*"question"[^{}]*"options"[^{}]*\}/g);
+      
+      for (const match of questionMatches) {
+        try {
+          const questionObj = JSON.parse(match[0]);
+          if (questionObj.question && questionObj.options) {
+            questionObjects.push(questionObj);
+          }
+        } catch (objError) {
+          // Skip invalid question objects
+        }
+      }
+      
+      if (questionObjects.length > 0) {
+        console.log(`✅ Strategy 3 successful: Extracted ${questionObjects.length} individual question objects`);
+        return questionObjects;
+      }
+    } catch (error) {
+      console.log('❌ Strategy 3 failed');
+    }
+    
+    console.log('❌ All fallback parsing strategies failed');
+    return [];
+  }
+
+  /**
+   * Validate and fix incomplete questions
+   */
+  validateAndFixQuestions(questions, expectedCount) {
+    if (!Array.isArray(questions)) {
+      console.warn('⚠️ Questions is not an array, returning empty array');
+      return [];
+    }
+
+    const validQuestions = [];
+    
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      
+      // Check if question has all required fields
+      if (!question || typeof question !== 'object') {
+        console.warn(`⚠️ Question ${i + 1} is not a valid object, skipping`);
+        continue;
+      }
+      
+      // Validate required fields
+      if (!question.question || typeof question.question !== 'string') {
+        console.warn(`⚠️ Question ${i + 1} missing or invalid question text, skipping`);
+        continue;
+      }
+      
+      if (!question.options || !Array.isArray(question.options)) {
+        console.warn(`⚠️ Question ${i + 1} missing or invalid options, skipping`);
+        continue;
+      }
+      
+      // Check if all options are complete (not empty or just partial text)
+      const completeOptions = question.options.filter(opt => 
+        opt && typeof opt === 'string' && opt.trim().length > 0
+      );
+      
+      if (completeOptions.length < 4) {
+        console.warn(`⚠️ Question ${i + 1} has incomplete options (${completeOptions.length}/4), skipping`);
+        continue;
+      }
+      
+      // Ensure we have a correct answer
+      if (!question.correctAnswer || typeof question.correctAnswer !== 'string') {
+        console.warn(`⚠️ Question ${i + 1} missing correct answer, skipping`);
+        continue;
+      }
+      
+      // Check if correct answer exists in options
+      if (!question.options.includes(question.correctAnswer)) {
+        console.warn(`⚠️ Question ${i + 1} correct answer not found in options, skipping`);
+        continue;
+      }
+      
+      // Question is valid, add it to valid questions
+      validQuestions.push({
+        ...question,
+        options: completeOptions, // Use only complete options
+        type: question.type || 'multiple_choice',
+        difficulty: question.difficulty || 'medium',
+        points: question.points || 10,
+        timeLimit: question.timeLimit || 120,
+        hints: Array.isArray(question.hints) ? question.hints : [],
+        explanation: question.explanation || ''
+      });
+    }
+    
+    console.log(`📊 Validation results: ${validQuestions.length} valid questions out of ${questions.length} total`);
+    
+    // If we have fewer valid questions than expected, log a warning
+    if (validQuestions.length < expectedCount) {
+      console.warn(`⚠️ Only ${validQuestions.length} valid questions out of ${expectedCount} expected. Some questions may have been truncated due to token limits.`);
+    }
+    
+    return validQuestions;
   }
 
   /**

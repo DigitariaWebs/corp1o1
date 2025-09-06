@@ -61,6 +61,7 @@ export const generateAssessmentQuestions = createAsyncThunk(
     category, 
     difficulty, 
     questionCount,
+    topic,
     token
   }: {
     assessmentId: string;
@@ -68,13 +69,15 @@ export const generateAssessmentQuestions = createAsyncThunk(
     category: string;
     difficulty: string;
     questionCount: number;
+    topic?: string;
     token: string | null;
   }) => {
     const response = await fetch(`${BACKEND_URL}/api/assessments/generate-questions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        'x-dev-auth': 'true', // Local dev bypass for Clerk
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify({
         assessmentId,
@@ -82,6 +85,8 @@ export const generateAssessmentQuestions = createAsyncThunk(
         category,
         difficulty,
         questionCount,
+        topic,
+        includeTypes: ['multiple_choice'], // Only multiple choice questions
       }),
     });
 
@@ -154,6 +159,12 @@ const assessmentSlice = createSlice({
         state.sessionHistory.push(state.currentSession);
       }
 
+      // Clear all previous state when starting a new assessment
+      state.evaluationResults = {};
+      state.error = null;
+      state.isEvaluating = false;
+      state.isGeneratingQuestions = false;
+
       state.currentSession = {
         sessionId: `session_${Date.now()}`,
         assessmentId: action.payload.assessmentId,
@@ -167,7 +178,6 @@ const assessmentSlice = createSlice({
         totalTimeSpent: 0,
         questionStartTime: Date.now(),
       };
-      state.error = null;
     },
 
     setQuestions: (state, action: PayloadAction<Question[]>) => {
@@ -237,9 +247,13 @@ const assessmentSlice = createSlice({
         state.currentSession.status = 'abandoned';
         state.sessionHistory.push(state.currentSession);
       }
+      // Clear all assessment-related state
       state.currentSession = null;
       state.evaluationResults = {};
       state.error = null;
+      state.isLoading = false;
+      state.isGeneratingQuestions = false;
+      state.isEvaluating = false;
     },
 
     setEvaluationResult: (state, action: PayloadAction<{ questionId: string; result: any }>) => {
