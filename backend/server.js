@@ -134,6 +134,7 @@ const corsOptions = {
       'http://localhost:3001', // Backup
       'http://127.0.0.1:3000', // Frontend
       'http://127.0.0.1:3001', // Backup
+      'https://corp1o1.vercel.app',
     ];
 
     // Allow requests with no origin (mobile apps, etc.)
