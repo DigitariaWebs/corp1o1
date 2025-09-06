@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export interface Question {
   id: string;
@@ -69,7 +70,7 @@ export const generateAssessmentQuestions = createAsyncThunk(
     questionCount: number;
     token: string | null;
   }) => {
-    const response = await fetch('/api/assessments/generate-questions', {
+    const response = await fetch(`${BACKEND_URL}/api/assessments/generate-questions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ export const evaluateAnswer = createAsyncThunk(
     points: number;
     token: string | null;
   }) => {
-    const response = await fetch('/api/assessments/evaluate', {
+    const response = await fetch(`${BACKEND_URL}/api/assessments/evaluate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
