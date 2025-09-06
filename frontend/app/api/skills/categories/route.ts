@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { API_BASE_URL } from '@/lib/constants';
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
     
     // Build query string from search params
     const queryString = searchParams.toString()
-    const backendUrl = `http://localhost:3001/api/skills/categories${queryString ? `?${queryString}` : ''}`
+    const backendUrl = `${API_BASE_URL}/api/skills/categories${queryString ? `?${queryString}` : ''}`
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
