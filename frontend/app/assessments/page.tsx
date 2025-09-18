@@ -15,6 +15,7 @@ import { AssessmentList } from "@/components/assessments/assessment-list";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/auth-context";
+import { FloatingChatBar } from '@/components/chat/floating-chat-bar';
 
 export default function AssessmentsPage() {
   const { user } = useAuth();
@@ -43,6 +44,11 @@ export default function AssessmentsPage() {
       successRate: 60
     });
   }, []);
+
+  const handleSendMessage = (message: string) => {
+    console.log('Assessments chat message:', message)
+    // TODO: Implement your chat logic here for assessment-related queries
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-slate-800">
@@ -127,6 +133,13 @@ export default function AssessmentsPage() {
         >
           <AssessmentList />
         </motion.div>
+        {/* Floating Chat Bar */}
+      <FloatingChatBar
+        onSendMessage={handleSendMessage}
+        placeholder="Ask me about assessments, skill evaluation, and results..."
+        enableVoice={true}
+        enableMinimize={true}
+      />
       </div>
     </div>
   );

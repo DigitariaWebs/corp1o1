@@ -55,6 +55,7 @@ import {
   RefreshCw
 } from "lucide-react"
 import { MainNavigation } from "@/components/navigation/main-navigation"
+import { FloatingChatBar } from "@/components/chat"
 import { useTranslation } from "@/hooks/use-translation"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -485,22 +486,33 @@ export default function LearningHub() {
           
           setEnrolledPaths(transformedEnrolled)
           setContinueLearning(transformedEnrolled.filter((path: any) => path.progress > 0 && path.progress < 100))
+
+          // Calculate user progress stats (moved inside the if block)
+          const totalStarted = enrolledData?.data?.summary?.total || 0
+          const totalCompleted = enrolledData?.data?.summary?.completed || 0
+          const totalHours = enrolledData?.data?.enrolled?.completed?.reduce((sum: number, path: any) => sum + (path.estimatedHours || 0), 0) || 0
+
+          setUserProgress({
+            totalPathsStarted: totalStarted,
+            totalPathsCompleted: totalCompleted,
+            totalHoursLearned: totalHours,
+            currentStreak: 12, // Could be calculated from user activity
+            certificates: totalCompleted,
+            skillsAcquired: totalCompleted * 3, // Estimate based on completed paths
+            averageRating: 4.7
+          })
+        } else {
+          // Set default progress when enrolled data is not available
+          setUserProgress({
+            totalPathsStarted: 0,
+            totalPathsCompleted: 0,
+            totalHoursLearned: 0,
+            currentStreak: 0,
+            certificates: 0,
+            skillsAcquired: 0,
+            averageRating: 4.7
+          })
         }
-
-        // Calculate user progress stats
-        const totalStarted = enrolledData?.data?.summary?.total || 0
-        const totalCompleted = enrolledData?.data?.summary?.completed || 0
-        const totalHours = enrolledData?.data?.enrolled?.completed?.reduce((sum: number, path: any) => sum + (path.estimatedHours || 0), 0) || 0
-
-        setUserProgress({
-          totalPathsStarted: totalStarted,
-          totalPathsCompleted: totalCompleted,
-          totalHoursLearned: totalHours,
-          currentStreak: 12, // Could be calculated from user activity
-          certificates: totalCompleted,
-          skillsAcquired: totalCompleted * 3, // Estimate based on completed paths
-          averageRating: 4.7
-        })
       }
 
       // Set mock categories (these could come from a categories API)
@@ -564,6 +576,11 @@ export default function LearningHub() {
 
   const handlePathClick = (pathId: string) => {
     router.push(`/learning/${pathId}`)
+  }
+
+  const handleSendMessage = (message: string) => {
+    console.log('Learning chat message:', message)
+    // TODO: Implement your chat logic here for learning-related queries
   }
 
   const getDifficultyColor = (difficulty: string) => {
@@ -728,7 +745,7 @@ export default function LearningHub() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white">
       <MainNavigation user={mockUser} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32"> {/* Add padding for floating chat bar */}
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1395,6 +1412,14 @@ export default function LearningHub() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Floating Chat Bar */}
+      <FloatingChatBar
+        onSendMessage={handleSendMessage}
+        placeholder="Ask me about learning paths, skills, or course recommendations..."
+        enableVoice={true}
+        enableMinimize={true}
+      />
     </div>
   )
 }

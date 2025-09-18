@@ -41,6 +41,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Skill {
   id: string;
@@ -88,6 +89,39 @@ export function ComprehensiveDashboard() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
+  // Generation dialog state
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const [generateProgress, setGenerateProgress] = useState(0);
+  const [fileToDownload, setFileToDownload] = useState<string | null>(null);
+  // Effect to simulate generation progress
+  useEffect(() => {
+    if (generateOpen) {
+      setGenerateProgress(0);
+      const interval = setInterval(() => {
+        setGenerateProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            // Trigger download when progress completes
+            if (fileToDownload) {
+              const link = document.createElement('a');
+              link.href = fileToDownload;
+              // Extract file name from path for download attribute
+              link.download = fileToDownload.split('/').pop() || 'certificate.pdf';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+            // Close dialog shortly after download starts
+            setTimeout(() => setGenerateOpen(false), 500);
+            return 100;
+          }
+          return prev + 5;
+        });
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [generateOpen, fileToDownload]);
+
   const [activeTab, setActiveTab] = useState('overview');
 
   // Mock data for demonstration
@@ -566,12 +600,28 @@ export function ComprehensiveDashboard() {
                       <Award className="w-5 h-5 mr-2 text-green-400" />
                       Certificates
                     </span>
-                    {certificates.length > 0 && (
-                      <Button size="sm" variant="outline" className="border-slate-600">
-                        <Globe className="w-4 h-4 mr-1" />
-                        Public Profile
+                    <div className="flex gap-2">
+                      <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => {
+                          setFileToDownload('/Sema_Intelligence_Certificate.pdf');
+                          setGenerateOpen(true);
+                        }}>
+                        Generate Intelligence Certificate
                       </Button>
-                    )}
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700"
+                        onClick={() => {
+                          setFileToDownload('/Intelligence_Evolution.pdf');
+                          setGenerateOpen(true);
+                        }}>
+                        Generate Evolution Certificate
+                      </Button>
+                      {certificates.length > 0 && (
+                        <Button size="sm" variant="outline" className="border-slate-600">
+                          <Globe className="w-4 h-4 mr-1" />
+                          Public Profile
+                        </Button>
+                      )}
+                    </div>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -618,6 +668,20 @@ export function ComprehensiveDashboard() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Generation Dialog */}
+            <Dialog open={generateOpen} onOpenChange={setGenerateOpen}>
+              <DialogContent className="bg-slate-800 border-slate-600 text-white">
+                <DialogHeader>
+                  <DialogTitle>Generating Certificate...</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <Progress value={generateProgress} className="h-3" />
+                  <p className="text-center text-sm text-gray-300">{generateProgress}%</p>
+                </div>
+              </DialogContent>
+            </Dialog>
+
           </Tabs>
         </div>
       </div>

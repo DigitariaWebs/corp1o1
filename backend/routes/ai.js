@@ -4,7 +4,7 @@ const router = express.Router();
 const Joi = require('joi');
 
 // Import middleware
-const { authenticate } = require('../middleware/auth');
+const { authenticateWithClerk } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 
 // Import controllers
@@ -104,8 +104,8 @@ const sessionHistorySchema = Joi.object({
   }),
 });
 
-// All AI routes require authentication
-router.use(authenticate);
+// Require Clerk-based auth for all AI routes to ensure req.user is present
+router.use(authenticateWithClerk);
 
 /**
  * @route   POST /api/ai/chat
