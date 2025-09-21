@@ -9,6 +9,7 @@ import { TranslationProvider } from "@/contexts/translation-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ReduxProvider } from "@/components/providers/redux-provider"
+import SnowDots from "@/components/effects/snow-dots"
 
 const montserrat = Montserrat({ 
   subsets: ["latin"],
@@ -83,6 +84,13 @@ export default function RootLayout({
             <ReduxProvider>
               <TranslationProvider>
                 <AuthProvider>
+                  <SnowDots 
+                    count={80} 
+                    speed={0.6} 
+                    size={{ min: 1, max: 3 }}
+                    opacity={{ min: 0.2, max: 0.8 }}
+                    wind={0.3}
+                  />
                   {children}
                   <Toaster />
                 </AuthProvider>

@@ -18,6 +18,12 @@ class ContextService {
     try {
       console.log(`🧠 Assembling context for user: ${userId}`);
 
+      // Dev/local fallback: if userId is not a valid ObjectId, substitute a dummy ObjectId
+      const mongoose = require('mongoose');
+      if (!mongoose.isValidObjectId(userId)) {
+        userId = new mongoose.Types.ObjectId('000000000000000000000000');
+      }
+
       // Fetch all required data in parallel for performance
       const [
         user,

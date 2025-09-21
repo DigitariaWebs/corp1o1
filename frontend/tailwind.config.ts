@@ -103,6 +103,15 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "snow-fall": {
+          "0%": { transform: "translateY(-100vh) translateX(0px)" },
+          "100%": { transform: "translateY(100vh) translateX(100px)" },
+        },
+        "snow-drift": {
+          "0%": { transform: "translateX(0px)" },
+          "50%": { transform: "translateX(50px)" },
+          "100%": { transform: "translateX(0px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +120,8 @@ const config: Config = {
         "fade-in-up": "fade-in-up 0.6s ease-out forwards",
         "glow-pulse": "glow-pulse 3s ease-in-out infinite",
         "shimmer": "shimmer 2s linear infinite",
+        "snow-fall": "snow-fall 10s linear infinite",
+        "snow-drift": "snow-drift 3s ease-in-out infinite",
       },
       backgroundImage: {
         "revolutionary-gradient": "linear-gradient(135deg, hsl(var(--revolutionary-blue)) 0%, hsl(var(--revolutionary-cyan)) 50%, hsl(var(--revolutionary-amber)) 100%)",

@@ -4,9 +4,10 @@ const { AppError } = require('../middleware/errorHandler');
 
 class PromptService {
   constructor() {
-    // Cache for frequently used prompts
+    // LRU cache for frequently used prompts (max 100 items, 10-minute TTL)
     this.promptCache = new Map();
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.maxCacheSize = 100;
+    this.cacheTimeout = 10 * 60 * 1000; // 10 minutes
 
     // Context type mapping for intent detection
     this.intentContextMap = {
@@ -151,13 +152,27 @@ class PromptService {
       );
     }
 
-    // Cache the result
-    this.promptCache.set(cacheKey, {
-      prompt,
-      timestamp: Date.now(),
-    });
+    this._addToCache(cacheKey, prompt);
 
     return prompt;
+  }
+
+  /**
+   * Add item to LRU cache and evict if necessary
+   * @param {string} key 
+   * @param {Object} prompt 
+   */
+  _addToCache(key, prompt) {
+    // If key exists delete first so it moves to newest position
+    if (this.promptCache.has(key)) this.promptCache.delete(key);
+
+    this.promptCache.set(key, { prompt, timestamp: Date.now() });
+
+    // Evict oldest if size exceeds max
+    if (this.promptCache.size > this.maxCacheSize) {
+      const oldestKey = this.promptCache.keys().next().value;
+      this.promptCache.delete(oldestKey);
+    }
   }
 
   /**

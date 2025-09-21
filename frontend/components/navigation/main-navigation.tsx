@@ -6,6 +6,9 @@ import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Progress } from "@/components/ui/progress"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +40,15 @@ import {
   ChevronDown,
   Layout,
   Plus,
+  Mail,
+  Briefcase,
+  MapPin,
+  Calendar,
+  Edit,
+  Zap,
+  CheckCircle,
+  Clock,
+  TrendingUp,
 } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
@@ -47,6 +59,7 @@ export function MainNavigation() {
   const { t, locale, toggleLocale } = useTranslation()
   const { user, logout } = useAuth()
   const [isVoiceActive, setIsVoiceActive] = useState(false)
+  const [isProfileHovered, setIsProfileHovered] = useState(false)
 
   if (!user) return null
 
@@ -199,7 +212,230 @@ export function MainNavigation() {
               />
             </Link>
           </motion.div>
+{/* User Profile with Hover Sidebar + Click Dropdown */}
+<div className="relative">
+  <div
+    onMouseEnter={() => setIsProfileHovered(true)}
+    onMouseLeave={() => setIsProfileHovered(false)}
+    className="relative"
+  >
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button id="user-menu" variant="ghost" className="relative h-9 w-9 rounded-full p-0">
+          <div className="relative w-7 h-7 rounded-full overflow-hidden">
+            {user.avatar ? (
+              <Image src={user.avatar || "/placeholder.svg"} alt={user.name} fill className="object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center">
+                <User className="h-4 w-4 text-white" />
+              </div>
+            )}
+          </div>
+          <div
+            className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-r ${
+              subscriptionColors[user.subscription]
+            } border border-slate-900 flex items-center justify-center`}
+          >
+            <Shield className="h-1.5 w-1.5 text-white" />
+          </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end">
+        {/* User Info Header */}
+        <div className="p-3 border-b border-slate-700">
+          <p className="text-sm font-medium text-white truncate">{user.name}</p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-gray-400 capitalize">
+              {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+            </p>
+            <Badge
+              className={`text-xs px-1.5 py-0.5 bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}
+            >
+              {user.subscription[0].toUpperCase()}
+            </Badge>
+          </div>
+        </div>
 
+        {/* Profile Menu Items */}
+        <div>
+          <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
+            Mon Compte
+          </DropdownMenuLabel>
+          <Link href="/profile">
+            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
+              <User className="mr-3 h-8 w-8" />
+              <div>
+                <p className="text-sm font-medium">{t("navigation.profile")}</p>
+              </div>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/settings">
+            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
+              <Settings className="mr-3 h-4 w-4" />
+              <div>
+                <p className="text-sm font-medium">{t("navigation.settings")}</p>
+              </div>
+            </DropdownMenuItem>
+          </Link>
+          <Link href="/subscription">
+            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
+              <CreditCard className="mr-3 h-4 w-4" />
+              <div>
+                <p className="text-sm font-medium">{t("navigation.subscription")}</p>
+              </div>
+            </DropdownMenuItem>
+          </Link>
+        </div>
+
+        <DropdownMenuSeparator className="bg-slate-700" />
+
+        <div>
+          <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
+            Aide & Sécurité
+          </DropdownMenuLabel>
+          <Link href="/help">
+            <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
+              <HelpCircle className="mr-3 h-4 w-4" />
+              <div>
+                <p className="text-sm font-medium">{t("navigation.support")}</p>
+              </div>
+            </DropdownMenuItem>
+          </Link>
+        </div>
+
+        <DropdownMenuSeparator className="bg-slate-700" />
+
+        {/* Logout */}
+        <DropdownMenuItem
+          onClick={logout}
+          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 px-3 py-2 cursor-pointer"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
+          <p className="text-sm font-medium">{t("navigation.logout")}</p>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+
+  {/* Profile Sidebar on Hover */}
+  <AnimatePresence>
+    {isProfileHovered && (
+      <motion.div
+        initial={{ opacity: 0, x: 20, scale: 0.95 }}
+        animate={{ opacity: 1, x: 0, scale: 1 }}
+        exit={{ opacity: 0, x: 20, scale: 0.95 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="absolute right-0 top-12 z-[100] w-80"
+        onMouseEnter={() => setIsProfileHovered(true)}
+        onMouseLeave={() => setIsProfileHovered(false)}
+      >
+        <Card className="bg-gradient-to-br from-slate-800/95 to-slate-700/95 backdrop-blur-lg border border-slate-600/50 shadow-2xl">
+          <CardContent className="p-6">
+            {/* Profile Header */}
+            <div className="text-center mb-6">
+              <Avatar className="w-20 h-20 mx-auto mb-4 ring-4 ring-cyan-500/20">
+                <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
+                <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white text-xl">
+                  {user.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <h3 className="text-lg font-bold text-white mb-1">{user.name}</h3>
+              <p className="text-gray-400 text-sm mb-3 capitalize">
+                {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+              </p>
+              <Badge className={`bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}>
+                <Zap className="w-3 h-3 mr-1" />
+                {user.subscription.charAt(0).toUpperCase() + user.subscription.slice(1)}
+              </Badge>
+            </div>
+
+            {/* Profile Details */}
+            <div className="space-y-3 mb-6">
+              <div className="flex items-center text-gray-300 text-sm">
+                <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                <span className="truncate">{user.email}</span>
+              </div>
+              {user.company && (
+                <div className="flex items-center text-gray-300 text-sm">
+                  <Briefcase className="w-4 h-4 mr-2 text-gray-400" />
+                  <span>{user.company}</span>
+                </div>
+              )}
+              <div className="flex items-center text-gray-300 text-sm">
+                <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                <span>Joined {new Date((user as any).createdAt || '2024-01-01').toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-cyan-400">12</div>
+                <div className="text-xs text-gray-400">Skills</div>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-green-400">3</div>
+                <div className="text-xs text-gray-400">Certificates</div>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-purple-400">2</div>
+                <div className="text-xs text-gray-400">Active Paths</div>
+              </div>
+              <div className="bg-slate-700/50 rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-amber-400">85%</div>
+                <div className="text-xs text-gray-400">Avg Score</div>
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="mb-6">
+              <h4 className="text-sm font-semibold text-white mb-3 flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-cyan-400" />
+                Recent Activity
+              </h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 p-2 bg-slate-700/30 rounded-lg">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-sm font-medium">JavaScript Assessment</p>
+                    <p className="text-gray-400 text-xs">Completed • 85%</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-2 bg-slate-700/30 rounded-lg">
+                  <div className="w-8 h-8 bg-amber-500/20 rounded-full flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-white text-sm font-medium">React Learning Path</p>
+                    <p className="text-gray-400 text-xs">In Progress • 60%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-2">
+              <Link href="/profile">
+                <Button className="w-full bg-slate-700 hover:bg-slate-600 text-white">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </Link>
+              <Link href="/settings">
+                <Button variant="outline" className="w-full border-slate-600 text-gray-300 hover:bg-slate-700">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
           {/* Main Navigation */}
           <div className="hidden md:flex items-center space-x-1">
             {/* Core Navigation Items */}
@@ -325,103 +561,7 @@ export function MainNavigation() {
               </Button>
             </Link>
 
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button id="user-menu" variant="ghost" className="relative h-9 w-9 rounded-full p-0">
-                  <div className="relative w-7 h-7 rounded-full overflow-hidden">
-                    {user.avatar ? (
-                      <Image src={user.avatar || "/placeholder.svg"} alt={user.name} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center">
-                        <User className="h-4 w-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                  <div
-                    className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-gradient-to-r ${
-                      subscriptionColors[user.subscription]
-                    } border border-slate-900 flex items-center justify-center`}
-                  >
-                    <Shield className="h-1.5 w-1.5 text-white" />
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-slate-800 border-slate-700" align="end">
-                {/* User Info Header */}
-                <div className="p-3 border-b border-slate-700">
-                  <p className="text-sm font-medium text-white truncate">{user.name}</p>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-400 capitalize">
-                      {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
-                    </p>
-                    <Badge
-                      className={`text-xs px-1.5 py-0.5 bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}
-                    >
-                      {user.subscription[0].toUpperCase()}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Profile Menu Items */}
-                <div>
-                  <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
-                    Mon Compte
-                  </DropdownMenuLabel>
-                  <Link href="/profile">
-                    <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
-                      <User className="mr-3 h-4 w-4" />
-                      <div>
-                        <p className="text-sm font-medium">{t("navigation.profile")}</p>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/settings">
-                    <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
-                      <Settings className="mr-3 h-4 w-4" />
-                      <div>
-                        <p className="text-sm font-medium">{t("navigation.settings")}</p>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
-                  <Link href="/subscription">
-                    <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
-                      <CreditCard className="mr-3 h-4 w-4" />
-                      <div>
-                        <p className="text-sm font-medium">{t("navigation.subscription")}</p>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
-                </div>
-
-                <DropdownMenuSeparator className="bg-slate-700" />
-
-                <div>
-                  <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
-                    Aide & Sécurité
-                  </DropdownMenuLabel>
-                  <Link href="/help">
-                    <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
-                      <HelpCircle className="mr-3 h-4 w-4" />
-                      <div>
-                        <p className="text-sm font-medium">{t("navigation.support")}</p>
-                      </div>
-                    </DropdownMenuItem>
-                  </Link>
-                </div>
-
-                <DropdownMenuSeparator className="bg-slate-700" />
-
-                {/* Logout */}
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20 px-3 py-2 cursor-pointer"
-                >
-                  <LogOut className="mr-3 h-4 w-4" />
-                  <p className="text-sm font-medium">{t("navigation.logout")}</p>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+             
           </div>
         </div>
       </div>

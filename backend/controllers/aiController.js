@@ -2,7 +2,8 @@
 const AISession = require('../models/AISession');
 const User = require('../models/User');
 const { openAIService } = require('../services/openaiService');
-const { contextService } = require('../services/contextService');
+// Commented out: detailed user-context aggregation has been disabled for lightweight builds.
+// const { contextService } = require('../services/contextService');
 const { promptService } = require('../services/promptService');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { v4: uuidv4 } = require('uuid');
@@ -31,20 +32,18 @@ const handleChatMessage = catchAsync(async (req, res) => {
     // 1. Get or create AI session
     const session = await getOrCreateSession(userId, sessionId, personality);
 
-    // 2. Assemble user context
-    const userContext = await contextService.assembleUserContext(userId, {
-      sessionId: session.sessionId,
-      deviceType: req.headers['x-device-type'] || 'unknown',
-      userAgent: req.headers['user-agent'],
-      ...additionalContext,
-    });
+    // 2. Context feature disabled – use lightweight stub instead of full aggregation
+    const userContext = {
+      disabled: true,
+      insights: {},
+    };
 
     // 3. Analyze user message intent
     const messageIntent = promptService.analyzeMessageIntent(message);
 
     // 4. Get current user personality preference
     const aiPersonality =
-      personality || userContext.user.aiPersonality || 'ARIA';
+      personality || userContext?.user?.aiPersonality || 'ARIA';
 
     // 5. Select and build optimal prompt
     const promptData = await promptService.selectOptimalPrompt(
@@ -62,29 +61,59 @@ const handleChatMessage = catchAsync(async (req, res) => {
       timestamp: new Date(),
     });
 
-    // 7. Optimize messages for token limits
-    const conversationHistory = session.messages.map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
+    // 7. Build messages: system+prompt plus recent 8 conversation turns
+    const conversationHistory = session.messages
+      .slice(-8)
+      .map((msg) => ({ role: msg.role, content: msg.content }));
 
-    const optimizedHistory = openAIService.optimizeMessages([
-      ...promptData.messages,
-      ...conversationHistory.slice(-10), // Keep last 10 messages
-    ]);
+    const optimizedHistory = [...promptData.messages, ...conversationHistory];
 
     // 8. Generate AI response
-    const aiResponse = await openAIService.createChatCompletion(
-      optimizedHistory,
-      {
-        ...promptData.config,
-        userId: userId.toString(),
-        temperature: adjustTemperatureForContext(
-          userContext,
-          promptData.config.temperature,
-        ),
-      },
-    );
+    const wantStream = req.query.stream === '1' || req.headers.accept === 'text/event-stream';
+
+    if (wantStream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.flushHeaders && res.flushHeaders();
+
+      const { stream } = await openAIService.createChatCompletion(
+        optimizedHistory,
+        {
+          ...promptData.config,
+          userId: userId.toString(),
+          temperature: adjustTemperatureForContext(
+            userContext,
+            promptData.config.temperature,
+          ),
+          stream: true,
+        },
+      );
+
+      let assistantContent = '';
+      for await (const chunk of stream) {
+        assistantContent += chunk;
+        res.write(`data:${chunk}\n\n`);
+      }
+      res.end();
+
+      // Save assistant message once stream finishes
+      const assistantMessage = session.addMessage('assistant', assistantContent, {
+        promptId: promptData.metadata.promptId,
+        model: promptData.config.model,
+        timestamp: new Date(),
+      });
+      await session.save();
+      return; // streaming handled
+    }
+
+    const aiResponse = await openAIService.createChatCompletion(optimizedHistory, {
+      ...promptData.config,
+      userId: userId.toString(),
+      temperature: adjustTemperatureForContext(
+        userContext,
+        promptData.config.temperature,
+      ),
+    });
 
     // 9. Validate response quality
     if (!openAIService.validateResponse(aiResponse)) {
@@ -210,18 +239,12 @@ const getUserContext = catchAsync(async (req, res) => {
 
   console.log(`📋 Getting AI context for user: ${userId}`);
 
-  const context = await contextService.assembleUserContext(userId);
-
+  // Context feature disabled – return placeholder response
   res.status(200).json({
     success: true,
     data: {
-      context: {
-        user: context.user,
-        currentLearning: context.currentLearning,
-        insights: context.insights,
-        aiHistory: context.aiHistory,
-        lastUpdated: context.metadata.contextGeneratedAt,
-      },
+      context: null,
+      message: 'User context feature is disabled in this build.',
     },
   });
 });
@@ -441,6 +464,12 @@ const getSessionDetail = catchAsync(async (req, res) => {
  * @returns {Promise<Object>} AI Session
  */
 async function getOrCreateSession(userId, sessionId, personality) {
+  const mongoose = require('mongoose');
+  // Dev/local fallback: if userId is not a valid ObjectId (e.g., 'dev-user-id'),
+  // substitute a constant dummy ObjectId so Mongoose queries don’t throw.
+  if (!mongoose.isValidObjectId(userId)) {
+    userId = new mongoose.Types.ObjectId('000000000000000000000000');
+  }
   if (sessionId) {
     // Try to find existing session
     const existingSession = await AISession.findOne({

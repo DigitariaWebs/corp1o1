@@ -123,6 +123,63 @@ const refreshTokenSchema = new mongoose.Schema(
   { _id: false },
 );
 
+// NEW: AI chat message & session sub-schemas
+const aiMessageSchema = new mongoose.Schema(
+  {
+    messageId: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'assistant', 'system'],
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+    metadata: mongoose.Schema.Types.Mixed,
+  },
+  { _id: false },
+);
+
+const aiSessionSchema = new mongoose.Schema(
+  {
+    sessionId: {
+      type: String,
+      required: true,
+    },
+    aiPersonality: {
+      type: String,
+      enum: ['ARIA', 'SAGE', 'COACH'],
+      default: 'ARIA',
+    },
+    startTime: {
+      type: Date,
+      default: Date.now,
+    },
+    endTime: Date,
+    status: {
+      type: String,
+      enum: ['active', 'closed'],
+      default: 'active',
+    },
+    messages: [aiMessageSchema],
+    lastInteraction: Date,
+    // lightweight analytics
+    messageCount: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: false },
+);
+
 // User schema
 const userSchema = new mongoose.Schema(
   {
@@ -663,6 +720,9 @@ const userSchema = new mongoose.Schema(
         default: 0, // minutes
       },
     },
+
+    // AI Chat Sessions
+    aiChats: [aiSessionSchema],
   },
   {
     timestamps: true,
@@ -745,7 +805,7 @@ userSchema.pre('save', function (next) {
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
+  } catch (_err) {
     throw new Error('Password comparison failed');
   }
 };

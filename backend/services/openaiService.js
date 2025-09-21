@@ -76,14 +76,39 @@ class OpenAIService {
         console.log(`📋 Structured output requested: ${config.response_format.type}`);
       }
       
+      // Enable streaming if requested
+      if (options.stream) {
+        config.stream = true;
+      }
+
       const response = await this.makeAPIRequest('/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(config),
       });
+
+      // If streaming, return async iterator of chunks
+      if (options.stream) {
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new AppError(`OpenAI stream error: ${errText}`, response.status);
+        }
+
+        const reader = response.body.getReader();
+        async function* streamGenerator() {
+          const decoder = new TextDecoder();
+          let done, value;
+          while (true) {
+            ({ done, value } = await reader.read());
+            if (done) break;
+            yield decoder.decode(value, { stream: true });
+          }
+        }
+        return { stream: streamGenerator() };
+      }
 
       const data = await response.json();
 

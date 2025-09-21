@@ -30,6 +30,7 @@ const analyticsRoutes = require('./routes/analytics');
 const recommendationRoutes = require('./routes/recommendations');
 const portfolioRoutes = require('./routes/portfolio');
 const personalizationRoutes = require('./routes/personalization');
+const assistantRoutes = require('./routes/assistant');
 // 🆕 Onboarding routes
 const onboardingRoutes = require('./routes/onboarding');
 // 🆕 Webhook routes
@@ -275,6 +276,9 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 
 // AI Routes with specific rate limiting
+const assistantLimiter = rateLimit({ windowMs:15*60*1000,max:30,message:{error:'Too many assistant chat requests'} });
+app.use('/api/assistant/chat', assistantLimiter);
+app.use('/api/assistant', assistantRoutes);
 app.use('/api/ai/chat', aiChatLimiter);
 app.use('/api/ai', aiRoutes);
 
