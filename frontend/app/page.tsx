@@ -20,7 +20,7 @@ export default function HomePage() {
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false)
 
-  // Redirect authenticated users to dashboard
+  // Redirect authenticated users to AI assistant
   useEffect(() => {
     if (!isLoading && isSignedIn && user) {
       // Redirect based on user role
@@ -28,7 +28,7 @@ export default function HomePage() {
         ? "/admin" 
         : user.role === "enterprise" 
         ? "/enterprise" 
-        : "/dashboard"
+        : "/aiassistant"
       
       router.push(dashboardPath)
     }

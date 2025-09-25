@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 // Define protected routes that require authentication
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
+  '/aiassistant(.*)',
   '/learning(.*)',
   '/assessments(.*)',
   '/certificates(.*)',
@@ -71,13 +72,13 @@ export default clerkMiddleware(async (auth, req) => {
     }
   }
 
-  // Redirect authenticated users from auth pages to dashboard
+  // Redirect authenticated users from auth pages to AI assistant
   const { userId, sessionClaims } = await auth();
   if (userId && (req.nextUrl.pathname === '/sign-in' || req.nextUrl.pathname === '/sign-up')) {
     // Get user role for proper redirection
     const role = sessionClaims?.metadata?.role || sessionClaims?.publicMetadata?.role;
     
-    let redirectUrl = '/dashboard';
+    let redirectUrl = '/aiassistant';
     if (role === 'admin') {
       redirectUrl = '/admin';
     } else if (role === 'enterprise') {

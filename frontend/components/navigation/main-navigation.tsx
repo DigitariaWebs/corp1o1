@@ -67,6 +67,12 @@ export function MainNavigation() {
   const getNavigationItems = () => {
     const baseItems = [
       {
+        label: "AI Assistant",
+        href: "/ai-assistant",
+        icon: Brain,
+        description: "AI Learning Assistant",
+      },
+      {
         label: t("navigation.dashboard"),
         href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard",
         icon: Layout,
