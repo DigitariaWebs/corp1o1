@@ -13,7 +13,8 @@ const { v4: uuidv4 } = require('uuid');
  * POST /api/ai/chat
  */
 const handleChatMessage = catchAsync(async (req, res) => {
-  const userId = req.user._id;
+  // Handle both authenticated and unauthenticated requests
+  const userId = req.user?._id || new (require('mongoose')).Types.ObjectId('000000000000000000000000');
   const {
     message,
     sessionId = null,
@@ -144,7 +145,7 @@ const handleChatMessage = catchAsync(async (req, res) => {
       sessionDuration: Math.round(
         (Date.now() - session.startTime) / (1000 * 60),
       ),
-      userState: userContext.insights?.userState || 'stable',
+      userState: userContext.insights?.userState || 'focused',
     });
 
     // 12. Save session
@@ -486,7 +487,10 @@ async function getOrCreateSession(userId, sessionId, personality) {
   }
 
   // Create new session
-  const user = await User.findById(userId);
+  let user = null;
+  if (userId !== 'anonymous') {
+    user = await User.findById(userId);
+  }
   const aiPersonality =
     personality || user?.learningProfile?.aiPersonality || 'ARIA';
 
@@ -496,12 +500,45 @@ async function getOrCreateSession(userId, sessionId, personality) {
     aiPersonality,
     startTime: new Date(),
     status: 'active',
+    context: {
+      sessionDuration: 0,
+      userState: 'focused',
+      lastActivity: new Date(),
+      progressContext: {
+        currentProgress: 0,
+        recentPerformance: 0,
+        strugglingAreas: [],
+        strengths: [],
+        lastAssessmentScore: null
+      },
+      deviceType: 'unknown',
+      platform: 'web',
+      timezone: 'UTC'
+    },
     configuration: {
       modelType: 'openai-gpt4',
       maxMessages: 100,
       sessionTimeout: 30,
       adaptiveMode: true,
       contextAware: true,
+    },
+    analytics: {
+      totalMessages: 0,
+      userMessages: 0,
+      assistantMessages: 0,
+      averageResponseTime: 0,
+      averageConfidence: 0,
+      averageRating: 0,
+      totalTokens: 0,
+      averageTokensPerMessage: 0,
+      sessionDuration: 0,
+      engagementScore: 0,
+      learningProgress: 0,
+      retentionRate: 0,
+      adaptationEffectiveness: 0,
+      personalizationScore: 0,
+      contextRelevance: 0,
+      sessionQuality: 0
     },
   });
 
@@ -607,7 +644,7 @@ function adjustTemperatureForContext(userContext, baseTemperature = 0.7) {
   }
 
   // Higher temperature for highly engaged users (more creative responses)
-  if (userState === 'highly_engaged') {
+    if (userState === 'engaged') {
     return Math.min(1.0, baseTemperature + 0.1);
   }
 

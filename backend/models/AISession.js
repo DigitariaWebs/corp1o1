@@ -353,6 +353,28 @@ aiSessionSchema.methods.updateAnalytics = function() {
   const userMessages = this.messages.filter(m => m.role === 'user');
   const assistantMessages = this.messages.filter(m => m.role === 'assistant');
   
+  // Initialize analytics if it doesn't exist
+  if (!this.analytics) {
+    this.analytics = {
+      totalMessages: 0,
+      userMessages: 0,
+      assistantMessages: 0,
+      averageResponseTime: 0,
+      averageConfidence: 0,
+      averageRating: 0,
+      totalTokens: 0,
+      averageTokensPerMessage: 0,
+      sessionDuration: 0,
+      engagementScore: 0,
+      learningProgress: 0,
+      retentionRate: 0,
+      adaptationEffectiveness: 0,
+      personalizationScore: 0,
+      contextRelevance: 0,
+      sessionQuality: 0
+    };
+  }
+  
   this.analytics.totalMessages = this.messages.length;
   this.analytics.userMessages = userMessages.length;
   this.analytics.assistantMessages = assistantMessages.length;
@@ -441,7 +463,7 @@ aiSessionSchema.methods.addMessage = function(role, content, metadata = {}) {
 // Instance method to update context
 aiSessionSchema.methods.updateContext = function(contextUpdates) {
   this.context = {
-    ...this.context.toObject(),
+    ...(this.context ? this.context.toObject() : {}),
     ...contextUpdates,
     lastActivity: new Date(),
   };

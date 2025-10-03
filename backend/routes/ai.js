@@ -104,6 +104,14 @@ const sessionHistorySchema = Joi.object({
   }),
 });
 
+/**
+ * @route   POST /api/ai/chat-public
+ * @desc    Send message to AI assistant without authentication (for AI assistant page)
+ * @access  Public
+ * @body    { message, sessionId?, personality?, context? }
+ */
+router.post('/chat-public', validate(chatMessageSchema), handleChatMessage);
+
 // Require Clerk-based auth for all AI routes to ensure req.user is present
 router.use(authenticateWithClerk);
 

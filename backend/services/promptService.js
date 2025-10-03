@@ -279,7 +279,7 @@ class PromptService {
     }
 
     // High engagement adaptations
-    if (userState === 'highly_engaged' && motivationLevel > 80) {
+    if (userState === 'engaged' && motivationLevel > 80) {
       systemMessage.content +=
         '\n\nADAPTATION: The user is highly engaged and motivated. Provide advanced challenges, deeper insights, and encourage them to push their boundaries. Be intellectually stimulating.';
       adaptations.push('advanced_challenge');

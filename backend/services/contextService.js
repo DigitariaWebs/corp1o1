@@ -434,12 +434,12 @@ class ContextService {
     const strugglingAreas = context.performance?.strugglingAreas?.length || 0;
 
     if (strugglingAreas > 2 && engagement < 50) return 'struggling';
-    if (engagement > 85 && recentActivity > 10) return 'highly_engaged';
+    if (engagement > 85 && recentActivity > 10) return 'engaged';
     if (engagement > 70 && recentActivity > 5) return 'motivated';
-    if (recentActivity === 0) return 'inactive';
-    if (engagement < 40) return 'low_engagement';
+    if (recentActivity === 0) return 'fatigued';
+    if (engagement < 40) return 'confused';
 
-    return 'stable';
+    return 'focused';
   }
 
   /**
@@ -453,11 +453,11 @@ class ContextService {
 
     const approaches = {
       struggling: 'supportive_detailed',
-      highly_engaged: 'challenging_advanced',
+      engaged: 'challenging_advanced',
       motivated: 'encouraging_progressive',
-      inactive: 'motivating_gentle',
-      low_engagement: 'engaging_interactive',
-      stable: 'balanced_adaptive',
+      fatigued: 'motivating_gentle',
+      confused: 'engaging_interactive',
+      focused: 'balanced_adaptive',
     };
 
     return approaches[userState] || 'balanced_adaptive';
@@ -656,7 +656,7 @@ class ContextService {
         : 'gentle_encouraging';
     }
 
-    if (userState === 'highly_engaged' && motivationLevel > 80) {
+    if (userState === 'engaged' && motivationLevel > 80) {
       return 'challenging_expert';
     }
 

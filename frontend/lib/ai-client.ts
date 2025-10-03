@@ -14,10 +14,11 @@ export async function sendChat(
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   const isBrowser = typeof window !== 'undefined';
   const useRelative = isBrowser && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL === window.location.origin);
-  const path = opts.assistant ? '/api/assistant/chat' : '/api/ai/chat';
+  const path = opts.assistant ? '/api/assistant/chat' : '/api/ai/chat-public';
   const url = useRelative ? path : `${baseUrl}${path}`;
 
-  const finalToken = token ?? (isBrowser ? (await (await import('@clerk/nextjs')).getToken().catch(()=>null)) : null);
+  // Remove Clerk token verification for AI assistant
+  const finalToken = token;
 
   const payload = { message, ...opts };
 

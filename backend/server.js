@@ -35,6 +35,8 @@ const assistantRoutes = require('./routes/assistant');
 const onboardingRoutes = require('./routes/onboarding');
 // 🆕 Webhook routes
 const webhookRoutes = require('./routes/webhooks');
+// 🆕 Conversation management routes
+const conversationRoutes = require('./routes/conversations');
 
 const app = express();
 
@@ -281,6 +283,8 @@ app.use('/api/assistant/chat', assistantLimiter);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/ai/chat', aiChatLimiter);
 app.use('/api/ai', aiRoutes);
+// 🆕 Conversation management routes
+app.use('/api/conversations', conversationRoutes);
 
 // 🆕 Phase 4 routes - Assessments & Certificates
 app.use('/api/assessments', assessmentRoutes);
