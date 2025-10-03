@@ -23,7 +23,7 @@ export default function SignInPage() {
           appearance={signInAppearance}
           routing="path"
           path="/sign-in"
-          redirectUrl="/aiassistant"
+          redirectUrl="/ai-assistant"
         />
       </div>
     </div>

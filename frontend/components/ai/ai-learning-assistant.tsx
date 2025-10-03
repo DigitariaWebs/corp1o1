@@ -1621,7 +1621,7 @@ Remember: You have access to detailed learning analytics. Use this data to provi
                       handleSendMessage()
                     }
                   }}
-                  className="bg-slate-700/50 border-slate-600 text-white resize-none h-10 sm:h-12 pr-12 text-sm"
+                  className="bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl"
                   disabled={isTyping || isThinking}
                   rows={1}
                 />

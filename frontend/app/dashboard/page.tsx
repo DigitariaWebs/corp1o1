@@ -23,7 +23,7 @@ export default function DashboardPage() {
         {/* Floating Chat Bar */}
         <FloatingChatBar
           onSendMessage={handleSendMessage}
-          placeholder="Ask me about your learning progress and goals..."
+          placeholder="Ask anything"
           enableVoice={true}
           enableMinimize={true}
         />

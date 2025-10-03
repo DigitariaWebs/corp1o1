@@ -85,17 +85,8 @@ export function FloatingChatBar({
       )}
     >
       <div className="relative">
-        {/* Background with glass effect */}
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl" />
-        <div className="absolute inset-0 bg-gradient-to-r from-revolutionary-blue/5 to-revolutionary-cyan/5 rounded-2xl" />
-        
-        {/* Glow effect */}
-        <div 
-          className={cn(
-            "absolute -inset-1 bg-gradient-to-r from-revolutionary-blue/20 to-revolutionary-cyan/20 rounded-2xl opacity-0 blur-xl transition-opacity duration-500",
-            isFocused && "opacity-100"
-          )}
-        />
+        {/* Simple white background with rounded edges */}
+        <div className="absolute inset-0 bg-white rounded-full shadow-lg border border-gray-200" />
 
         {/* Main content */}
         <div className="relative p-4">
@@ -108,34 +99,12 @@ export function FloatingChatBar({
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                {/* Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="p-2 bg-revolutionary-blue/10 rounded-lg">
-                      <Bot className="h-4 w-4 text-revolutionary-blue" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-foreground">AI Assistant</h3>
-                      <p className="text-xs text-muted-foreground">Ask me anything about your learning</p>
-                    </div>
-                  </div>
-                  
-                  {enableMinimize && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleMinimizeToggle}
-                      className="h-8 w-8 p-0 hover:bg-muted/50"
-                    >
-                      <Minimize2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
+                
 
                 {/* Messages */}
-                <div className="max-h-64 overflow-y-auto mb-3 space-y-2 text-sm">
+                <div className="max-h-64 overflow-y-auto  space-y-2 text-sm">
                   {messages.map((m) => (
-                    <div key={m.id} className={cn('p-2 rounded-md', m.role==='user'?'bg-primary text-primary-foreground':'bg-muted')}>{m.content}</div>
+                    <div key={m.id} className={cn('p-2 rounded-lg', m.role==='user'?'bg-blue-500 text-white':'bg-gray-100 text-gray-900')}>{m.content}</div>
                   ))}
                 </div>
 
@@ -151,8 +120,8 @@ export function FloatingChatBar({
                       placeholder={placeholder}
                       disabled={disabled}
                       className={cn(
-                        "pr-12 bg-background/50 border-border/50 backdrop-blur-sm",
-                        "focus:border-revolutionary-blue/50 focus:ring-revolutionary-blue/20",
+                        "pr-12 bg-white border-gray-300 rounded-xl text-black",
+                        "focus:outline-none focus:ring-0 focus:border-gray-300",
                         "transition-all duration-300",
                         disabled && "opacity-50 cursor-not-allowed"
                       )}
@@ -181,10 +150,10 @@ export function FloatingChatBar({
                       onClick={toggleVoiceInput}
                       disabled={disabled}
                       className={cn(
-                        "h-10 w-10 border-border/50 bg-background/50 backdrop-blur-sm",
-                        "hover:bg-revolutionary-blue/10 hover:border-revolutionary-blue/50",
+                        "h-10 w-10 border-gray-400 bg-gray-100 text-gray-700 rounded-xl",
+                        "hover:bg-gray-200 hover:border-gray-500",
                         "transition-all duration-300",
-                        isListening && "bg-red-500/20 border-red-500/50 text-red-400",
+                        isListening && "bg-red-100 border-red-400 text-red-600",
                         disabled && "opacity-50 cursor-not-allowed"
                       )}
                     >
@@ -202,60 +171,21 @@ export function FloatingChatBar({
                     disabled={!message.trim() || disabled}
                     size="icon"
                     className={cn(
-                      "h-10 w-10 bg-revolutionary-blue hover:bg-revolutionary-blue/90",
-                      "shadow-lg shadow-revolutionary-blue/25",
-                      "disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
+                      "h-10 w-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl",
+                      "shadow-md",
+                      "disabled:bg-gray-400 disabled:text-gray-200 disabled:shadow-none",
                       "transition-all duration-300"
                     )}
                   >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
-
-                {/* Status indicators */}
-                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-1">
-                      <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-                      <span>Online</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Sparkles className="h-3 w-3" />
-                      <span>AI-Powered</span>
-                    </div>
-                  </div>
-                  
-                  {message.length > 0 && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="text-revolutionary-blue"
-                    >
-                      {message.length}/500
-                    </motion.span>
-                  )}
-                </div>
+ 
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Minimized state */}
-          {isMinimized && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center justify-center py-2"
-            >
-              <Button
-                variant="ghost"
-                onClick={handleMinimizeToggle}
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground"
-              >
-                <MessageSquare className="h-4 w-4" />
-                <span className="text-sm">Chat with AI</span>
-              </Button>
-            </motion.div>
-          )}
+        
         </div>
       </div>
     </motion.div>

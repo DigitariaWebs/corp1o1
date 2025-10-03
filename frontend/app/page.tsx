@@ -28,7 +28,7 @@ export default function HomePage() {
         ? "/admin" 
         : user.role === "enterprise" 
         ? "/enterprise" 
-        : "/aiassistant"
+        : "/ai-assistant"
       
       router.push(dashboardPath)
     }

@@ -55,7 +55,7 @@ export default function AIAssistantPage() {
       {/* Floating Chat Bar */}
       <FloatingChatBar
         onSendMessage={handleSendMessage}
-        placeholder="Ask me anything about your learning journey..."
+        placeholder="Ask anything "
         enableVoice={true}
         enableMinimize={true}
       />
