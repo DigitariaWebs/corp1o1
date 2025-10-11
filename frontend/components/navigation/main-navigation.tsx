@@ -74,7 +74,7 @@ export function MainNavigation() {
       },
       {
         label: t("navigation.dashboard"),
-        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main",
+        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard",
         icon: Layout,
         description: t("navigation.dashboard"),
       },
