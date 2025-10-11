@@ -439,7 +439,7 @@ export function InteractiveDemo() {
                   <div className="mt-8 text-center">
                     <Button
                       className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold px-8 py-3"
-                      onClick={() => window.location.href = "/dashboard"}
+                      onClick={() => window.location.href = "/main"}
                     >
                       {t("demo.results.start_your_journey")}
                       <ArrowRight className="h-4 w-4 ml-2" />

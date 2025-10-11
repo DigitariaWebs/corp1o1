@@ -65,15 +65,15 @@ export function OnboardingWrapper() {
         console.log('Personalized experience generated:', result.data.personalization);
         
         // Redirect to dashboard with personalized experience
-        router.push('/dashboard?welcome=true');
+        router.push('/main');
       } else {
         console.error('Failed to generate personalized experience');
         // Still redirect to dashboard, but without personalization
-        router.push('/dashboard');
+        router.push('/main');
       }
     } catch (error) {
       console.error('Error generating personalized experience:', error);
-      router.push('/dashboard');
+      router.push('/main');
     }
   };
 
@@ -97,7 +97,7 @@ export function OnboardingWrapper() {
       console.error('Error updating onboarding status:', error);
     }
     
-    router.push('/dashboard');
+    router.push('/main');
   };
 
   if (loading) {

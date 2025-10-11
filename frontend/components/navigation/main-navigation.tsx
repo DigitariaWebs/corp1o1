@@ -74,7 +74,7 @@ export function MainNavigation() {
       },
       {
         label: t("navigation.dashboard"),
-        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard",
+        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main",
         icon: Layout,
         description: t("navigation.dashboard"),
       },
@@ -190,7 +190,7 @@ export function MainNavigation() {
   }
 
   const isActiveRoute = (href: string) => {
-    if (href === "/dashboard" && pathname === "/") return false
+    if (href === "/main" && pathname === "/") return false
     return pathname === href || pathname.startsWith(href + "/")
   }
 

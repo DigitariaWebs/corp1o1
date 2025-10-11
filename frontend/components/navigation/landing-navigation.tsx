@@ -96,7 +96,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
 
               {/* Show Dashboard button if signed in, otherwise show auth buttons */}
               {isSignedIn && user ? (
-                <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard"}>
+                <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
                   <Button
                     variant="primary"
                     size="sm"
@@ -190,7 +190,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
                 </Button>
                 {/* Show Dashboard button if signed in, otherwise show auth buttons */}
                 {isSignedIn && user ? (
-                  <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard"}>
+                  <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
                     <Button
                       onClick={() => setIsMenuOpen(false)}
                       variant="primary"

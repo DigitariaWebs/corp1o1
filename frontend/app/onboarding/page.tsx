@@ -30,7 +30,7 @@ export default function OnboardingPage() {
           const parsed = JSON.parse(localPersonalization)
           if (parsed && (parsed.personalizedContent || parsed.assessmentPlan)) {
             console.log("🔄 User has localStorage personalization, redirecting to dashboard")
-            router.push("/dashboard")
+            router.push("/main")
             return
           }
         } catch (e) {
@@ -41,7 +41,7 @@ export default function OnboardingPage() {
       // Check backend personalization
       if (user?.personalization && (user.personalization.personalizedContent || user.personalization.assessmentPlan)) {
         console.log("🔄 User has backend personalization, redirecting to dashboard")
-        router.push("/dashboard")
+        router.push("/main")
       }
     }
     
@@ -108,7 +108,7 @@ export default function OnboardingPage() {
         
         // Show success screen briefly then redirect
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/main")
         }, 2000)
       } else {
         const errorText = await response.text()
@@ -126,7 +126,7 @@ export default function OnboardingPage() {
   const handleAIOnboardingSkip = () => {
     console.log("🚫 AI Onboarding skipped")
     sessionStorage.removeItem('onboarding-in-progress')
-    router.push("/dashboard")
+    router.push("/main")
   }
 
   if (isLoading) {

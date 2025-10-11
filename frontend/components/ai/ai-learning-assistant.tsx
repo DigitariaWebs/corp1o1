@@ -2,12 +2,14 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
+import { SimpleCommandMenu as CommandMenu } from "./simple-command-menu"
 import {
   Bot,
   User,
@@ -192,6 +194,7 @@ export function AILearningAssistant({
   enableOpenAI = true,
   onContextUpdate
 }: AIAssistantProps) {
+  const router = useRouter()
   const { t } = useTranslation()
   
   // Core state
@@ -201,6 +204,10 @@ export function AILearningAssistant({
   const [isExpanded, setIsExpanded] = useState(size === 'expanded')
   const [activePersonality, setActivePersonality] = useState(0)
   const [isThinking, setIsThinking] = useState(false)
+  
+  // Command menu state
+  const [showCommandMenu, setShowCommandMenu] = useState(false)
+  const [commandSearchQuery, setCommandSearchQuery] = useState("")
   
   // Enhanced AI Configuration with Multiple Providers
   const [aiProvider, setAIProvider] = useState<'openai' | 'anthropic' | 'gemini'>('openai')
@@ -866,9 +873,56 @@ Remember: You have access to detailed learning analytics. Use this data to provi
     }
   }
 
+  // Command menu handlers
+  const handleCommandSelect = (command: any) => {
+    if (command.href) {
+      router.push(command.href)
+    } else if (command.action) {
+      command.action()
+    } else {
+      // Handle AI-specific commands
+      if (command.id === 'ai-learning-plan') {
+        setCurrentMessage("Create a personalized learning plan for me based on my current skills and goals")
+        setShowCommandMenu(false)
+      } else if (command.id === 'ai-skill-analysis') {
+        setCurrentMessage("Analyze my current skills and provide recommendations for improvement")
+        setShowCommandMenu(false)
+      } else if (command.id === 'voice-mode') {
+        setVoiceEnabled(!voiceEnabled)
+        setShowCommandMenu(false)
+      }
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value
+    setCurrentMessage(value)
+    
+    // Check for slash command
+    if (value === '/') {
+      console.log('Slash detected, opening command menu')
+      setShowCommandMenu(true)
+      setCommandSearchQuery('')
+    } else if (value.startsWith('/') && showCommandMenu) {
+      setCommandSearchQuery(value.slice(1))
+    } else if (!value.startsWith('/') && showCommandMenu) {
+      console.log('Closing command menu')
+      setShowCommandMenu(false)
+      setCommandSearchQuery('')
+    }
+  }
+
   // Enhanced message sending with improved analytics
   const handleSendMessage = async () => {
     if (!currentMessage.trim() || isTyping || isThinking) return
+
+    // Don't send slash commands as messages
+    if (currentMessage.startsWith('/')) {
+      setCurrentMessage("")
+      setShowCommandMenu(false)
+      setCommandSearchQuery('')
+      return
+    }
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -1613,15 +1667,17 @@ Remember: You have access to detailed learning analytics. Use this data to provi
                 <Textarea
                   ref={messageInputRef}
                   value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
-                  placeholder={`Ask ${ASSISTANT_PERSONALITIES[activePersonality].name} anything about your learning...`}
+                  onChange={handleInputChange}
+                  placeholder={`Ask ${ASSISTANT_PERSONALITIES[activePersonality].name} anything about your learning... (Type "/" for commands)`}
                   onKeyPress={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
                       handleSendMessage()
                     }
                   }}
-                  className="bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl"
+                  className={`bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl ${
+                    showCommandMenu ? 'border-blue-500 ring-2 ring-blue-200' : ''
+                  }`}
                   disabled={isTyping || isThinking}
                   rows={1}
                 />
@@ -1686,7 +1742,29 @@ Remember: You have access to detailed learning analytics. Use this data to provi
               >
                 <Send className="h-4 w-4" />
               </Button>
+              
+              {/* Debug button - remove this later */}
+              <Button
+                onClick={() => {
+                  console.log('Manual command menu trigger, current state:', showCommandMenu)
+                  setShowCommandMenu(!showCommandMenu)
+                }}
+                size="sm"
+                variant="outline"
+                className={`h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0 ${
+                  showCommandMenu ? 'bg-blue-100 border-blue-500' : ''
+                }`}
+              >
+                /
+              </Button>
             </div>
+
+            {/* Debug info - remove this later */}
+            {showCommandMenu && (
+              <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2">
+                Command menu is open! Search query: "{commandSearchQuery}"
+              </div>
+            )}
 
             {/* Enhanced Action Buttons - Responsive */}
             <div className="flex items-center justify-between mt-3">
@@ -1733,5 +1811,17 @@ Remember: You have access to detailed learning analytics. Use this data to provi
         </Card>
       </motion.div>
     </AnimatePresence>
+    
+    {/* Command Menu - Outside AnimatePresence to avoid conflicts */}
+    <CommandMenu
+      isOpen={showCommandMenu}
+      onClose={() => {
+        setShowCommandMenu(false)
+        setCommandSearchQuery('')
+        setCurrentMessage('')
+      }}
+      onSelect={handleCommandSelect}
+      searchQuery={commandSearchQuery}
+    />
   )
 }

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/ai-assistant(.*)',
+  '/main(.*)',
   '/learning(.*)',
   '/assessments(.*)',
   '/certificates(.*)',
@@ -78,7 +79,7 @@ export default clerkMiddleware(async (auth, req) => {
     // Get user role for proper redirection
     const role = sessionClaims?.metadata?.role || sessionClaims?.publicMetadata?.role;
     
-    let redirectUrl = '/ai-assistant';
+    let redirectUrl = '/main';
     if (role === 'admin') {
       redirectUrl = '/admin';
     } else if (role === 'enterprise') {

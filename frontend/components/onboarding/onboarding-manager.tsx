@@ -151,7 +151,7 @@ export function OnboardingManager({ children }: OnboardingManagerProps) {
         localStorage.setItem('corp101-personalization-completed', 'true')
         
         // Refresh user data to reflect the personalization completion
-        window.location.href = '/dashboard?personalized=true'
+        window.location.href = '/main'
       } else {
         console.error('❌ AI personalization failed')
         setShowPersonalization(false)

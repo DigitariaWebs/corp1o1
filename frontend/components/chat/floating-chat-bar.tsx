@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +16,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useChat } from '@/hooks/use-chat'
+import { SimpleCommandMenu as CommandMenu } from "@/components/ai/simple-command-menu"
 
 interface FloatingChatBarProps {
   onSendMessage?: (message: string) => void
@@ -37,14 +39,67 @@ export function FloatingChatBar({
   onMinimizeToggle,
   disabled = false
 }: FloatingChatBarProps) {
+  const router = useRouter()
   const [message, setMessage] = useState("")
   const [isListening, setIsListening] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
+  
+  // Command menu state
+  const [showCommandMenu, setShowCommandMenu] = useState(false)
+  const [commandSearchQuery, setCommandSearchQuery] = useState("")
 
   const { messages, sendMessage, loading } = useChat()
 
+  // Command menu handlers
+  const handleCommandSelect = (command: any) => {
+    if (command.href) {
+      router.push(command.href)
+    } else if (command.action) {
+      command.action()
+    } else {
+      // Handle AI-specific commands
+      if (command.id === 'ai-learning-plan') {
+        setMessage("Create a personalized learning plan for me based on my current skills and goals")
+        setShowCommandMenu(false)
+      } else if (command.id === 'ai-skill-analysis') {
+        setMessage("Analyze my current skills and provide recommendations for improvement")
+        setShowCommandMenu(false)
+      } else if (command.id === 'voice-mode') {
+        setIsListening(!isListening)
+        setShowCommandMenu(false)
+      }
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setMessage(value)
+    
+    // Check for slash command
+    if (value === '/') {
+      console.log('Slash detected in floating chat, opening command menu')
+      setShowCommandMenu(true)
+      setCommandSearchQuery('')
+    } else if (value.startsWith('/') && showCommandMenu) {
+      setCommandSearchQuery(value.slice(1))
+    } else if (!value.startsWith('/') && showCommandMenu) {
+      console.log('Closing command menu in floating chat')
+      setShowCommandMenu(false)
+      setCommandSearchQuery('')
+    }
+  }
+
   const handleSendMessage = () => {
     if (!message.trim() || loading) return
+    
+    // Don't send slash commands as messages
+    if (message.startsWith('/')) {
+      setMessage("")
+      setShowCommandMenu(false)
+      setCommandSearchQuery('')
+      return
+    }
+    
     sendMessage(message.trim())
     setMessage('')
   }
@@ -114,6 +169,13 @@ export function FloatingChatBar({
                 </AnimatePresence>
               )}
 
+              {/* Debug info - remove this later */}
+              {showCommandMenu && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2 mx-4">
+                  Command menu is open! Search query: "{commandSearchQuery}"
+                </div>
+              )}
+
               {/* Chat input */}
               <div className={cn(
                 "flex items-center space-x-3 px-4",
@@ -122,16 +184,17 @@ export function FloatingChatBar({
                   <div className="relative flex-1">
                     <Input
                       value={message}
-                      onChange={(e) => setMessage(e.target.value)}
+                      onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
                       onFocus={() => setIsFocused(true)}
                       onBlur={() => setIsFocused(false)}
-                      placeholder={placeholder}
+                      placeholder={placeholder + " (Type '/' for commands)"}
                       disabled={disabled}
                       className={cn(
                         "pr-12 bg-white border-gray-300 rounded-xl text-black",
                         "focus:outline-none focus:ring-0 focus:border-gray-300",
                         "transition-all duration-300",
+                        showCommandMenu && "border-blue-500 ring-2 ring-blue-200",
                         disabled && "opacity-50 cursor-not-allowed"
                       )}
                     />
@@ -174,6 +237,24 @@ export function FloatingChatBar({
                     </Button>
                   )}
 
+                  {/* Debug button - remove this later */}
+                  <Button
+                    onClick={() => {
+                      console.log('Manual command menu trigger in floating chat, current state:', showCommandMenu)
+                      setShowCommandMenu(!showCommandMenu)
+                    }}
+                    size="icon"
+                    variant="outline"
+                    className={cn(
+                      "h-10 w-10 border-gray-400 bg-gray-100 text-gray-700 rounded-xl",
+                      "hover:bg-gray-200 hover:border-gray-500",
+                      "transition-all duration-300",
+                      showCommandMenu && "bg-blue-100 border-blue-500"
+                    )}
+                  >
+                    /
+                  </Button>
+
                   {/* Send button */}
                   <Button
                     onClick={handleSendMessage}
@@ -193,6 +274,18 @@ export function FloatingChatBar({
             )}
         </div>
       </div>
+      
+      {/* Command Menu */}
+      <CommandMenu
+        isOpen={showCommandMenu}
+        onClose={() => {
+          setShowCommandMenu(false)
+          setCommandSearchQuery('')
+          setMessage('')
+        }}
+        onSelect={handleCommandSelect}
+        searchQuery={commandSearchQuery}
+      />
     </motion.div>
   )
 }
