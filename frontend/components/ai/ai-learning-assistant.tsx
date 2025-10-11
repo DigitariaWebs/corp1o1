@@ -1079,749 +1079,751 @@ Remember: You have access to detailed learning analytics. Use this data to provi
   if (!isOpen) return null
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`${positionClasses} ${getSizeClasses()} ${className}`}
-        style={{ maxHeight: '100vh' }}
-      >
-        <Card className="h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-2 border-gradient-to-r from-purple-500/30 to-cyan-500/30 shadow-2xl flex flex-col overflow-hidden mx-2 sm:mx-0">
-          {/* Enhanced Header */}
-          <CardHeader className="py-3 sm:py-4 border-b border-slate-600/50 bg-gradient-to-r from-purple-900/40 via-blue-900/40 to-cyan-900/40 backdrop-blur-sm shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <motion.div 
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-base sm:text-lg relative shrink-0"
-                  animate={{ 
-                    boxShadow: isThinking ? "0 0 20px rgba(147, 51, 234, 0.5)" : "0 0 10px rgba(147, 51, 234, 0.2)" 
-                  }}
-                >
-                  {ASSISTANT_PERSONALITIES[activePersonality].avatar}
-                  {isThinking && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-cyan-400"
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                </motion.div>
-                <div className="min-w-0 flex-1">
-                  <CardTitle className="text-white text-base sm:text-lg font-bold flex items-center flex-wrap gap-1 sm:gap-2">
-                    <span className="truncate">{ASSISTANT_PERSONALITIES[activePersonality].name}</span>
-                    <Badge className="bg-green-500/20 text-green-400 text-xs shrink-0">
-                      {aiProvider === 'openai' ? '🤖 OpenAI' : 
-                       aiProvider === 'anthropic' ? '🧠 Claude' : 
-                       '✨ Gemini'}
-                    </Badge>
-                    {advancedVoiceMode && (
-                      <Badge className="bg-purple-500/20 text-purple-400 text-xs animate-pulse shrink-0">
-                        Voice Chat
-                      </Badge>
+    <>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className={`${positionClasses} ${getSizeClasses()} ${className}`}
+          style={{ maxHeight: '100vh' }}
+        >
+          <Card className="h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-2 border-gradient-to-r from-purple-500/30 to-cyan-500/30 shadow-2xl flex flex-col overflow-hidden mx-2 sm:mx-0">
+            {/* Enhanced Header */}
+            <CardHeader className="py-3 sm:py-4 border-b border-slate-600/50 bg-gradient-to-r from-purple-900/40 via-blue-900/40 to-cyan-900/40 backdrop-blur-sm shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <motion.div 
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-purple-500 to-cyan-500 flex items-center justify-center text-base sm:text-lg relative shrink-0"
+                    animate={{ 
+                      boxShadow: isThinking ? "0 0 20px rgba(147, 51, 234, 0.5)" : "0 0 10px rgba(147, 51, 234, 0.2)" 
+                    }}
+                  >
+                    {ASSISTANT_PERSONALITIES[activePersonality].avatar}
+                    {isThinking && (
+                      <motion.div
+                        className="absolute inset-0 rounded-full border-2 border-cyan-400"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      />
                     )}
-                  </CardTitle>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-                    <span className="text-green-400 text-xs font-medium">
-                      {isThinking ? 'Analyzing...' : 'Online'}
-                    </span>
-                    {sessionStats.contextAccuracy > 90 && (
-                      <Badge className="bg-cyan-500/20 text-cyan-400 text-xs shrink-0">
-                        {sessionStats.contextAccuracy}% Accuracy
+                  </motion.div>
+                  <div className="min-w-0 flex-1">
+                    <CardTitle className="text-white text-base sm:text-lg font-bold flex items-center flex-wrap gap-1 sm:gap-2">
+                      <span className="truncate">{ASSISTANT_PERSONALITIES[activePersonality].name}</span>
+                      <Badge className="bg-green-500/20 text-green-400 text-xs shrink-0">
+                        {aiProvider === 'openai' ? '🤖 OpenAI' : 
+                         aiProvider === 'anthropic' ? '🧠 Claude' : 
+                         '✨ Gemini'}
                       </Badge>
-                    )}
+                      {advancedVoiceMode && (
+                        <Badge className="bg-purple-500/20 text-purple-400 text-xs animate-pulse shrink-0">
+                          Voice Chat
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+                      <span className="text-green-400 text-xs font-medium">
+                        {isThinking ? 'Analyzing...' : 'Online'}
+                      </span>
+                      {sessionStats.contextAccuracy > 90 && (
+                        <Badge className="bg-cyan-500/20 text-cyan-400 text-xs shrink-0">
+                          {sessionStats.contextAccuracy}% Accuracy
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-1 shrink-0">
-                {/* Enhanced Stats - Responsive */}
-                <div className="hidden sm:flex items-center space-x-2 mr-2">
-                  {sessionStats.messagesExchanged > 0 && (
-                    <Badge variant="outline" className="text-xs bg-slate-800/50">
-                      <MessageSquare className="w-3 h-3 mr-1" />
-                      {sessionStats.messagesExchanged}
-                    </Badge>
-                  )}
-                  {sessionStats.learningInsights > 0 && (
-                    <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-400">
-                      <Lightbulb className="w-3 h-3 mr-1" />
-                      {sessionStats.learningInsights}
-                    </Badge>
-                  )}
-                  {sessionStats.helpfulnessScore > 90 && (
-                    <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400">
-                      <Heart className="w-3 h-3 mr-1" />
-                      {sessionStats.helpfulnessScore}%
-                    </Badge>
-                  )}
-                </div>
                 
-                {/* Control Buttons */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowSettings(!showSettings)}
-                  className="text-gray-400 hover:text-white h-8 w-8 p-0"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-gray-400 hover:text-white h-8 w-8 p-0"
-                >
-                  {isExpanded ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="text-gray-400 hover:text-white h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Enhanced Settings Panel - Responsive */}
-            <AnimatePresence>
-              {showSettings && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="mt-4 space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
-                >
-                  {/* Personality Selector - Responsive Grid */}
-                  <div>
-                    <label className="text-xs text-gray-400 mb-2 block font-medium">
-                      AI Personality
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {ASSISTANT_PERSONALITIES.map((personality, index) => (
-                        <Button
-                          key={index}
-                          variant={activePersonality === index ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setActivePersonality(index)}
-                          className="text-xs flex items-center justify-start p-2 h-auto"
-                        >
-                          <span className="mr-2 shrink-0">{personality.avatar}</span>
-                          <div className="text-left min-w-0">
-                            <div className="font-medium truncate">{personality.name}</div>
-                            <div className="text-[10px] opacity-70 capitalize truncate">{personality.style}</div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
+                <div className="flex items-center space-x-1 shrink-0">
+                  {/* Enhanced Stats - Responsive */}
+                  <div className="hidden sm:flex items-center space-x-2 mr-2">
+                    {sessionStats.messagesExchanged > 0 && (
+                      <Badge variant="outline" className="text-xs bg-slate-800/50">
+                        <MessageSquare className="w-3 h-3 mr-1" />
+                        {sessionStats.messagesExchanged}
+                      </Badge>
+                    )}
+                    {sessionStats.learningInsights > 0 && (
+                      <Badge variant="outline" className="text-xs bg-purple-500/20 text-purple-400">
+                        <Lightbulb className="w-3 h-3 mr-1" />
+                        {sessionStats.learningInsights}
+                      </Badge>
+                    )}
+                    {sessionStats.helpfulnessScore > 90 && (
+                      <Badge variant="outline" className="text-xs bg-green-500/20 text-green-400">
+                        <Heart className="w-3 h-3 mr-1" />
+                        {sessionStats.helpfulnessScore}%
+                      </Badge>
+                    )}
                   </div>
-
-                  {/* Enhanced Feature Toggles - Responsive Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={voiceEnabled}
-                        onChange={(e) => setVoiceEnabled(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Voice Input</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={contextAware}
-                        onChange={(e) => setContextAware(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Context Aware</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={smartInsights}
-                        onChange={(e) => setSmartInsights(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Smart Insights</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={adaptiveResponses}
-                        onChange={(e) => setAdaptiveResponses(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Adaptive Mode</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={continuousListening}
-                        onChange={(e) => setContinuousListening(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Continuous Voice</span>
-                    </label>
-                    
-                    <label className="flex items-center space-x-2 text-xs cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={advancedVoiceMode}
-                        onChange={(e) => setAdvancedVoiceMode(e.target.checked)}
-                        className="rounded border-gray-600 bg-slate-700 shrink-0"
-                      />
-                      <span className="text-gray-300">Voice Chat</span>
-                    </label>
-                  </div>
-
-                  {/* AI Provider Selection - Responsive */}
-                  <div>
-                    <label className="text-xs text-gray-400 mb-2 block font-medium">
-                      AI Provider
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { key: 'openai', name: 'OpenAI', icon: '🤖', models: ['gpt-4', 'gpt-3.5-turbo'] },
-                        { key: 'anthropic', name: 'Claude', icon: '🧠', models: ['claude-3-sonnet', 'claude-3-haiku'] },
-                        { key: 'gemini', name: 'Gemini', icon: '✨', models: ['gemini-pro', 'gemini-pro-vision'] }
-                      ].map((provider) => (
-                        <Button
-                          key={provider.key}
-                          variant={aiProvider === provider.key ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            setAIProvider(provider.key as 'openai' | 'anthropic' | 'gemini')
-                            setAIModel(provider.models[0])
-                          }}
-                          className="text-xs flex flex-col items-center justify-center p-2 h-12"
-                        >
-                          <span className="text-sm">{provider.icon}</span>
-                          <span className="text-[10px] mt-1 truncate">{provider.name}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Model Selection - Responsive */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block font-medium">
-                        Model
-                      </label>
-                      <select
-                        value={aiModel}
-                        onChange={(e) => setAIModel(e.target.value)}
-                        className="w-full text-xs bg-slate-700 border-slate-600 text-white rounded px-2 py-1"
-                      >
-                        {aiProvider === 'openai' && (
-                          <>
-                            <option value="gpt-4">GPT-4 (Recommended)</option>
-                            <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                          </>
-                        )}
-                        {aiProvider === 'anthropic' && (
-                          <>
-                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-                            <option value="claude-3-haiku">Claude 3 Haiku</option>
-                          </>
-                        )}
-                        {aiProvider === 'gemini' && (
-                          <>
-                            <option value="gemini-pro">Gemini Pro</option>
-                            <option value="gemini-pro-vision">Gemini Pro Vision</option>
-                          </>
-                        )}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block font-medium">
-                        Creativity
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={temperature}
-                          onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                          className="flex-1"
-                        />
-                        <span className="text-xs text-gray-400 w-8">{temperature}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Voice Settings - Responsive */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block font-medium">
-                        Voice Speed
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="2"
-                          step="0.1"
-                          value={voiceSpeed}
-                          onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
-                          className="flex-1"
-                        />
-                        <span className="text-xs text-gray-400 w-8">{voiceSpeed}</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-xs text-gray-400 mb-2 block font-medium">
-                        Voice Pitch
-                      </label>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          type="range"
-                          min="0.5"
-                          max="2"
-                          step="0.1"
-                          value={voicePitch}
-                          onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
-                          className="flex-1"
-                        />
-                        <span className="text-xs text-gray-400 w-8">{voicePitch}</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardHeader>
-
-          {/* Enhanced Chat Messages - Responsive */}
-          <CardContent className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 min-h-0">
-            {messages.map((message, index) => (
-              <motion.div
-                key={message.id}
-                initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] ${
-                  message.role === 'user' 
-                    ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white' 
-                    : message.type === 'encouragement'
-                    ? 'bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/30 text-green-100'
-                    : message.type === 'insight'
-                    ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 text-purple-100'
-                    : message.type === 'suggestion'
-                    ? 'bg-gradient-to-r from-amber-600/30 to-orange-600/30 border border-amber-500/30 text-amber-100'
-                    : 'bg-gradient-to-r from-slate-700 to-slate-600 text-gray-100'
-                } p-3 sm:p-4 rounded-2xl shadow-lg backdrop-blur-sm`}>
                   
-                  {/* Enhanced Message Header - Responsive */}
-                  {message.role === 'assistant' && (
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <div className="flex items-center space-x-2 min-w-0">
-                        <Bot className="h-4 w-4 shrink-0" />
-                        <span className="text-xs font-medium opacity-80 truncate">
-                          {ASSISTANT_PERSONALITIES[activePersonality].name}
-                        </span>
-                        {message.type && (
-                          <Badge className={`text-[10px] shrink-0 ${
-                            message.type === 'insight' ? 'bg-purple-500/20 text-purple-300' :
-                            message.type === 'encouragement' ? 'bg-green-500/20 text-green-300' :
-                            message.type === 'suggestion' ? 'bg-amber-500/20 text-amber-300' :
-                            'bg-gray-500/20 text-gray-300'
-                          }`}>
-                            {message.type === 'insight' ? '💡 Insight' :
-                             message.type === 'encouragement' ? '🚀 Motivation' :
-                             message.type === 'suggestion' ? '💭 Suggestion' : 'Response'}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-1 shrink-0">
-                        {message.metadata?.confidence && (
-                          <Badge variant="outline" className="text-[10px] bg-slate-800/50">
-                            {message.metadata.confidence}%
-                          </Badge>
-                        )}
-                        {message.metadata?.aiThinkingTime && (
-                          <Badge variant="outline" className="text-[10px] bg-slate-800/50 hidden sm:flex">
-                            <Timer className="w-2 h-2 mr-1" />
-                            {formatDuration(message.metadata.aiThinkingTime)}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Control Buttons */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSettings(!showSettings)}
+                    className="text-gray-400 hover:text-white h-8 w-8 p-0"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="text-gray-400 hover:text-white h-8 w-8 p-0"
+                  >
+                    {isExpanded ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-white h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
 
-                  {/* Message Content */}
-                  <div className="text-sm leading-relaxed mb-2 sm:mb-3">
-                    {message.content}
-                  </div>
-
-                  {/* Enhanced Suggestions - Responsive */}
-                  {message.metadata?.suggestions && message.metadata.suggestions.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <div className="text-xs opacity-70 mb-2">💡 Try asking:</div>
-                      <div className="grid grid-cols-1 gap-2">
-                        {message.metadata.suggestions.map((suggestion, index) => (
+              {/* Enhanced Settings Panel - Responsive */}
+              <AnimatePresence>
+                {showSettings && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="mt-4 space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800"
+                  >
+                    {/* Personality Selector - Responsive Grid */}
+                    <div>
+                      <label className="text-xs text-gray-400 mb-2 block font-medium">
+                        AI Personality
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {ASSISTANT_PERSONALITIES.map((personality, index) => (
                           <Button
                             key={index}
-                            variant="outline"
+                            variant={activePersonality === index ? "default" : "outline"}
                             size="sm"
-                            onClick={() => setCurrentMessage(suggestion)}
-                            className="text-xs w-full justify-start h-auto py-2 px-3 border-opacity-30 hover:border-opacity-60 transition-all"
+                            onClick={() => setActivePersonality(index)}
+                            className="text-xs flex items-center justify-start p-2 h-auto"
                           >
-                            <span className="mr-2 shrink-0">›</span>
-                            <span className="truncate">{suggestion}</span>
+                            <span className="mr-2 shrink-0">{personality.avatar}</span>
+                            <div className="text-left min-w-0">
+                              <div className="font-medium truncate">{personality.name}</div>
+                              <div className="text-[10px] opacity-70 capitalize truncate">{personality.style}</div>
+                            </div>
                           </Button>
                         ))}
                       </div>
                     </div>
-                  )}
 
-                  {/* Enhanced Message Footer - Responsive */}
-                  <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-600/20">
-                    <span className="text-xs opacity-60">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
+                    {/* Enhanced Feature Toggles - Responsive Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={voiceEnabled}
+                          onChange={(e) => setVoiceEnabled(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Voice Input</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={contextAware}
+                          onChange={(e) => setContextAware(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Context Aware</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={smartInsights}
+                          onChange={(e) => setSmartInsights(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Smart Insights</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={adaptiveResponses}
+                          onChange={(e) => setAdaptiveResponses(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Adaptive Mode</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={continuousListening}
+                          onChange={(e) => setContinuousListening(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Continuous Voice</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-2 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={advancedVoiceMode}
+                          onChange={(e) => setAdvancedVoiceMode(e.target.checked)}
+                          className="rounded border-gray-600 bg-slate-700 shrink-0"
+                        />
+                        <span className="text-gray-300">Voice Chat</span>
+                      </label>
+                    </div>
+
+                    {/* AI Provider Selection - Responsive */}
+                    <div>
+                      <label className="text-xs text-gray-400 mb-2 block font-medium">
+                        AI Provider
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { key: 'openai', name: 'OpenAI', icon: '🤖', models: ['gpt-4', 'gpt-3.5-turbo'] },
+                          { key: 'anthropic', name: 'Claude', icon: '🧠', models: ['claude-3-sonnet', 'claude-3-haiku'] },
+                          { key: 'gemini', name: 'Gemini', icon: '✨', models: ['gemini-pro', 'gemini-pro-vision'] }
+                        ].map((provider) => (
+                          <Button
+                            key={provider.key}
+                            variant={aiProvider === provider.key ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setAIProvider(provider.key as 'openai' | 'anthropic' | 'gemini')
+                              setAIModel(provider.models[0])
+                            }}
+                            className="text-xs flex flex-col items-center justify-center p-2 h-12"
+                          >
+                            <span className="text-sm">{provider.icon}</span>
+                            <span className="text-[10px] mt-1 truncate">{provider.name}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Model Selection - Responsive */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block font-medium">
+                          Model
+                        </label>
+                        <select
+                          value={aiModel}
+                          onChange={(e) => setAIModel(e.target.value)}
+                          className="w-full text-xs bg-slate-700 border-slate-600 text-white rounded px-2 py-1"
+                        >
+                          {aiProvider === 'openai' && (
+                            <>
+                              <option value="gpt-4">GPT-4 (Recommended)</option>
+                              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </>
+                          )}
+                          {aiProvider === 'anthropic' && (
+                            <>
+                              <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                              <option value="claude-3-haiku">Claude 3 Haiku</option>
+                            </>
+                          )}
+                          {aiProvider === 'gemini' && (
+                            <>
+                              <option value="gemini-pro">Gemini Pro</option>
+                              <option value="gemini-pro-vision">Gemini Pro Vision</option>
+                            </>
+                          )}
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block font-medium">
+                          Creativity
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={temperature}
+                            onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-gray-400 w-8">{temperature}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Voice Settings - Responsive */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block font-medium">
+                          Voice Speed
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="2"
+                            step="0.1"
+                            value={voiceSpeed}
+                            onChange={(e) => setVoiceSpeed(parseFloat(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-gray-400 w-8">{voiceSpeed}</span>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="text-xs text-gray-400 mb-2 block font-medium">
+                          Voice Pitch
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="2"
+                            step="0.1"
+                            value={voicePitch}
+                            onChange={(e) => setVoicePitch(parseFloat(e.target.value))}
+                            className="flex-1"
+                          />
+                          <span className="text-xs text-gray-400 w-8">{voicePitch}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </CardHeader>
+
+            {/* Enhanced Chat Messages - Responsive */}
+            <CardContent className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 min-h-0">
+              {messages.map((message, index) => (
+                <motion.div
+                  key={message.id}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: index * 0.1 }}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] ${
+                    message.role === 'user' 
+                      ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white' 
+                      : message.type === 'encouragement'
+                      ? 'bg-gradient-to-r from-green-600/30 to-emerald-600/30 border border-green-500/30 text-green-100'
+                      : message.type === 'insight'
+                      ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-500/30 text-purple-100'
+                      : message.type === 'suggestion'
+                      ? 'bg-gradient-to-r from-amber-600/30 to-orange-600/30 border border-amber-500/30 text-amber-100'
+                      : 'bg-gradient-to-r from-slate-700 to-slate-600 text-gray-100'
+                  } p-3 sm:p-4 rounded-2xl shadow-lg backdrop-blur-sm`}>
                     
+                    {/* Enhanced Message Header - Responsive */}
                     {message.role === 'assistant' && (
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMessageFeedback(message.id, 'positive')}
-                          className={`p-1 h-auto hover:scale-110 transition-transform ${
-                            message.feedback === 'positive' ? 'text-green-400' : 'text-gray-400 hover:text-green-400'
-                          }`}
-                        >
-                          <ThumbsUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleMessageFeedback(message.id, 'negative')}
-                          className={`p-1 h-auto hover:scale-110 transition-transform ${
-                            message.feedback === 'negative' ? 'text-red-400' : 'text-gray-400 hover:text-red-400'
-                          }`}
-                        >
-                          <ThumbsDown className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigator.clipboard.writeText(message.content)}
-                          className="p-1 h-auto text-gray-400 hover:text-blue-400 hover:scale-110 transition-transform"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
+                      <div className="flex items-center justify-between mb-2 sm:mb-3">
+                        <div className="flex items-center space-x-2 min-w-0">
+                          <Bot className="h-4 w-4 shrink-0" />
+                          <span className="text-xs font-medium opacity-80 truncate">
+                            {ASSISTANT_PERSONALITIES[activePersonality].name}
+                          </span>
+                          {message.type && (
+                            <Badge className={`text-[10px] shrink-0 ${
+                              message.type === 'insight' ? 'bg-purple-500/20 text-purple-300' :
+                              message.type === 'encouragement' ? 'bg-green-500/20 text-green-300' :
+                              message.type === 'suggestion' ? 'bg-amber-500/20 text-amber-300' :
+                              'bg-gray-500/20 text-gray-300'
+                            }`}>
+                              {message.type === 'insight' ? '💡 Insight' :
+                               message.type === 'encouragement' ? '🚀 Motivation' :
+                               message.type === 'suggestion' ? '💭 Suggestion' : 'Response'}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-1 shrink-0">
+                          {message.metadata?.confidence && (
+                            <Badge variant="outline" className="text-[10px] bg-slate-800/50">
+                              {message.metadata.confidence}%
+                            </Badge>
+                          )}
+                          {message.metadata?.aiThinkingTime && (
+                            <Badge variant="outline" className="text-[10px] bg-slate-800/50 hidden sm:flex">
+                              <Timer className="w-2 h-2 mr-1" />
+                              {formatDuration(message.metadata.aiThinkingTime)}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
 
-            {/* Enhanced Thinking Indicator - Responsive */}
-            {isThinking && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex justify-start"
-              >
-                <div className="bg-gradient-to-r from-purple-600/30 to-cyan-600/30 border border-purple-500/30 p-3 sm:p-4 rounded-2xl flex items-center space-x-3 max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] backdrop-blur-sm">
-                  <div className="relative shrink-0">
-                    <Brain className="h-5 w-5 text-purple-400" />
-                    <motion.div
-                      className="absolute -inset-1 rounded-full border border-purple-400/50"
-                      animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm text-purple-100 font-medium">
-                      {ASSISTANT_PERSONALITIES[activePersonality].name} is analyzing...
+                    {/* Message Content */}
+                    <div className="text-sm leading-relaxed mb-2 sm:mb-3">
+                      {message.content}
                     </div>
-                    <div className="flex space-x-1 mt-1">
+
+                    {/* Enhanced Suggestions - Responsive */}
+                    {message.metadata?.suggestions && message.metadata.suggestions.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <div className="text-xs opacity-70 mb-2">💡 Try asking:</div>
+                        <div className="grid grid-cols-1 gap-2">
+                          {message.metadata.suggestions.map((suggestion, index) => (
+                            <Button
+                              key={index}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentMessage(suggestion)}
+                              className="text-xs w-full justify-start h-auto py-2 px-3 border-opacity-30 hover:border-opacity-60 transition-all"
+                            >
+                              <span className="mr-2 shrink-0">›</span>
+                              <span className="truncate">{suggestion}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Enhanced Message Footer - Responsive */}
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-600/20">
+                      <span className="text-xs opacity-60">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      
+                      {message.role === 'assistant' && (
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMessageFeedback(message.id, 'positive')}
+                            className={`p-1 h-auto hover:scale-110 transition-transform ${
+                              message.feedback === 'positive' ? 'text-green-400' : 'text-gray-400 hover:text-green-400'
+                            }`}
+                          >
+                            <ThumbsUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleMessageFeedback(message.id, 'negative')}
+                            className={`p-1 h-auto hover:scale-110 transition-transform ${
+                              message.feedback === 'negative' ? 'text-red-400' : 'text-gray-400 hover:text-red-400'
+                            }`}
+                          >
+                            <ThumbsDown className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => navigator.clipboard.writeText(message.content)}
+                            className="p-1 h-auto text-gray-400 hover:text-blue-400 hover:scale-110 transition-transform"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+
+              {/* Enhanced Thinking Indicator - Responsive */}
+              {isThinking && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-gradient-to-r from-purple-600/30 to-cyan-600/30 border border-purple-500/30 p-3 sm:p-4 rounded-2xl flex items-center space-x-3 max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] backdrop-blur-sm">
+                    <div className="relative shrink-0">
+                      <Brain className="h-5 w-5 text-purple-400" />
+                      <motion.div
+                        className="absolute -inset-1 rounded-full border border-purple-400/50"
+                        animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm text-purple-100 font-medium">
+                        {ASSISTANT_PERSONALITIES[activePersonality].name} is analyzing...
+                      </div>
+                      <div className="flex space-x-1 mt-1">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 bg-purple-400 rounded-full"
+                            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Enhanced Typing Indicator - Responsive */}
+              {isTyping && !isThinking && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-slate-700/80 p-3 rounded-2xl flex items-center space-x-3 max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] backdrop-blur-sm">
+                    <Bot className="h-4 w-4 text-cyan-400 shrink-0" />
+                    <div className="flex space-x-1">
                       {[0, 1, 2].map((i) => (
                         <motion.div
                           key={i}
-                          className="w-2 h-2 bg-purple-400 rounded-full"
-                          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                          className="w-2 h-2 bg-cyan-400 rounded-full"
+                          animate={{ y: [0, -8, 0] }}
+                          transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
                         />
                       ))}
                     </div>
+                    <span className="text-xs text-gray-400">Processing...</span>
                   </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Enhanced Typing Indicator - Responsive */}
-            {isTyping && !isThinking && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex justify-start"
-              >
-                <div className="bg-slate-700/80 p-3 rounded-2xl flex items-center space-x-3 max-w-[85%] sm:max-w-[80%] lg:max-w-[85%] backdrop-blur-sm">
-                  <Bot className="h-4 w-4 text-cyan-400 shrink-0" />
-                  <div className="flex space-x-1">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div
-                        key={i}
-                        className="w-2 h-2 bg-cyan-400 rounded-full"
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.1 }}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-xs text-gray-400">Processing...</span>
-                </div>
-              </motion.div>
-            )}
-            
-            <div ref={chatEndRef} />
-          </CardContent>
-
-          {/* Enhanced Input Area - Responsive */}
-          <div className="p-3 sm:p-4 border-t border-slate-600/50 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm shrink-0">
-            {/* Enhanced Quick Actions - Responsive */}
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex space-x-1 flex-wrap gap-1">
-                {[
-                  { key: 'help', icon: '❓', label: 'Help' },
-                  { key: 'motivation', icon: '💪', label: 'Motivate' },
-                  { key: 'progress', icon: '📊', label: 'Progress' },
-                  { key: 'insight', icon: '💡', label: 'Insight' }
-                ].map((action) => (
-                  <Button
-                    key={action.key}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleQuickAction(action.key)}
-                    className="text-gray-400 hover:text-white text-xs h-8 px-2 hover:bg-slate-700/50 shrink-0"
-                  >
-                    <span className="mr-1">{action.icon}</span>
-                    <span className="hidden sm:inline">{action.label}</span>
-                  </Button>
-                ))}
-                
-                {/* Advanced Voice Mode Toggle */}
-                <Button
-                  variant={advancedVoiceMode ? "default" : "ghost"}
-                  size="sm"
-                  onClick={toggleAdvancedVoiceMode}
-                  className={`text-xs h-8 px-2 shrink-0 ${
-                    advancedVoiceMode 
-                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
-                      : 'text-gray-400 hover:text-white hover:bg-slate-700/50'
-                  }`}
-                >
-                  <span className="mr-1">🎤</span>
-                  <span className="hidden sm:inline">{advancedVoiceMode ? 'Voice Chat' : 'Voice Mode'}</span>
-                </Button>
-              </div>
+                </motion.div>
+              )}
               
-              {/* Enhanced Session Info - Responsive */}
-              <div className="flex items-center space-x-2 text-xs text-gray-400">
-                {advancedVoiceMode && (
-                  <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 animate-pulse">
-                    <span className="hidden sm:inline">Voice Chat Active</span>
-                    <span className="sm:hidden">Voice</span>
-                  </Badge>
-                )}
-                <div className="hidden sm:flex items-center space-x-2">
-                  {sessionStats.sessionDuration > 0 && (
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{formatTime(sessionStats.sessionDuration)}</span>
-                    </div>
-                  )}
-                  {sessionStats.helpfulnessScore > 0 && (
-                    <div className="flex items-center space-x-1">
-                      <Heart className="h-3 w-3 text-red-400" />
-                      <span>{sessionStats.helpfulnessScore}%</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+              <div ref={chatEndRef} />
+            </CardContent>
 
-            {/* Enhanced Message Input - Responsive */}
-            <div className="flex items-end space-x-2 sm:space-x-3">
-              <div className="flex-1 relative">
-                <Textarea
-                  ref={messageInputRef}
-                  value={currentMessage}
-                  onChange={handleInputChange}
-                  placeholder={`Ask ${ASSISTANT_PERSONALITIES[activePersonality].name} anything about your learning... (Type "/" for commands)`}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSendMessage()
-                    }
-                  }}
-                  className={`bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl ${
-                    showCommandMenu ? 'border-blue-500 ring-2 ring-blue-200' : ''
-                  }`}
-                  disabled={isTyping || isThinking}
-                  rows={1}
-                />
-                
-                {/* Enhanced Voice Input - Responsive */}
-                {voiceEnabled && (
+            {/* Enhanced Input Area - Responsive */}
+            <div className="p-3 sm:p-4 border-t border-slate-600/50 bg-gradient-to-r from-slate-800/50 to-slate-700/50 backdrop-blur-sm shrink-0">
+              {/* Enhanced Quick Actions - Responsive */}
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex space-x-1 flex-wrap gap-1">
+                  {[
+                    { key: 'help', icon: '❓', label: 'Help' },
+                    { key: 'motivation', icon: '💪', label: 'Motivate' },
+                    { key: 'progress', icon: '📊', label: 'Progress' },
+                    { key: 'insight', icon: '💡', label: 'Insight' }
+                  ].map((action) => (
+                    <Button
+                      key={action.key}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleQuickAction(action.key)}
+                      className="text-gray-400 hover:text-white text-xs h-8 px-2 hover:bg-slate-700/50 shrink-0"
+                    >
+                      <span className="mr-1">{action.icon}</span>
+                      <span className="hidden sm:inline">{action.label}</span>
+                    </Button>
+                  ))}
+                  
+                  {/* Advanced Voice Mode Toggle */}
                   <Button
-                    variant="ghost"
+                    variant={advancedVoiceMode ? "default" : "ghost"}
                     size="sm"
-                    onClick={handleVoiceInput}
-                    className={`absolute right-2 top-1 sm:top-2 h-8 w-8 p-0 ${
-                      speechMode === 'listening' 
-                        ? 'text-red-400 animate-pulse' 
-                        : speechMode === 'speaking'
-                        ? 'text-blue-400 animate-bounce'
-                        : advancedVoiceMode
-                        ? 'text-purple-400 hover:text-purple-300'
-                        : 'text-gray-400 hover:text-cyan-400'
+                    onClick={toggleAdvancedVoiceMode}
+                    className={`text-xs h-8 px-2 shrink-0 ${
+                      advancedVoiceMode 
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                        : 'text-gray-400 hover:text-white hover:bg-slate-700/50'
                     }`}
                   >
-                    {speechMode === 'listening' ? (
-                      <motion.div 
-                        animate={{ scale: [1, 1.3, 1] }} 
-                        transition={{ duration: 0.8, repeat: Infinity }}
-                      >
-                        <div className="relative">
-                          <MicOff className="h-4 w-4" />
-                          <motion.div
-                            className="absolute -inset-1 rounded-full border border-red-400/50"
-                            animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
-                          />
-                        </div>
-                      </motion.div>
-                    ) : speechMode === 'speaking' ? (
-                      <motion.div
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 0.5, repeat: Infinity }}
-                      >
-                        <Volume2 className="h-4 w-4" />
-                      </motion.div>
-                    ) : (
-                      <div className="relative">
-                        <Mic className="h-4 w-4" />
-                        {advancedVoiceMode && (
-                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
-                        )}
-                        {continuousListening && (
-                          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
-                        )}
-                      </div>
-                    )}
+                    <span className="mr-1">🎤</span>
+                    <span className="hidden sm:inline">{advancedVoiceMode ? 'Voice Chat' : 'Voice Mode'}</span>
                   </Button>
-                )}
-              </div>
-              
-              <Button
-                onClick={handleSendMessage}
-                disabled={!currentMessage.trim() || isTyping || isThinking}
-                size="sm"
-                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-              
-              {/* Debug button - remove this later */}
-              <Button
-                onClick={() => {
-                  console.log('Manual command menu trigger, current state:', showCommandMenu)
-                  setShowCommandMenu(!showCommandMenu)
-                }}
-                size="sm"
-                variant="outline"
-                className={`h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0 ${
-                  showCommandMenu ? 'bg-blue-100 border-blue-500' : ''
-                }`}
-              >
-                /
-              </Button>
-            </div>
-
-            {/* Debug info - remove this later */}
-            {showCommandMenu && (
-              <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2">
-                Command menu is open! Search query: "{commandSearchQuery}"
-              </div>
-            )}
-
-            {/* Enhanced Action Buttons - Responsive */}
-            <div className="flex items-center justify-between mt-3">
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearChat}
-                  className="text-gray-400 hover:text-white h-8 px-2"
-                >
-                  <RotateCcw className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">Clear</span>
-                </Button>
+                </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={addSmartInsight}
-                  className="text-gray-400 hover:text-purple-400 h-8 px-2"
-                  disabled={!smartInsights}
-                >
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  <span className="hidden sm:inline">Insight</span>
-                </Button>
-              </div>
-              
-              {/* Enhanced Context Indicator - Responsive */}
-              {contextAware && context.currentModule && (
-                <div className="flex items-center space-x-1 sm:space-x-2 overflow-hidden">
-                  <Badge variant="outline" className="text-xs bg-slate-800/50 border-slate-600 max-w-[100px] sm:max-w-none">
-                    <BookOpen className="w-3 h-3 mr-1 shrink-0" />
-                    <span className="truncate">{context.currentModule}</span>
-                  </Badge>
-                  {context.progress !== undefined && (
-                    <Badge variant="outline" className="text-xs bg-slate-800/50 border-slate-600 shrink-0">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      {context.progress}%
+                {/* Enhanced Session Info - Responsive */}
+                <div className="flex items-center space-x-2 text-xs text-gray-400">
+                  {advancedVoiceMode && (
+                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 animate-pulse">
+                      <span className="hidden sm:inline">Voice Chat Active</span>
+                      <span className="sm:hidden">Voice</span>
                     </Badge>
                   )}
+                  <div className="hidden sm:flex items-center space-x-2">
+                    {sessionStats.sessionDuration > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(sessionStats.sessionDuration)}</span>
+                      </div>
+                    )}
+                    {sessionStats.helpfulnessScore > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <Heart className="h-3 w-3 text-red-400" />
+                        <span>{sessionStats.helpfulnessScore}%</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Message Input - Responsive */}
+              <div className="flex items-end space-x-2 sm:space-x-3">
+                <div className="flex-1 relative">
+                  <Textarea
+                    ref={messageInputRef}
+                    value={currentMessage}
+                    onChange={handleInputChange}
+                    placeholder={`Ask ${ASSISTANT_PERSONALITIES[activePersonality].name} anything about your learning... (Type "/" for commands)`}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSendMessage()
+                      }
+                    }}
+                    className={`bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl ${
+                      showCommandMenu ? 'border-blue-500 ring-2 ring-blue-200' : ''
+                    }`}
+                    disabled={isTyping || isThinking}
+                    rows={1}
+                  />
+                  
+                  {/* Enhanced Voice Input - Responsive */}
+                  {voiceEnabled && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleVoiceInput}
+                      className={`absolute right-2 top-1 sm:top-2 h-8 w-8 p-0 ${
+                        speechMode === 'listening' 
+                          ? 'text-red-400 animate-pulse' 
+                          : speechMode === 'speaking'
+                          ? 'text-blue-400 animate-bounce'
+                          : advancedVoiceMode
+                          ? 'text-purple-400 hover:text-purple-300'
+                          : 'text-gray-400 hover:text-cyan-400'
+                      }`}
+                    >
+                      {speechMode === 'listening' ? (
+                        <motion.div 
+                          animate={{ scale: [1, 1.3, 1] }} 
+                          transition={{ duration: 0.8, repeat: Infinity }}
+                        >
+                          <div className="relative">
+                            <MicOff className="h-4 w-4" />
+                            <motion.div
+                              className="absolute -inset-1 rounded-full border border-red-400/50"
+                              animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            />
+                          </div>
+                        </motion.div>
+                      ) : speechMode === 'speaking' ? (
+                        <motion.div
+                          animate={{ scale: [1, 1.1, 1] }}
+                          transition={{ duration: 0.5, repeat: Infinity }}
+                        >
+                          <Volume2 className="h-4 w-4" />
+                        </motion.div>
+                      ) : (
+                        <div className="relative">
+                          <Mic className="h-4 w-4" />
+                          {advancedVoiceMode && (
+                            <div className="absolute -top-1 -right-1 w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+                          )}
+                          {continuousListening && (
+                            <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
+                          )}
+                        </div>
+                      )}
+                    </Button>
+                  )}
+                </div>
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!currentMessage.trim() || isTyping || isThinking}
+                  size="sm"
+                  className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+                
+                {/* Debug button - remove this later */}
+                <Button
+                  onClick={() => {
+                    console.log('Manual command menu trigger, current state:', showCommandMenu)
+                    setShowCommandMenu(!showCommandMenu)
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className={`h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0 ${
+                    showCommandMenu ? 'bg-blue-100 border-blue-500' : ''
+                  }`}
+                >
+                  /
+                </Button>
+              </div>
+
+              {/* Debug info - remove this later */}
+              {showCommandMenu && (
+                <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded mb-2">
+                  Command menu is open! Search query: "{commandSearchQuery}"
                 </div>
               )}
+
+              {/* Enhanced Action Buttons - Responsive */}
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearChat}
+                    className="text-gray-400 hover:text-white h-8 px-2"
+                  >
+                    <RotateCcw className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Clear</span>
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={addSmartInsight}
+                    className="text-gray-400 hover:text-purple-400 h-8 px-2"
+                    disabled={!smartInsights}
+                  >
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Insight</span>
+                  </Button>
+                </div>
+                
+                {/* Enhanced Context Indicator - Responsive */}
+                {contextAware && context.currentModule && (
+                  <div className="flex items-center space-x-1 sm:space-x-2 overflow-hidden">
+                    <Badge variant="outline" className="text-xs bg-slate-800/50 border-slate-600 max-w-[100px] sm:max-w-none">
+                      <BookOpen className="w-3 h-3 mr-1 shrink-0" />
+                      <span className="truncate">{context.currentModule}</span>
+                    </Badge>
+                    {context.progress !== undefined && (
+                      <Badge variant="outline" className="text-xs bg-slate-800/50 border-slate-600 shrink-0">
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        {context.progress}%
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </Card>
-      </motion.div>
-    </AnimatePresence>
-    
-    {/* Command Menu - Outside AnimatePresence to avoid conflicts */}
-    <CommandMenu
-      isOpen={showCommandMenu}
-      onClose={() => {
-        setShowCommandMenu(false)
-        setCommandSearchQuery('')
-        setCurrentMessage('')
-      }}
-      onSelect={handleCommandSelect}
-      searchQuery={commandSearchQuery}
-    />
+          </Card>
+        </motion.div>
+      </AnimatePresence>
+      
+      {/* Command Menu - Outside AnimatePresence to avoid conflicts */}
+      <CommandMenu
+        isOpen={showCommandMenu}
+        onClose={() => {
+          setShowCommandMenu(false)
+          setCommandSearchQuery('')
+          setCurrentMessage('')
+        }}
+        onSelect={handleCommandSelect}
+        searchQuery={commandSearchQuery}
+      />
+    </>
   )
 }
