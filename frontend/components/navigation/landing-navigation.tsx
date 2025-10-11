@@ -43,7 +43,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Link href="/" className="flex items-center">
+              <Link href="/main" className="flex items-center">
                 <Image 
                   src="/logo.png" 
                   alt="Corp1o1" 

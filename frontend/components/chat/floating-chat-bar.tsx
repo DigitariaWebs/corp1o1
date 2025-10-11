@@ -86,30 +86,39 @@ export function FloatingChatBar({
     >
       <div className="relative">
         {/* Simple white background with rounded edges */}
-        <div className="absolute inset-0 bg-white rounded-full shadow-lg border border-gray-200" />
+        <div className={cn(
+          "absolute inset-0 bg-white shadow-lg border border-gray-200 transition-all duration-300",
+          messages.length === 0 ? "rounded-full" : "rounded-2xl"
+        )} />
 
         {/* Main content */}
         <div className="relative p-4">
-          <AnimatePresence>
-            {!isMinimized && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="overflow-hidden"
-              >
-                
+          {!isMinimized && (
+            <>
+              {/* Messages - only show when there are messages */}
+              {messages.length > 0 && (
+                <AnimatePresence>
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden mb-4"
+                  >
+                    <div className="max-h-64 overflow-y-auto space-y-3 text-sm px-4">
+                      {messages.map((m) => (
+                        <div key={m.id} className={cn('px-4 py-3 rounded-lg', m.role==='user'?'bg-blue-500 text-white':'bg-gray-100 text-gray-900')}>{m.content}</div>
+                      ))}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              )}
 
-                {/* Messages */}
-                <div className="max-h-64 overflow-y-auto  space-y-2 text-sm">
-                  {messages.map((m) => (
-                    <div key={m.id} className={cn('p-2 rounded-lg', m.role==='user'?'bg-blue-500 text-white':'bg-gray-100 text-gray-900')}>{m.content}</div>
-                  ))}
-                </div>
-
-                {/* Chat input */}
-                <div className="flex items-center space-x-3">
+              {/* Chat input */}
+              <div className={cn(
+                "flex items-center space-x-3 px-4",
+                messages.length === 0 ? "justify-center" : ""
+              )}>
                   <div className="relative flex-1">
                     <Input
                       value={message}
@@ -180,12 +189,8 @@ export function FloatingChatBar({
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
- 
-              </motion.div>
+              </>
             )}
-          </AnimatePresence>
-
-        
         </div>
       </div>
     </motion.div>

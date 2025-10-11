@@ -208,7 +208,7 @@ export function MainNavigation() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center space-x-3"
           >
-            <Link href="/" className="flex items-center">
+            <Link href="/main" className="flex items-center">
               <Image 
                 src="/logo.png" 
                 alt="Corp1o1" 
