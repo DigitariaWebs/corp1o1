@@ -9,15 +9,15 @@ const User = require('../models/User');
 const LearningPath = require('../models/LearningPath');
 const LearningModule = require('../models/LearningModule');
 const UserProgress = require('../models/UserProgress');
-const LearningSession = require('../models/LearningSession');
-const AIPrompt = require('../models/AIPrompt');
+// const LearningSession = require('../models/LearningSession'); // ❌ Removed - model deleted
+// const AIPrompt = require('../models/AIPrompt'); // ❌ Removed - model deleted
 const AISession = require('../models/AISession');
 const Assessment = require('../models/Assessment');
 const AssessmentSession = require('../models/AssessmentSession');
 const Certificate = require('../models/Certificate');
-const LearningAnalytics = require('../models/LearningAnalytics');
-const AdaptationRule = require('../models/AdaptationRule');
-const RecommendationEngine = require('../models/RecommendationEngine');
+// const LearningAnalytics = require('../models/LearningAnalytics'); // ❌ Removed - model deleted
+// const AdaptationRule = require('../models/AdaptationRule'); // ❌ Removed - model deleted
+// const RecommendationEngine = require('../models/RecommendationEngine'); // ❌ Removed - model deleted
 
 // Utility functions
 const getRandomElement = (array) =>
@@ -136,18 +136,18 @@ class ComprehensiveSeeder {
 
       // Seed in order (maintaining relationships)
       await this.seedUsers();
-      await this.seedAIPrompts();
-      await this.seedAdaptationRules();
+      // await this.seedAIPrompts(); // ❌ Removed - model deleted
+      // await this.seedAdaptationRules(); // ❌ Removed - model deleted
       await this.seedLearningPaths();
       await this.seedLearningModules();
       await this.seedAssessments();
       await this.seedUserProgress();
-      await this.seedLearningSessions();
+      // await this.seedLearningSessions(); // ❌ Removed - model deleted
       await this.seedAISessions();
       await this.seedAssessmentSessions();
       await this.seedCertificates();
-      await this.seedLearningAnalytics();
-      await this.seedRecommendations();
+      // await this.seedLearningAnalytics(); // ❌ Removed - model deleted
+      // await this.seedRecommendations(); // ❌ Removed - model deleted
 
       await this.displaySummary();
       console.log('🎉 Comprehensive database seeding completed successfully!');
@@ -167,15 +167,15 @@ class ComprehensiveSeeder {
       LearningPath,
       LearningModule,
       UserProgress,
-      LearningSession,
-      AIPrompt,
+      // LearningSession, // ❌ Removed - model deleted
+      // AIPrompt, // ❌ Removed - model deleted
       AISession,
       Assessment,
       AssessmentSession,
       Certificate,
-      LearningAnalytics,
-      AdaptationRule,
-      RecommendationEngine,
+      // LearningAnalytics, // ❌ Removed - model deleted
+      // AdaptationRule, // ❌ Removed - model deleted
+      // RecommendationEngine, // ❌ Removed - model deleted
     ];
 
     for (const Model of collections) {
@@ -2357,15 +2357,15 @@ class ComprehensiveSeeder {
       { name: 'Learning Paths', model: LearningPath },
       { name: 'Learning Modules', model: LearningModule },
       { name: 'User Progress', model: UserProgress },
-      { name: 'Learning Sessions', model: LearningSession },
-      { name: 'AI Prompts', model: AIPrompt },
+      // { name: 'Learning Sessions', model: LearningSession }, // ❌ Removed
+      // { name: 'AI Prompts', model: AIPrompt }, // ❌ Removed
       { name: 'AI Sessions', model: AISession },
       { name: 'Assessments', model: Assessment },
       { name: 'Assessment Sessions', model: AssessmentSession },
       { name: 'Certificates', model: Certificate },
-      { name: 'Learning Analytics', model: LearningAnalytics },
-      { name: 'Adaptation Rules', model: AdaptationRule },
-      { name: 'Recommendations', model: RecommendationEngine },
+      // { name: 'Learning Analytics', model: LearningAnalytics }, // ❌ Removed
+      // { name: 'Adaptation Rules', model: AdaptationRule }, // ❌ Removed
+      // { name: 'Recommendations', model: RecommendationEngine }, // ❌ Removed
     ];
 
     let totalDocuments = 0;

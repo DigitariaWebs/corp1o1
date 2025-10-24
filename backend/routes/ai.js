@@ -30,9 +30,8 @@ const chatMessageSchema = Joi.object({
     'string.uuid': 'Session ID must be a valid UUID',
   }),
 
-  personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').optional().messages({
-    'any.only': 'Personality must be one of: ARIA, SAGE, COACH',
-  }),
+  // Personality system removed for optimization
+  personality: Joi.string().optional().messages({}),
 
   context: Joi.object({
     deviceType: Joi.string()
@@ -65,10 +64,8 @@ const chatMessageSchema = Joi.object({
 });
 
 const personalitySwitchSchema = Joi.object({
-  personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').required().messages({
-    'any.only': 'Personality must be one of: ARIA, SAGE, COACH',
-    'any.required': 'Personality is required',
-  }),
+  // Personality system removed - schema kept for API compatibility
+  personality: Joi.string().optional().messages({}),
 });
 
 const feedbackSchema = Joi.object({
@@ -99,9 +96,8 @@ const sessionHistorySchema = Joi.object({
     'number.min': 'Offset cannot be negative',
   }),
 
-  personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').optional().messages({
-    'any.only': 'Personality must be one of: ARIA, SAGE, COACH',
-  }),
+  // Personality system removed for optimization
+  personality: Joi.string().optional().messages({}),
 });
 
 /**
@@ -211,7 +207,6 @@ router.get('/health', async (req, res) => {
         services: {
           openaiService: isHealthy ? 'operational' : 'down',
           contextService: 'operational',
-          promptService: 'operational',
         },
       },
     });
@@ -317,57 +312,18 @@ router.post('/sessions/:sessionId/end', async (req, res) => {
  * @access  Private
  */
 router.get('/personalities', (req, res) => {
+  // Personality system removed for optimization
   const personalities = [
     {
-      id: 'ARIA',
-      name: 'ARIA',
-      title: 'Supportive Learning Companion',
-      description:
-        'Encouraging and empathetic assistant that provides gentle guidance and positive reinforcement',
-      style: 'supportive',
-      bestFor: [
-        'beginners',
-        'confidence building',
-        'emotional support',
-        'motivation',
-      ],
-      traits: ['encouraging', 'patient', 'understanding', 'optimistic'],
-      responseStyle: 'warm and supportive',
-      icon: '🌟',
-    },
-    {
-      id: 'SAGE',
-      name: 'SAGE',
-      title: 'Professional Learning Analyst',
-      description:
-        'Objective and analytical assistant that provides detailed insights and professional guidance',
-      style: 'analytical',
-      bestFor: [
-        'advanced learners',
-        'detailed analysis',
-        'objective feedback',
-        'skill assessment',
-      ],
-      traits: ['analytical', 'objective', 'detailed', 'professional'],
-      responseStyle: 'informative and structured',
-      icon: '🎓',
-    },
-    {
-      id: 'COACH',
-      name: 'COACH',
-      title: 'Motivational Performance Coach',
-      description:
-        'Energetic and goal-focused assistant that pushes you to achieve peak performance',
-      style: 'motivational',
-      bestFor: [
-        'goal achievement',
-        'performance improvement',
-        'challenges',
-        'accountability',
-      ],
-      traits: ['energetic', 'challenging', 'results-focused', 'direct'],
-      responseStyle: 'motivating and action-oriented',
-      icon: '💪',
+      id: 'ASSISTANT',
+      name: 'ASSISTANT',
+      title: 'AI Assistant',
+      description: 'Standard helpful AI assistant optimized for performance',
+      style: 'neutral',
+      bestFor: ['all users', 'general help', 'learning support'],
+      traits: ['helpful', 'clear', 'efficient'],
+      responseStyle: 'concise and direct',
+      icon: '🤖',
     },
   ];
 
@@ -375,7 +331,8 @@ router.get('/personalities', (req, res) => {
     success: true,
     data: {
       personalities,
-      currentPersonality: req.user?.learningProfile?.aiPersonality || 'ARIA',
+      currentPersonality: 'ASSISTANT',
+      message: 'Personality system simplified for better performance',
     },
   });
 });

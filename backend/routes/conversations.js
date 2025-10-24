@@ -38,9 +38,8 @@ const createConversationSchema = Joi.object({
   title: Joi.string().max(100).optional().messages({
     'string.max': 'Title cannot exceed 100 characters',
   }),
-  personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').optional().messages({
-    'any.only': 'Personality must be one of: ARIA, SAGE, COACH',
-  }),
+  // Personality system removed for optimization
+  personality: Joi.string().optional().messages({}),
 });
 
 const updateConversationSchema = Joi.object({
@@ -77,9 +76,8 @@ const conversationQuerySchema = Joi.object({
   offset: Joi.number().integer().min(0).default(0).messages({
     'number.min': 'Offset cannot be negative',
   }),
-  personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').optional().messages({
-    'any.only': 'Personality must be one of: ARIA, SAGE, COACH',
-  }),
+  // Personality system removed for optimization
+  personality: Joi.string().optional().messages({}),
 });
 
 const messageQuerySchema = Joi.object({

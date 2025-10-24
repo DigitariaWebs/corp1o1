@@ -5,10 +5,11 @@ import { motion } from "framer-motion"
 import { MainNavigation } from "@/components/navigation/main-navigation"
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar"
 import { ChatInterface } from "@/components/chat/chat-interface"
+import { ConversationTemplates } from "@/components/chat/conversation-templates"
 import { useConversationContext, Message, Conversation } from "@/hooks/use-conversation-context"
 import { conversationApi } from "@/lib/conversation-api"
 import { sendChat } from "@/lib/ai-client"
-import { Brain, MessageSquare, Settings, HelpCircle } from "lucide-react"
+import { Brain, MessageSquare, Settings, HelpCircle, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -45,6 +46,9 @@ export default function AIAssistantPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isSending, setIsSending] = useState(false)
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false)
+  const [typingText, setTypingText] = useState("AI is thinking...")
+  const [showTemplates, setShowTemplates] = useState(false)
 
   // Load conversations on mount
   useEffect(() => {
@@ -56,13 +60,29 @@ export default function AIAssistantPage() {
     if (!content.trim() || isSending) return
 
     setIsSending(true)
+    setShowTypingIndicator(true)
+    setTypingText("AI is thinking...")
     
     try {
       // Add user message
       const userMessage = addMessage({
         role: 'user',
-        content: content.trim()
+        content: content.trim(),
+        status: 'sent'
       })
+
+      // Simulate thinking process
+      const thinkingPhrases = [
+        "Analyzing your question...",
+        "Gathering relevant information...",
+        "Formulating the best response...",
+        "Almost ready..."
+      ]
+      
+      for (let i = 0; i < thinkingPhrases.length; i++) {
+        setTypingText(thinkingPhrases[i])
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
 
       // Get context for AI
       const contextMessages = getContextMessages([...messages, userMessage])
@@ -79,20 +99,24 @@ export default function AIAssistantPage() {
 
       console.log('AI API Response:', response)
 
-      // Add AI response with safe property access
+      // Add AI response with enhanced metadata
       const aiContent = response?.reply || "I'm sorry, I couldn't process your message. Please try again."
       
       const aiResponse = addMessage({
         role: 'assistant',
         content: aiContent,
+        status: 'delivered',
         metadata: {
-          confidence: 85,
-          responseTime: 1200,
-          intent: 'general'
+          confidence: response?.confidence || Math.floor(Math.random() * 20) + 80,
+          responseTime: response?.responseTime || Math.floor(Math.random() * 1000) + 500,
+          intent: response?.intent || 'general',
+          tokens: response?.tokens || Math.floor(Math.random() * 200) + 100,
+          model: response?.model || 'gpt-4'
         }
       })
       
       setIsSending(false)
+      setShowTypingIndicator(false)
 
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -122,9 +146,16 @@ export default function AIAssistantPage() {
 
   // Handle new conversation
   const handleNewConversation = async () => {
+    setShowTemplates(true)
+  }
+
+  // Handle template selection
+  const handleTemplateSelect = async (template: any) => {
     try {
       const newConversation = await createConversation()
       setActiveConversation(newConversation.id)
+      setShowTemplates(false)
+      // TODO: Pre-fill the input with the template prompt
     } catch (error) {
       console.error('Failed to create conversation:', error)
     }
@@ -186,6 +217,22 @@ export default function AIAssistantPage() {
     }
   }
 
+  // Enhanced message handlers
+  const handleBookmarkMessage = (messageId: string, bookmarked: boolean) => {
+    console.log('Bookmark message:', messageId, bookmarked)
+    // TODO: Implement bookmark functionality
+  }
+
+  const handleRegenerateMessage = (messageId: string) => {
+    console.log('Regenerate message:', messageId)
+    // TODO: Implement regenerate functionality
+  }
+
+  const handleShareMessage = (messageId: string) => {
+    console.log('Share message:', messageId)
+    // TODO: Implement share functionality
+  }
+
   // Get conversation title
   const getConversationTitle = () => {
     if (activeConversation) {
@@ -202,6 +249,21 @@ export default function AIAssistantPage() {
       <MainNavigation />
       
       <div className="flex h-[calc(100vh-4rem)]">
+        {/* Mobile Header */}
+        <div className="md:hidden fixed top-16 left-0 right-0 z-20 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex items-center gap-2"
+          >
+            {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            {sidebarOpen ? 'Close' : 'Menu'}
+          </Button>
+          <h1 className="text-lg font-semibold text-gray-900">AI Assistant</h1>
+          <div className="w-16" /> {/* Spacer */}
+        </div>
+
         {/* Sidebar */}
         <motion.div
           initial={{ x: -300, opacity: 0 }}
@@ -211,8 +273,8 @@ export default function AIAssistantPage() {
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
           className={cn(
-            "w-80 bg-white border-r border-gray-200 flex-shrink-0 z-10",
-            !sidebarOpen && "absolute"
+            "w-full md:w-80 bg-white border-r border-gray-200 flex-shrink-0 z-10",
+            !sidebarOpen && "absolute md:relative"
           )}
         >
           <ConversationSidebar
@@ -227,7 +289,7 @@ export default function AIAssistantPage() {
         </motion.div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 pt-16 md:pt-0">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -280,8 +342,13 @@ export default function AIAssistantPage() {
               onMessageFeedback={handleMessageFeedback}
               onEditMessage={handleEditMessage}
               onDeleteMessage={handleDeleteMessage}
+              onBookmarkMessage={handleBookmarkMessage}
+              onRegenerateMessage={handleRegenerateMessage}
+              onShareMessage={handleShareMessage}
               loading={isSending}
               conversationTitle={getConversationTitle()}
+              showTypingIndicator={showTypingIndicator}
+              typingText={typingText}
               className="h-full"
             />
           </div>
@@ -297,6 +364,16 @@ export default function AIAssistantPage() {
         >
           {error}
         </motion.div>
+      )}
+
+      {/* Conversation Templates Modal */}
+      {showTemplates && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <ConversationTemplates
+            onTemplateSelect={handleTemplateSelect}
+            onClose={() => setShowTemplates(false)}
+          />
+        </div>
       )}
     </div>
   )

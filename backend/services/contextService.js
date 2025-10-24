@@ -1,7 +1,7 @@
 // services/contextService.js
 const User = require('../models/User');
 const UserProgress = require('../models/UserProgress');
-const LearningPath = require('../models/LearningPath');
+// const LearningPath = require('../models/LearningPath'); // ❌ Removed - deleted by user
 const LearningModule = require('../models/LearningModule');
 const LearningSession = require('../models/LearningSession');
 const AISession = require('../models/AISession');

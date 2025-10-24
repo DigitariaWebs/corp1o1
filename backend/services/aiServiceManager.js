@@ -14,74 +14,42 @@ class AIServiceManager {
       assessment: {
         model: process.env.OPENAI_MODEL_ASSESSMENT || 'gpt-4o',
         temperature: parseFloat(process.env.OPENAI_TEMP_ASSESSMENT) || 0.5,
-        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 4000, // Increased from 2000
+        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 6000, // Increased for detailed responses
         purpose: 'Complex assessment and question generation',
       },
       evaluation: {
         model: process.env.OPENAI_MODEL_EVALUATION || 'gpt-4o',
         temperature: 0.2, // Low temperature for consistent grading
-        maxTokens: 1000,
+        maxTokens: 2000, // Increased for detailed feedback
         purpose: 'Accurate evaluation and grading',
       },
       conversation: {
-        model: process.env.OPENAI_MODEL_CONVERSATION || 'gpt-4o-mini',
+        model: process.env.OPENAI_MODEL_CONVERSATION || 'gpt-4o',
         temperature: 0.7,
-        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_CONVERSATION) || 500,
-        purpose: 'Quick conversational responses',
+        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_CONVERSATION) || 4000, // Increased for detailed responses
+        purpose: 'Comprehensive conversational responses',
       },
       analysis: {
-        model: process.env.OPENAI_MODEL_ANALYSIS || 'gpt-4o-mini',
+        model: process.env.OPENAI_MODEL_ANALYSIS || 'gpt-4o',
         temperature: 0.4,
-        maxTokens: 800,
-        purpose: 'Data analysis and insights',
+        maxTokens: 3000, // Increased for detailed analysis
+        purpose: 'Comprehensive data analysis and insights',
       },
     };
 
-    // AI Personality configurations
+    // Single lightweight assistant persona to minimize prompt tokens
     this.personalities = {
-      ARIA: {
-        name: 'ARIA',
-        description: 'Encouraging and supportive assistant',
-        temperature: parseFloat(process.env.OPENAI_TEMP_ARIA) || 0.9,
-        model: 'gpt-4o-mini', // Fast, conversational
-        systemPrompt: `You are ARIA, an encouraging and supportive learning assistant. 
-        Your personality is warm, patient, and motivating. You celebrate small wins, 
-        provide emotional support, and help learners build confidence. Use positive 
-        language, emojis when appropriate, and always find something to praise.`,
+      ASSISTANT: {
+        name: 'ASSISTANT',
+        description: 'Generic helpful assistant',
+        temperature: 0.7,
+        model: 'gpt-4o',
+        maxTokens: 2000,
+        systemPrompt: 'You are a concise, helpful AI assistant. Respond clearly and directly to the user\'s question.',
         traits: {
-          tone: 'warm and encouraging',
-          focus: 'motivation and confidence building',
-          responseStyle: 'supportive with positive reinforcement',
-        },
-      },
-      SAGE: {
-        name: 'SAGE',
-        description: 'Analytical and knowledgeable expert',
-        temperature: parseFloat(process.env.OPENAI_TEMP_SAGE) || 0.3,
-        model: 'gpt-4o', // Complex reasoning needed
-        systemPrompt: `You are SAGE, an analytical and knowledgeable learning expert. 
-        Your personality is precise, thorough, and intellectually rigorous. You provide 
-        detailed explanations, explore concepts deeply, and ensure complete understanding. 
-        Use clear, structured responses with examples and logical reasoning.`,
-        traits: {
-          tone: 'professional and informative',
-          focus: 'deep understanding and mastery',
-          responseStyle: 'detailed with comprehensive explanations',
-        },
-      },
-      COACH: {
-        name: 'COACH',
-        description: 'Goal-oriented motivational mentor',
-        temperature: parseFloat(process.env.OPENAI_TEMP_COACH) || 0.7,
-        model: 'gpt-4o-mini', // Balanced performance
-        systemPrompt: `You are COACH, a goal-oriented motivational mentor. 
-        Your personality is dynamic, challenging, and results-focused. You push learners 
-        to achieve their best, set ambitious goals, and overcome obstacles. Use action-oriented 
-        language, provide clear challenges, and track progress toward objectives.`,
-        traits: {
-          tone: 'motivational and challenging',
-          focus: 'achievement and goal completion',
-          responseStyle: 'direct with actionable challenges',
+          tone: 'neutral',
+          focus: 'helpfulness',
+          responseStyle: 'concise and direct',
         },
       },
     };
@@ -221,8 +189,9 @@ Customize the skills and descriptions based on the specific domain and topics pr
   /**
    * Generate questions with appropriate model and settings
    */
-  async generateQuestions(title, category, topic, difficulty, count, types) {
+  async generateQuestions(title, category, topic, difficulty, count, types, options = {}) {
     const config = this.getServiceConfig('assessment');
+    const { avoidQuestions = [], subtopics = [] } = options;
     
     const prompt = `You must generate exactly ${count} assessment questions about "${topic}" in valid JSON format.
 
@@ -234,6 +203,11 @@ Context:
 - Category: ${category}  
 - Difficulty Level: ${difficulty}
 - Question Types: ${types.join(', ')}
+${subtopics && subtopics.length > 0 ? `- Target Subtopics (spread coverage across the set): ${subtopics.join(', ')}` : ''}
+
+${avoidQuestions && avoidQuestions.length > 0 ? `Avoid duplicating or closely paraphrasing ANY of these existing questions:
+${avoidQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
+` : ''}
 
 CRITICAL: 
 1. Generate questions SPECIFICALLY about "${topic}" - not generic assessment questions
@@ -251,7 +225,7 @@ Create a JSON object with this exact structure (ALL questions must be multiple_c
       "correctAnswer": "Real option B",
       "points": 10,
       "difficulty": "${difficulty}",
-      "timeLimit": 120,
+      "timeLimit": 300,
       "hints": ["Specific hint about ${topic}"],
       "explanation": "Why this answer is correct and what ${topic} concept it tests"
     }
@@ -264,7 +238,10 @@ CRITICAL REQUIREMENTS for answer randomization:
 3. RANDOMLY place the correct answer in positions A, B, C, or D (don't always make A correct)
 4. Vary the correct answer position across questions - mix them up!
 5. Make all wrong options believable but clearly incorrect to someone who knows ${topic}
-6. Test practical ${topic} knowledge that professionals would encounter`;
+ 6. Test practical ${topic} knowledge that professionals would encounter
+ 7. Ensure each question is unique across this set and not a trivial rewording of previously listed questions
+ 8. Keep options concise, unambiguous, and mutually exclusive
+ 9. Prefer scenario-based or code/snippet-based questions when appropriate for ${topic}`;
 
     try {
       console.log(`📝 Generating ${count} questions for ${topic} using ${config.model}`);
@@ -630,7 +607,7 @@ Return as JSON object.`;
         type: question.type || 'multiple_choice',
         difficulty: question.difficulty || 'medium',
         points: question.points || 10,
-        timeLimit: question.timeLimit || 120,
+        timeLimit: question.timeLimit || 300,
         hints: Array.isArray(question.hints) ? question.hints : [],
         explanation: question.explanation || ''
       });

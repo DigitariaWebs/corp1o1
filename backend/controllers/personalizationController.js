@@ -1,230 +1,157 @@
-// controllers/personalizationController.js
-const { personalizationService } = require('../services/personalizationService');
+const personalizationService = require('../services/personalizationService');
 const User = require('../models/User');
-const { catchAsync } = require('../middleware/errorHandler');
+const { AppError, catchAsync } = require('../middleware/errorHandler');
 
-/**
- * Generate personalized experience during onboarding
- * POST /api/personalization/generate
- */
+// Generate personalized experience based on onboarding data
 const generatePersonalizedExperience = catchAsync(async (req, res) => {
-  console.log('🎯 [CONTROLLER] generatePersonalizedExperience started');
-  console.log('🎯 [CONTROLLER] req.user:', req.user ? req.user._id : 'NO USER');
-  console.log('🎯 [CONTROLLER] req.body:', JSON.stringify(req.body, null, 2));
-  
-  const userId = req.user._id;
   const { onboardingData } = req.body;
+  const userId = req.user._id;
 
-  console.log(`🎯 [CONTROLLER] Generating personalized experience for user: ${userId}`);
-  console.log('🎯 [CONTROLLER] Onboarding data:', JSON.stringify(onboardingData, null, 2));
+  if (!onboardingData) {
+    throw new AppError('Onboarding data is required', 400);
+  }
 
-  // Generate personalized content using AI
-  const personalizedExperience = await personalizationService.generatePersonalizedExperience(
-    onboardingData,
-    userId,
-  );
+  try {
+    const personalizedExperience = await personalizationService.generatePersonalizedExperience(
+      onboardingData,
+      userId
+    );
 
-  // Update user with onboarding data and personalization
-  await User.findByIdAndUpdate(userId, {
-    $set: {
-      'onboardingData': onboardingData,
-      'personalization': personalizedExperience,
-      'onboardingCompleted': true,
-      'personalizedAt': new Date(),
-    },
-  });
+    // Update user with personalization data
+    await User.findByIdAndUpdate(userId, {
+      $set: {
+        'personalization.generated': personalizedExperience,
+        'personalization.lastUpdated': new Date(),
+      },
+    });
 
-  console.log(`✅ [CONTROLLER] Personalized experience generated with ${personalizedExperience.confidence}% confidence`);
-
-  const responseData = {
-    success: true,
-    data: {
-      personalization: personalizedExperience,
+    res.status(200).json({
+      success: true,
       message: 'Personalized experience generated successfully',
-    },
-  };
-
-  console.log('🎯 [CONTROLLER] Sending response:', JSON.stringify(responseData, null, 2));
-
-  res.status(200).json(responseData);
+      data: personalizedExperience,
+    });
+  } catch (error) {
+    console.error('Personalization generation error:', error);
+    throw new AppError('Failed to generate personalized experience', 500);
+  }
 });
 
-/**
- * Get user's current personalization
- * GET /api/personalization
- */
+// Get user's personalization data
 const getPersonalization = catchAsync(async (req, res) => {
   const userId = req.user._id;
 
-  const user = await User.findById(userId).select('personalization onboardingData');
+  const user = await User.findById(userId).select('personalization learningProfile');
   
-  if (!user || !user.personalization) {
-    return res.status(404).json({
-      success: false,
-      message: 'No personalization found. Please complete onboarding first.',
-    });
+  if (!user) {
+    throw new AppError('User not found', 404);
   }
 
   res.status(200).json({
     success: true,
     data: {
-      personalization: user.personalization,
-      onboardingData: user.onboardingData,
+      personalization: user.personalization || {},
+      learningProfile: user.learningProfile || {},
     },
   });
 });
 
-/**
- * Update personalization based on user behavior
- * PUT /api/personalization/update
- */
+// Update personalization settings
 const updatePersonalization = catchAsync(async (req, res) => {
+  const { preferences, settings } = req.body;
   const userId = req.user._id;
-  const { behaviorData, feedbackData } = req.body;
 
-  console.log(`🔄 Updating personalization for user: ${userId}`);
+  const updateData = {};
+  if (preferences) updateData['personalization.preferences'] = preferences;
+  if (settings) updateData['personalization.settings'] = settings;
+  
+  updateData['personalization.lastUpdated'] = new Date();
 
-  // Get current personalization
-  const user = await User.findById(userId).select('personalization');
-  if (!user || !user.personalization) {
-    return res.status(404).json({
-      success: false,
-      message: 'No personalization found to update',
-    });
+  const user = await User.findByIdAndUpdate(
+    userId,
+    { $set: updateData },
+    { new: true, runValidators: true }
+  ).select('personalization');
+
+  if (!user) {
+    throw new AppError('User not found', 404);
   }
 
-  // Generate updated personalization
-  const updates = await personalizationService.updatePersonalization(
-    userId,
-    behaviorData,
-    feedbackData,
-  );
-
-  // Update user's personalization
-  const updatedPersonalization = {
-    ...user.personalization,
-    lastUpdated: new Date(),
-    behaviorBasedUpdates: updates,
-    confidence: Math.min(100, user.personalization.confidence + 5), // Improve confidence with more data
-  };
-
-  await User.findByIdAndUpdate(userId, {
-    $set: {
-      'personalization': updatedPersonalization,
-    },
-  });
-
   res.status(200).json({
     success: true,
-    data: {
-      updates,
-      personalization: updatedPersonalization,
-      message: 'Personalization updated successfully',
-    },
+    message: 'Personalization updated successfully',
+    data: user.personalization,
   });
 });
 
-/**
- * Generate contextual content based on current progress
- * POST /api/personalization/contextual
- */
+// Generate contextual content
 const generateContextualContent = catchAsync(async (req, res) => {
+  const { context, contentType } = req.body;
   const userId = req.user._id;
-  const { currentContext } = req.body;
 
-  console.log(`🎯 Generating contextual content for user: ${userId}`);
+  if (!context) {
+    throw new AppError('Context is required', 400);
+  }
 
-  const contextualContent = await personalizationService.generateContextualContent(
-    userId,
-    currentContext,
-  );
+  try {
+    const contextualContent = await personalizationService.generateContextualContent(
+      context,
+      contentType,
+      userId
+    );
 
-  res.status(200).json({
-    success: true,
-    data: {
-      contextualContent,
-      generatedAt: new Date(),
-    },
-  });
+    res.status(200).json({
+      success: true,
+      data: contextualContent,
+    });
+  } catch (error) {
+    console.error('Contextual content generation error:', error);
+    throw new AppError('Failed to generate contextual content', 500);
+  }
 });
 
-/**
- * Reset personalization (start over)
- * DELETE /api/personalization/reset
- */
+// Reset personalization data
 const resetPersonalization = catchAsync(async (req, res) => {
   const userId = req.user._id;
 
-  console.log(`🔄 Resetting personalization for user: ${userId}`);
-
   await User.findByIdAndUpdate(userId, {
     $unset: {
-      'personalization': 1,
-      'onboardingData': 1,
-    },
-    $set: {
-      'onboardingCompleted': false,
+      personalization: 1,
     },
   });
 
   res.status(200).json({
     success: true,
-    message: 'Personalization reset successfully. User can complete onboarding again.',
+    message: 'Personalization data reset successfully',
   });
 });
 
-/**
- * Get personalization analytics
- * GET /api/personalization/analytics
- */
+// Get personalization analytics
 const getPersonalizationAnalytics = catchAsync(async (req, res) => {
   const userId = req.user._id;
 
-  const user = await User.findById(userId).select('personalization onboardingData personalizedAt');
+  const user = await User.findById(userId).select('personalization learningProfile');
   
-  if (!user || !user.personalization) {
-    return res.status(404).json({
-      success: false,
-      message: 'No personalization data found',
-    });
+  if (!user) {
+    throw new AppError('User not found', 404);
   }
 
   const analytics = {
-    confidence: user.personalization.confidence,
-    completeness: calculateDataCompleteness(user.onboardingData),
-    personalizationAge: user.personalizedAt ? 
-      Math.floor((Date.now() - new Date(user.personalizedAt).getTime()) / (1000 * 60 * 60 * 24)) : 0,
-    updateCount: user.personalization.behaviorBasedUpdates ? 
-      Object.keys(user.personalization.behaviorBasedUpdates).length : 0,
-    domains: user.onboardingData?.preferredDomains || [],
-    learningStyle: user.onboardingData?.preferredLearningStyle || 'not_set',
-    goals: user.onboardingData?.primaryGoal || 'not_set',
+    hasPersonalization: !!user.personalization?.generated,
+    lastUpdated: user.personalization?.lastUpdated,
+    confidence: user.personalization?.generated?.confidence || 0,
+    components: {
+      hasContent: !!user.personalization?.generated?.personalizedContent,
+      hasAssessmentPlan: !!user.personalization?.generated?.assessmentPlan,
+      hasLearningPath: !!user.personalization?.generated?.learningPath,
+      hasMotivationalProfile: !!user.personalization?.generated?.motivationalProfile,
+    },
   };
 
   res.status(200).json({
     success: true,
-    data: { analytics },
+    data: analytics,
   });
 });
-
-/**
- * Helper function to calculate data completeness
- */
-function calculateDataCompleteness(onboardingData) {
-  if (!onboardingData) return 0;
-  
-  const fields = [
-    'primaryGoal', 'currentRole', 'experience', 
-    'timeCommitment', 'preferredLearningStyle', 'preferredDomains',
-  ];
-  
-  const completed = fields.filter(field => {
-    const value = onboardingData[field];
-    return value && (Array.isArray(value) ? value.length > 0 : true);
-  });
-  
-  return Math.round((completed.length / fields.length) * 100);
-}
 
 module.exports = {
   generatePersonalizedExperience,

@@ -103,7 +103,7 @@ class AssessmentService {
           correctAnswer: q.correctAnswer,
           points: q.points || 10,
           difficulty: q.difficulty || assessment.difficulty,
-          timeLimit: q.timeLimit || 120,
+          timeLimit: q.timeLimit || 300,
           category: assessment.category,
           subcategory: q.category || assessment.tags[0],
           hints: q.hints || [],

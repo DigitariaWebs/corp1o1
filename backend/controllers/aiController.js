@@ -1,10 +1,10 @@
 // controllers/aiController.js
 const AISession = require('../models/AISession');
-const User = require('../models/User');
+// const User = require('../models/User'); // Not used anymore
 const { openAIService } = require('../services/openaiService');
 // Commented out: detailed user-context aggregation has been disabled for lightweight builds.
 // const { contextService } = require('../services/contextService');
-const { promptService } = require('../services/promptService');
+const { titleGenerationService } = require('../services/titleGenerationService');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { v4: uuidv4 } = require('uuid');
 
@@ -18,8 +18,7 @@ const handleChatMessage = catchAsync(async (req, res) => {
   const {
     message,
     sessionId = null,
-    personality = null,
-    context: additionalContext = {},
+    // context not used anymore
   } = req.body;
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -30,32 +29,17 @@ const handleChatMessage = catchAsync(async (req, res) => {
   console.log(`🤖 AI Chat Request - User: ${userId} | Session: ${sessionId}`);
 
   try {
-    // 1. Get or create AI session
-    const session = await getOrCreateSession(userId, sessionId, personality);
+    // 1. Get or create AI session (simplified - no personality)
+    const session = await getOrCreateSession(userId, sessionId);
 
-    // 2. Context feature disabled – use lightweight stub instead of full aggregation
-    const userContext = {
-      disabled: true,
-      insights: {},
-    };
+    // 2. Analyze user message intent (simplified)
+    const messageIntent = analyzeMessageIntent(message);
 
-    // 3. Analyze user message intent
-    const messageIntent = promptService.analyzeMessageIntent(message);
+    // 3. Get simple prompt (no personality system)
+    const promptData = getSimplePrompt(messageIntent, { userMessage: message });
 
-    // 4. Get current user personality preference
-    const aiPersonality =
-      personality || userContext?.user?.aiPersonality || 'ARIA';
-
-    // 5. Select and build optimal prompt
-    const promptData = await promptService.selectOptimalPrompt(
-      aiPersonality,
-      messageIntent,
-      userContext,
-      { userMessage: message },
-    );
-
-    // 6. Add user message to session
-    const userMessage = session.addMessage('user', message, {
+    // 4. Add user message to session
+    session.addMessage('user', message, {
       intent: messageIntent,
       urgency: detectUrgency(message),
       topics: extractTopics(message),
@@ -82,10 +66,6 @@ const handleChatMessage = catchAsync(async (req, res) => {
         {
           ...promptData.config,
           userId: userId.toString(),
-          temperature: adjustTemperatureForContext(
-            userContext,
-            promptData.config.temperature,
-          ),
           stream: true,
         },
       );
@@ -98,22 +78,31 @@ const handleChatMessage = catchAsync(async (req, res) => {
       res.end();
 
       // Save assistant message once stream finishes
-      const assistantMessage = session.addMessage('assistant', assistantContent, {
-        promptId: promptData.metadata.promptId,
+      session.addMessage('assistant', assistantContent, {
         model: promptData.config.model,
         timestamp: new Date(),
       });
       await session.save();
+
+      // Auto-generate title if needed (don't wait for it)
+      if (titleGenerationService.needsTitleGeneration(session)) {
+        titleGenerationService.generateTitleFromSession(session)
+          .then(async (newTitle) => {
+            session.title = newTitle;
+            await session.save();
+            console.log(`📝 Generated title for session ${session.sessionId}: "${newTitle}"`);
+          })
+          .catch(err => {
+            console.error('Failed to generate title:', err);
+          });
+      }
+
       return; // streaming handled
     }
 
     const aiResponse = await openAIService.createChatCompletion(optimizedHistory, {
       ...promptData.config,
       userId: userId.toString(),
-      temperature: adjustTemperatureForContext(
-        userContext,
-        promptData.config.temperature,
-      ),
     });
 
     // 9. Validate response quality
@@ -130,11 +119,10 @@ const handleChatMessage = catchAsync(async (req, res) => {
       'assistant',
       aiResponse.content,
       {
-        promptId: promptData.metadata.promptId,
         model: aiResponse.model,
         responseTime: Date.now() - startTime,
         tokenCount: aiResponse.usage?.total_tokens || 0,
-        confidence: calculateConfidence(aiResponse, userContext),
+        confidence: 0.8, // Simplified - no complex confidence calculation
         finishReason: aiResponse.finishReason,
       },
     );
@@ -145,11 +133,24 @@ const handleChatMessage = catchAsync(async (req, res) => {
       sessionDuration: Math.round(
         (Date.now() - session.startTime) / (1000 * 60),
       ),
-      userState: userContext.insights?.userState || 'focused',
+      userState: 'focused', // Simplified - no complex user state
     });
 
     // 12. Save session
     await session.save();
+
+    // 12.5. Auto-generate title if needed (don't wait for it)
+    if (titleGenerationService.needsTitleGeneration(session)) {
+      titleGenerationService.generateTitleFromSession(session)
+        .then(async (newTitle) => {
+          session.title = newTitle;
+          await session.save();
+          console.log(`📝 Generated title for session ${session.sessionId}: "${newTitle}"`);
+        })
+        .catch(err => {
+          console.error('Failed to generate title:', err);
+        });
+    }
 
     // 13. Calculate cost
     const cost = openAIService.calculateCost(
@@ -172,8 +173,8 @@ const handleChatMessage = catchAsync(async (req, res) => {
             responseTime,
             model: aiResponse.model,
             promptName: promptData.metadata.promptName,
-            personality: aiPersonality,
-            adaptationsApplied: promptData.metadata.adaptationsApplied,
+            personality: 'ASSISTANT',
+            adaptationsApplied: [], // Simplified - no adaptations
           },
         },
         session: {
@@ -182,9 +183,9 @@ const handleChatMessage = catchAsync(async (req, res) => {
           duration: session.duration,
         },
         context: {
-          userState: userContext.insights?.userState,
-          recommendedApproach: userContext.insights?.recommendedApproach,
-          motivationLevel: userContext.insights?.motivationLevel,
+          userState: 'focused', // Simplified
+          recommendedApproach: 'standard',
+          motivationLevel: 50,
         },
         usage: {
           tokens: aiResponse.usage,
@@ -255,38 +256,12 @@ const getUserContext = catchAsync(async (req, res) => {
  * PUT /api/ai/personality
  */
 const switchPersonality = catchAsync(async (req, res) => {
-  const userId = req.user._id;
-  const { personality } = req.body;
-
-  if (!personality || !['ARIA', 'SAGE', 'COACH'].includes(personality)) {
-    throw new AppError(
-      'Invalid personality. Must be ARIA, SAGE, or COACH',
-      400,
-    );
-  }
-
-  console.log(
-    `🎭 Switching AI personality for user ${userId} to: ${personality}`,
-  );
-
-  // Update user's AI personality preference
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new AppError('User not found', 404);
-  }
-
-  user.learningProfile.aiPersonality = personality;
-  await user.save();
-
-  // Clear prompt cache to ensure new personality takes effect
-  promptService.clearCache();
-
+  // Personality system has been removed for optimization
   res.status(200).json({
     success: true,
     data: {
-      personality,
-      message: `AI personality switched to ${personality}`,
-      description: getPersonalityDescription(personality),
+      personality: 'ASSISTANT',
+      message: 'Using standard AI assistant (personality system removed for optimization)',
     },
   });
 });
@@ -333,20 +308,11 @@ const provideFeedback = catchAsync(async (req, res) => {
 
   await session.save();
 
-  // Update prompt performance if we have a prompt ID
-  const message = session.messages.find((m) => m.messageId === messageId);
-  if (message?.metadata?.promptId && rating) {
-    try {
-      const prompt = await require('../models/AIPrompt').findById(
-        message.metadata.promptId,
-      );
-      if (prompt) {
-        await prompt.recordUsage(message.metadata.responseTime || 0, rating);
-      }
-    } catch (error) {
-      console.error('Error updating prompt performance:', error);
-    }
-  }
+  // Simplified - no prompt performance tracking since AIPrompt model was removed
+  // const message = session.messages.find((m) => m.messageId === messageId);
+  // if (message?.metadata?.promptId && rating) {
+  //   // Prompt performance tracking removed for optimization
+  // }
 
   res.status(200).json({
     success: true,
@@ -364,12 +330,12 @@ const provideFeedback = catchAsync(async (req, res) => {
  */
 const getSessionHistory = catchAsync(async (req, res) => {
   const userId = req.user._id;
-  const { limit = 10, offset = 0, personality = null } = req.query;
+  const { limit = 10, offset = 0 } = req.query;
 
   console.log(`📚 Getting session history for user: ${userId}`);
 
   const query = { userId };
-  if (personality) query.aiPersonality = personality;
+  // Personality filtering removed (personality system deprecated)
 
   const sessions = await AISession.find(query)
     .sort({ startTime: -1 })
@@ -464,10 +430,10 @@ const getSessionDetail = catchAsync(async (req, res) => {
  * @param {string|null} personality - AI personality
  * @returns {Promise<Object>} AI Session
  */
-async function getOrCreateSession(userId, sessionId, personality) {
+async function getOrCreateSession(userId, sessionId) {
   const mongoose = require('mongoose');
   // Dev/local fallback: if userId is not a valid ObjectId (e.g., 'dev-user-id'),
-  // substitute a constant dummy ObjectId so Mongoose queries don’t throw.
+  // substitute a constant dummy ObjectId so Mongoose queries don't throw.
   if (!mongoose.isValidObjectId(userId)) {
     userId = new mongoose.Types.ObjectId('000000000000000000000000');
   }
@@ -486,18 +452,11 @@ async function getOrCreateSession(userId, sessionId, personality) {
     }
   }
 
-  // Create new session
-  let user = null;
-  if (userId !== 'anonymous') {
-    user = await User.findById(userId);
-  }
-  const aiPersonality =
-    personality || user?.learningProfile?.aiPersonality || 'ARIA';
-
+  // Create new session (simplified - no personality system)
   const newSession = new AISession({
     sessionId: uuidv4(),
     userId,
-    aiPersonality,
+    aiPersonality: 'ASSISTANT',
     startTime: new Date(),
     status: 'active',
     context: {
@@ -509,11 +468,11 @@ async function getOrCreateSession(userId, sessionId, personality) {
         recentPerformance: 0,
         strugglingAreas: [],
         strengths: [],
-        lastAssessmentScore: null
+        lastAssessmentScore: null,
       },
       deviceType: 'unknown',
       platform: 'web',
-      timezone: 'UTC'
+      timezone: 'UTC',
     },
     configuration: {
       modelType: 'openai-gpt4',
@@ -538,7 +497,7 @@ async function getOrCreateSession(userId, sessionId, personality) {
       adaptationEffectiveness: 0,
       personalizationScore: 0,
       contextRelevance: 0,
-      sessionQuality: 0
+      sessionQuality: 0,
     },
   });
 
@@ -607,27 +566,7 @@ function extractTopics(message) {
  * @param {Object} userContext - User context
  * @returns {number} Confidence score (0-100)
  */
-function calculateConfidence(aiResponse, userContext) {
-  let confidence = 75; // Base confidence
-
-  // Higher confidence for successful completion
-  if (aiResponse.finishReason === 'stop') {
-    confidence += 10;
-  }
-
-  // Adjust based on context quality
-  if (userContext.currentLearning?.hasActiveSession) {
-    confidence += 10; // More context available
-  }
-
-  // Adjust based on response length (too short or too long might be less confident)
-  const responseLength = aiResponse.content?.length || 0;
-  if (responseLength > 50 && responseLength < 2000) {
-    confidence += 5;
-  }
-
-  return Math.min(100, Math.max(0, confidence));
-}
+// Simplified - confidence calculation removed (now uses fixed value)
 
 /**
  * Adjust temperature based on context
@@ -635,36 +574,80 @@ function calculateConfidence(aiResponse, userContext) {
  * @param {number} baseTemperature - Base temperature
  * @returns {number} Adjusted temperature
  */
-function adjustTemperatureForContext(userContext, baseTemperature = 0.7) {
-  const userState = userContext.insights?.userState;
-
-  // Lower temperature for struggling users (more focused responses)
-  if (userState === 'struggling') {
-    return Math.max(0.3, baseTemperature - 0.2);
-  }
-
-  // Higher temperature for highly engaged users (more creative responses)
-    if (userState === 'engaged') {
-    return Math.min(1.0, baseTemperature + 0.1);
-  }
-
-  return baseTemperature;
-}
+// Removed - no longer needed without user context
+// function adjustTemperatureForContext(userContext, baseTemperature = 0.7) {
+//   return baseTemperature;
+// }
 
 /**
  * Get personality description
  * @param {string} personality - AI personality
  * @returns {string} Description
  */
-function getPersonalityDescription(personality) {
-  const descriptions = {
-    ARIA: 'Encouraging and supportive assistant focused on positive reinforcement and gentle guidance',
-    SAGE: 'Professional and analytical assistant providing objective insights and detailed analysis',
-    COACH:
-      'Motivational and energetic assistant focused on goal achievement and performance improvement',
+// Removed - personality system deprecated
+// function getPersonalityDescription(personality) {
+//   return 'Standard AI assistant';
+// }
+
+/**
+ * Analyze user message to determine intent (simplified)
+ * @param {string} message - User message
+ * @returns {string} Detected intent
+ */
+function analyzeMessageIntent(message) {
+  const lowerMessage = message.toLowerCase();
+
+  // Simplified intent patterns
+  const patterns = {
+    help: ['help', 'stuck', 'confused', 'explain'],
+    assessment: ['test', 'quiz', 'assessment', 'evaluate'],
+    progress: ['progress', 'how am i doing', 'status'],
+    guidance: ['recommend', 'suggest', 'advice', 'how to'],
   };
 
-  return descriptions[personality] || descriptions['ARIA'];
+  // Find best matching intent
+  for (const [intent, keywords] of Object.entries(patterns)) {
+    if (keywords.some((keyword) => lowerMessage.includes(keyword))) {
+      return intent;
+    }
+  }
+
+  return 'general';
+}
+
+/**
+ * Get a simple prompt for AI interactions
+ * @param {string} intent - User message intent (optional)
+ * @param {Object} options - Additional options
+ * @returns {Object} Simple prompt structure
+ */
+function getSimplePrompt(intent = 'general', options = {}) {
+  const userMessage = options.userMessage || 'Hello, I need help.';
+  
+  return {
+    messages: [
+      {
+        role: 'system',
+        content: 'You are a helpful AI assistant. Provide clear, concise, and accurate responses to user questions.',
+      },
+      {
+        role: 'user',
+        content: userMessage,
+      },
+    ],
+    config: {
+      model: 'gpt-4o',
+      temperature: 0.7,
+      maxTokens: 2000,
+    },
+    metadata: {
+      promptId: 'simple-assistant-prompt',
+      promptName: 'Simple Assistant Prompt',
+      contextType: intent,
+      buildTimestamp: new Date(),
+      mappedModel: 'gpt-4o',
+    },
+  };
 }
 
 module.exports = {

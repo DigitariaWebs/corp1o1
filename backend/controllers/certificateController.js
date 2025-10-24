@@ -1,8 +1,5 @@
 // controllers/certificateController.js
 const Certificate = require('../models/Certificate');
-const Assessment = require('../models/Assessment');
-const LearningPath = require('../models/LearningPath');
-const User = require('../models/User');
 const { certificateService } = require('../services/certificateService');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 

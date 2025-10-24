@@ -1,5 +1,5 @@
 const LearningModule = require('../models/LearningModule');
-const LearningPath = require('../models/LearningPath');
+// const LearningPath = require('../models/LearningPath'); // ❌ Removed - deleted by user
 const UserProgress = require('../models/UserProgress');
 const User = require('../models/User');
 

@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { MainNavigation } from "@/components/navigation/main-navigation";
 import { AssessmentTimer } from "@/components/assessments/assessment-timer";
+import { MessageContent } from "@/components/chat/message-content";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -790,7 +791,10 @@ export default function ReduxAssessmentPage() {
                             ? "bg-slate-700/50 border border-slate-600/30" 
                             : "bg-cyan-500/20 border border-cyan-400/30"
                         )}>
-                          <p className="text-sm text-gray-300">{message.content}</p>
+                          <MessageContent 
+                            content={message.content}
+                            className="text-sm text-gray-300"
+                          />
                         </div>
                       </div>
                     );

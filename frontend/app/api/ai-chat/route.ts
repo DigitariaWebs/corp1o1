@@ -39,7 +39,29 @@ function buildEnhancedPrompt(
   context: any,
   messageAnalysis: any
 ): string {
-  const basePrompt = `You are ${personality}, an advanced AI learning assistant with sophisticated capabilities.
+  const basePrompt = `You are an advanced AI assistant that always provides long, deeply detailed, and well-structured answers.
+
+When responding, always:
+
+Give thorough explanations with clear reasoning.
+
+Include examples, comparisons, and real-world context where helpful.
+
+Use organized formatting (headings, bullet points, numbered steps) for readability.
+
+Expand on implications, pros and cons, and related concepts when relevant.
+
+Avoid one-sentence or overly brief answers.
+
+When including code in your responses:
+- ALWAYS wrap code snippets in code blocks using triple backticks (\`\`\`)
+- Specify the programming language after the opening backticks (e.g., \`\`\`javascript, \`\`\`python, \`\`\`typescript)
+- Optionally add a filename after a colon (e.g., \`\`\`javascript:app.js)
+- Format: \`\`\`language:filename (optional)
+- Use inline code with single backticks for short code references (\`variable\`)
+- Always format code properly for better readability
+
+Your goal is to make every response educational, comprehensive, and satisfying, even for complex or open-ended questions.
 
 CORE IDENTITY & STYLE:
 - You are an expert learning companion with deep knowledge of educational psychology
@@ -104,21 +126,25 @@ ADVANCED CAPABILITIES TO UTILIZE:
    - Forecast skill development based on their current trajectory
 
 RESPONSE GUIDELINES:
-- Maximum 200 words for conversational flow
+- Provide comprehensive, detailed responses (minimum 300-500 words)
 - Start by acknowledging their current situation/emotional state
-- Include at least one specific reference to their learning data
-- Provide 1-2 concrete, actionable recommendations
-- End with encouragement tied to their specific progress
-- Use their actual performance data when giving feedback
+- Include multiple specific references to their learning data
+- Provide 3-5 concrete, actionable recommendations with detailed explanations
+- Use organized formatting with headings, bullet points, and numbered steps
+- Include examples, comparisons, and real-world context
+- Expand on implications, pros and cons, and related concepts
+- End with personalized encouragement and next steps
 - Ask clarifying questions when more context would help
 
 RESPONSE STRUCTURE:
-1. Acknowledge their current state/question
-2. Provide main response with specific context references
-3. Include actionable advice based on their learning profile
-4. End with personalized encouragement
+1. Acknowledge their current state/question with context
+2. Provide comprehensive main response with detailed explanations
+3. Include multiple actionable recommendations with step-by-step guidance
+4. Add examples, comparisons, and real-world applications
+5. Discuss implications, pros and cons, and related concepts
+6. End with personalized encouragement and clear next steps
 
-Remember: You have access to detailed learning analytics. Use this data to provide responses that feel like they come from someone who truly understands their unique learning journey and current challenges.`
+Remember: You have access to detailed learning analytics. Use this data to provide responses that feel like they come from someone who truly understands their unique learning journey and current challenges. Always aim for educational, comprehensive, and satisfying responses.`
 
   return basePrompt
 }
@@ -130,7 +156,7 @@ async function callOpenAI(messages: any[], model: string, temperature: number, c
       model: model,
       messages: messages,
       temperature: temperature,
-      max_tokens: 350,
+      max_tokens: 4000,
       presence_penalty: 0.1,
       frequency_penalty: 0.1,
       top_p: 0.9,
@@ -164,7 +190,7 @@ async function callAnthropic(messages: any[], model: string, temperature: number
       },
       body: JSON.stringify({
         model: model,
-        max_tokens: 350,
+        max_tokens: 4000,
         temperature: temperature,
         messages: messages.filter(m => m.role !== 'system'),
         system: messages.find(m => m.role === 'system')?.content || ''
@@ -207,7 +233,7 @@ async function callGemini(messages: any[], model: string, temperature: number, c
         })),
         generationConfig: {
           temperature: temperature,
-          maxOutputTokens: 350,
+          maxOutputTokens: 4000,
           topP: 0.9,
           topK: 40
         }
@@ -293,7 +319,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       provider = 'openai', 
-      model = 'gpt-4', 
+      model = 'gpt-4o', 
       messages = [], 
       temperature = 0.7,
       context = {},

@@ -1,6 +1,6 @@
 // controllers/conversationController.js
 const AISession = require('../models/AISession');
-const User = require('../models/User');
+// const User = require('../models/User'); // Not used anymore
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { v4: uuidv4 } = require('uuid');
 
@@ -21,18 +21,15 @@ const getConversations = catchAsync(async (req, res) => {
     .sort({ lastInteraction: -1 })
     .limit(parseInt(limit))
     .skip(parseInt(offset))
-    .select('sessionId aiPersonality startTime endTime lastInteraction status messages')
+    .select('sessionId aiPersonality title startTime endTime lastInteraction status messages')
     .lean();
 
   const conversations = sessions.map((session) => {
-    const firstUserMessage = session.messages.find(msg => msg.role === 'user');
     const lastMessage = session.messages[session.messages.length - 1];
     
     return {
       id: session.sessionId,
-      title: firstUserMessage ? 
-        firstUserMessage.content.substring(0, 40) + (firstUserMessage.content.length > 40 ? '...' : '') :
-        'New Conversation',
+      title: session.title || 'New Conversation',
       personality: session.aiPersonality,
       createdAt: session.startTime,
       updatedAt: session.lastInteraction,
@@ -81,14 +78,11 @@ const getConversation = catchAsync(async (req, res) => {
     throw new AppError('Conversation not found', 404);
   }
 
-  const firstUserMessage = session.messages.find(msg => msg.role === 'user');
   const lastMessage = session.messages[session.messages.length - 1];
 
   const conversation = {
     id: session.sessionId,
-    title: firstUserMessage ? 
-      firstUserMessage.content.substring(0, 40) + (firstUserMessage.content.length > 40 ? '...' : '') :
-      'New Conversation',
+    title: session.title || 'New Conversation',
     personality: session.aiPersonality,
     createdAt: session.startTime,
     updatedAt: session.lastInteraction,
@@ -120,14 +114,11 @@ const createConversation = catchAsync(async (req, res) => {
 
   console.log(`🆕 Creating new conversation for user: ${userId}`);
 
-  // Get user's default personality if not specified
-  const user = await User.findById(userId);
-  const aiPersonality = personality || user?.learningProfile?.aiPersonality || 'ARIA';
-
+  // Simplified - no personality system
   const newSession = new AISession({
     sessionId: uuidv4(),
     userId,
-    aiPersonality,
+    aiPersonality: 'ASSISTANT',
     startTime: new Date(),
     status: 'active',
     configuration: {

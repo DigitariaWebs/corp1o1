@@ -597,7 +597,7 @@ router.post(
     difficulty: Joi.string()
       .valid('easy', 'medium', 'hard', 'beginner', 'intermediate', 'advanced', 'expert')
       .default('intermediate'),
-    questionCount: Joi.number().min(1).max(50).default(10),
+    questionCount: Joi.number().min(1).max(40).default(10),
     includeTypes: Joi.array().items(Joi.string().valid('multiple_choice', 'text', 'essay', 'code')).default(['multiple_choice', 'text']),
     topic: Joi.string().optional(),
     subtopics: Joi.array().items(Joi.string()).optional(),

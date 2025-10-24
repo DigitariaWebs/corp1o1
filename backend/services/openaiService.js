@@ -3,7 +3,7 @@ const { AppError, catchAsync } = require('../middleware/errorHandler');
 
 class OpenAIService {
   constructor() {
-    this.apiKey = process.env.OPENAI_API_KEY;
+    this.apiKey = process.env.OPENAI_API_KEY?.trim();
     this.baseURL = 'https://api.openai.com/v1';
     this.defaultModel = process.env.OPENAI_MODEL || 'gpt-4o';
     this.fallbackModel = 'gpt-4o-mini';
@@ -15,11 +15,14 @@ class OpenAIService {
       recommendations: process.env.OPENAI_RECOMMENDATIONS_MODEL || 'gpt-4o',
     };
     
-    if (!this.apiKey) {
-      console.warn('⚠️  OPENAI_API_KEY not found in environment variables');
+    if (!this.apiKey || this.apiKey === '' || this.apiKey === 'your-api-key-here') {
+      console.warn('⚠️  OPENAI_API_KEY not configured properly in environment variables');
+      console.warn('⚠️  Please set OPENAI_API_KEY in your .env file');
+      this.apiKey = null; // Ensure it's null for proper validation
     } else {
       console.log('✅ OpenAI service initialized with advanced configuration');
       console.log(`📋 Models configured: evaluation=${this.models.evaluation}, analysis=${this.models.analysis}, recommendations=${this.models.recommendations}`);
+      console.log(`🔑 API key configured (${this.apiKey.substring(0, 7)}...)`);
     }
   }
 
@@ -31,7 +34,7 @@ class OpenAIService {
    */
   async createChatCompletion(messages, options = {}) {
     if (!this.apiKey) {
-      throw new AppError('OpenAI API key not configured', 500);
+      throw new AppError('OpenAI API key not configured. Please set OPENAI_API_KEY in your .env file.', 500);
     }
 
     const config = {
@@ -110,7 +113,27 @@ class OpenAIService {
         return { stream: streamGenerator() };
       }
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // If JSON parsing fails, try to get text response for better error message
+        const textResponse = await response.text().catch(() => 'Unable to read response');
+        if (textResponse.includes('<!DOCTYPE') || textResponse.includes('<html')) {
+          throw new AppError(
+            'OpenAI API returned HTML instead of JSON. This usually means:\n' +
+            '1. Invalid or missing API key\n' +
+            '2. API endpoint is incorrect\n' +
+            '3. Network/proxy issue\n' +
+            'Please verify your OPENAI_API_KEY in .env file.',
+            response.status || 500,
+          );
+        }
+        throw new AppError(
+          `Invalid response from OpenAI API: ${jsonError.message}`,
+          response.status || 500,
+        );
+      }
 
       if (!response.ok) {
         throw new AppError(

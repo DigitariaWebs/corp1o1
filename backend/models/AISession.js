@@ -23,11 +23,6 @@ const messageSchema = new mongoose.Schema({
   },
   // Metadata about the message
   metadata: {
-    promptId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'AIPrompt',
-      default: null,
-    },
     responseTime: {
       type: Number, // milliseconds
       default: 0,
@@ -233,8 +228,17 @@ const aiSessionSchema = new mongoose.Schema({
   
   aiPersonality: {
     type: String,
-    enum: ['ARIA', 'SAGE', 'COACH'],
+    enum: ['ASSISTANT'],
+    default: 'ASSISTANT',
     required: [true, 'AI personality is required'],
+  },
+  
+  // Conversation title
+  title: {
+    type: String,
+    default: 'New Conversation',
+    maxlength: [100, 'Title cannot exceed 100 characters'],
+    trim: true,
   },
   
   // Session timing

@@ -2,7 +2,7 @@
 const LearningAnalytics = require('../models/LearningAnalytics');
 const UserProgress = require('../models/UserProgress');
 const User = require('../models/User');
-const LearningPath = require('../models/LearningPath');
+// const LearningPath = require('../models/LearningPath'); // ❌ Removed - deleted by user
 const LearningModule = require('../models/LearningModule');
 const { predictionModels } = require('../utils/predictionModels');
 const { dataAnalyzer } = require('../utils/dataAnalyzer');

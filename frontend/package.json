@@ -43,6 +43,7 @@
     "@radix-ui/react-toggle-group": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@reduxjs/toolkit": "^2.8.2",
+    "@tabler/icons-react": "^3.35.0",
     "autoprefixer": "^10.4.20",
     "canvas-confetti": "^1.9.3",
     "class-variance-authority": "^0.7.1",
@@ -63,6 +64,7 @@
     "react-hook-form": "latest",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "latest",
+    "react-syntax-highlighter": "^15.6.6",
     "recharts": "latest",
     "redux-persist": "^6.0.0",
     "sonner": "latest",
@@ -75,6 +77,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"

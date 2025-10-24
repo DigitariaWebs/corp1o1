@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
 import { SimpleCommandMenu as CommandMenu } from "./simple-command-menu"
+import { MessageContent } from "@/components/chat/message-content"
 import {
   Bot,
   User,
@@ -1469,7 +1470,10 @@ Remember: You have access to detailed learning analytics. Use this data to provi
 
                     {/* Message Content */}
                     <div className="text-sm leading-relaxed mb-2 sm:mb-3">
-                      {message.content}
+                      <MessageContent 
+                        content={message.content}
+                        className="text-sm"
+                      />
                     </div>
 
                     {/* Enhanced Suggestions - Responsive */}

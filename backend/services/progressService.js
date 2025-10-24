@@ -1,7 +1,7 @@
 const UserProgress = require('../models/UserProgress');
 const LearningSession = require('../models/LearningSession');
 const LearningModule = require('../models/LearningModule');
-const LearningPath = require('../models/LearningPath');
+// const LearningPath = require('../models/LearningPath'); // ❌ Removed - deleted by user
 const User = require('../models/User');
 
 // Progress calculation and analytics service

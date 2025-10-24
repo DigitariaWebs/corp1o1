@@ -207,8 +207,12 @@ MONGODB_TEST_URI=mongodb://localhost:27017/sokol_test
 JWT_SECRET=your_super_secure_jwt_secret
 JWT_EXPIRES_IN=7d
 
-# AI Services
-OPENAI_API_KEY=your_openai_api_key
+# AI Services (Required for AI features to work)
+# Get your API key from: https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-your-actual-openai-api-key-here
+OPENAI_MODEL=gpt-4o
+OPENAI_TEMPERATURE=0.7
+OPENAI_MAX_TOKENS=1500
 
 # Server Configuration
 PORT=3000

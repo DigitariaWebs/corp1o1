@@ -6,8 +6,8 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const LearningPath = require('../models/LearningPath');
 const LearningModule = require('../models/LearningModule');
-const AIPrompt = require('../models/AIPrompt');
-const AdaptationRule = require('../models/AdaptationRule');
+// const AIPrompt = require('../models/AIPrompt'); // ❌ Removed - model deleted
+// const AdaptationRule = require('../models/AdaptationRule'); // ❌ Removed - model deleted
 
 // Seeder functions
 const seedUsers = async () => {
@@ -251,37 +251,15 @@ const seedLearningModules = async () => {
   }
 };
 
-const seedAIPrompts = async () => {
-  console.log('📤 Seeding AI prompts...');
-  
-  try {
-    const promptCount = await AIPrompt.countDocuments();
-    if (promptCount === 0) {
-      await AIPrompt.createDefaults();
-      console.log('✅ Created default AI prompts');
-    } else {
-      console.log('⏭️  AI prompts already exist');
-    }
-  } catch (error) {
-    console.error('❌ Error seeding AI prompts:', error);
-  }
-};
+// const seedAIPrompts = async () => {
+//   console.log('📤 Seeding AI prompts...');
+//   // Removed - AIPrompt model deleted
+// };
 
-const seedAdaptationRules = async () => {
-  console.log('📤 Seeding adaptation rules...');
-  
-  try {
-    const ruleCount = await AdaptationRule.countDocuments();
-    if (ruleCount === 0) {
-      await AdaptationRule.createDefaults();
-      console.log('✅ Created default adaptation rules');
-    } else {
-      console.log('⏭️  Adaptation rules already exist');
-    }
-  } catch (error) {
-    console.error('❌ Error seeding adaptation rules:', error);
-  }
-};
+// const seedAdaptationRules = async () => {
+//   console.log('📤 Seeding adaptation rules...');
+//   // Removed - AdaptationRule model deleted
+// };
 
 // Main seeder function
 const runSeeders = async () => {
@@ -298,8 +276,8 @@ const runSeeders = async () => {
     await seedUsers();
     await seedLearningPaths();
     await seedLearningModules();
-    await seedAIPrompts();
-    await seedAdaptationRules();
+    // await seedAIPrompts(); // ❌ Removed - model deleted
+    // await seedAdaptationRules(); // ❌ Removed - model deleted
 
     console.log('🎉 Database seeding completed successfully!');
     
@@ -307,15 +285,15 @@ const runSeeders = async () => {
     const userCount = await User.countDocuments();
     const pathCount = await LearningPath.countDocuments();
     const moduleCount = await LearningModule.countDocuments();
-    const promptCount = await AIPrompt.countDocuments();
-    const ruleCount = await AdaptationRule.countDocuments();
+    // const promptCount = await AIPrompt.countDocuments(); // ❌ Removed
+    // const ruleCount = await AdaptationRule.countDocuments(); // ❌ Removed
 
     console.log('\n📊 Database Summary:');
     console.log(`👥 Users: ${userCount}`);
     console.log(`📚 Learning Paths: ${pathCount}`);
     console.log(`📖 Modules: ${moduleCount}`);
-    console.log(`🤖 AI Prompts: ${promptCount}`);
-    console.log(`⚙️  Adaptation Rules: ${ruleCount}`);
+    // console.log(`🤖 AI Prompts: ${promptCount}`); // ❌ Removed
+    // console.log(`⚙️  Adaptation Rules: ${ruleCount}`); // ❌ Removed
 
     console.log('\n🔑 Demo Credentials:');
     console.log('Email: demo@sokol-learning.com');

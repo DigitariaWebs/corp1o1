@@ -156,8 +156,8 @@ const aiSessionSchema = new mongoose.Schema(
     },
     aiPersonality: {
       type: String,
-      enum: ['ARIA', 'SAGE', 'COACH'],
-      default: 'ARIA',
+      enum: ['Assistant', 'SAGE', 'COACH'],
+      default: 'Assistant',
     },
     startTime: {
       type: Date,

@@ -17,17 +17,18 @@ const { errorHandler } = require('./middleware/errorHandler');
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');   // ✅ Correct
-const learningPathRoutes = require('./routes/learningPaths');
-const moduleRoutes = require('./routes/modules');
-const progressRoutes = require('./routes/progress');
+// const learningPathRoutes = require('./routes/learningPaths'); // ❌ Removed - deleted by user
+const progressRoutes = require('./routes/progress'); // ✅ Restored - used in frontend
+// const moduleRoutes = require('./routes/modules'); // ❌ Removed - not used in frontend
+
 const aiRoutes = require('./routes/ai');
 // 🆕 Phase 4 routes
 const assessmentRoutes = require('./routes/assessments');
 const skillsRoutes = require('./routes/skills');
 const certificateRoutes = require('./routes/certificates');
-// 🆕 Phase 5 routes (when ready)
-const analyticsRoutes = require('./routes/analytics');
-const recommendationRoutes = require('./routes/recommendations');
+// 🆕 Phase 5 routes (simplified - removed unused features)
+// const analyticsRoutes = require('./routes/analytics'); // ❌ Removed
+// const recommendationRoutes = require('./routes/recommendations'); // ❌ Removed
 const portfolioRoutes = require('./routes/portfolio');
 const personalizationRoutes = require('./routes/personalization');
 const assistantRoutes = require('./routes/assistant');
@@ -50,8 +51,8 @@ const app = express();
         // Drop legacy index that causes plan creation failures
         const { dropLegacyAssessmentQuestionIdIndex } = require('./config/database-indexes');
         await dropLegacyAssessmentQuestionIdIndex();
-        await initializeAIPrompts();
-        await initializeAnalytics();
+        // await initializeAIPrompts(); // ❌ Removed - AIPrompt model deleted
+        // await initializeAnalytics(); // ❌ Removed - Analytics system simplified
       } catch (e) {
         console.error('❌ Post-connection initialization failed:', e);
       }
@@ -67,47 +68,47 @@ const app = express();
   }
 })();
 
-// Initialize AI prompts in database
-const initializeAIPrompts = async () => {
-  try {
-    const AIPrompt = require('./models/AIPrompt');
-    const promptCount = await AIPrompt.countDocuments();
-    
-    if (promptCount === 0) {
-      console.log('🤖 Initializing default AI prompts...');
-      await AIPrompt.createDefaults();
-      console.log('✅ Default AI prompts created');
-    } else {
-      console.log(`📋 Found ${promptCount} AI prompts in database`);
-    }
-  } catch (error) {
-    console.error('⚠️ Failed to initialize AI prompts:', error);
-  }
-};
+// Initialize AI prompts in database (REMOVED - no longer needed)
+// const initializeAIPrompts = async () => {
+//   try {
+//     const AIPrompt = require('./models/AIPrompt');
+//     const promptCount = await AIPrompt.countDocuments();
+//     
+//     if (promptCount === 0) {
+//       console.log('🤖 Initializing default AI prompts...');
+//       await AIPrompt.createDefaults();
+//       console.log('✅ Default AI prompts created');
+//     } else {
+//       console.log(`📋 Found ${promptCount} AI prompts in database`);
+//     }
+//   } catch (error) {
+//     console.error('⚠️ Failed to initialize AI prompts:', error);
+//   }
+// };
 
-// 🆕 Initialize analytics system
-const initializeAnalytics = async () => {
-  try {
-    const AdaptationRule = require('./models/AdaptationRule');
-    const ruleCount = await AdaptationRule.countDocuments();
-    
-    if (ruleCount === 0) {
-      console.log('📊 Initializing default adaptation rules...');
-      await AdaptationRule.createDefaults();
-      console.log('✅ Default adaptation rules created');
-    } else {
-      console.log(`📋 Found ${ruleCount} adaptation rules in database`);
-    }
-    
-    // Start background analytics processor
-    const { startAnalyticsProcessor } = require('./jobs/analyticsProcessor');
-    await startAnalyticsProcessor();
-    console.log('🔄 Analytics processor started');
-    
-  } catch (error) {
-    console.error('⚠️ Failed to initialize analytics:', error);
-  }
-};
+// 🆕 Initialize analytics system (REMOVED - no longer needed)
+// const initializeAnalytics = async () => {
+//   try {
+//     const AdaptationRule = require('./models/AdaptationRule');
+//     const ruleCount = await AdaptationRule.countDocuments();
+//     
+//     if (ruleCount === 0) {
+//       console.log('📊 Initializing default adaptation rules...');
+//       await AdaptationRule.createDefaults();
+//       console.log('✅ Default adaptation rules created');
+//     } else {
+//       console.log(`📋 Found ${ruleCount} adaptation rules in database`);
+//     }
+//     
+//     // Start background analytics processor
+//     const { startAnalyticsProcessor } = require('./jobs/analyticsProcessor');
+//     await startAnalyticsProcessor();
+//     console.log('🔄 Analytics processor started');
+//     
+//   } catch (error) {
+//     console.error('⚠️ Failed to initialize analytics:', error);
+//   }
+// };
 
 // DB connection handled above via connectDatabase()
 
@@ -271,14 +272,15 @@ app.get('/health', async (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/learning-paths', learningPathRoutes);
-app.use('/api/modules', moduleRoutes);
-app.use('/api/progress', progressRoutes);
+// app.use('/api/learning-paths', learningPathRoutes); // ❌ Removed - deleted by user
+app.use('/api/progress', progressRoutes); // ✅ Restored - used in frontend
+// app.use('/api/modules', moduleRoutes); // ❌ Removed - not used in frontend
+
 // 🆕 Onboarding routes
 app.use('/api/onboarding', onboardingRoutes);
 
 // AI Routes with specific rate limiting
-const assistantLimiter = rateLimit({ windowMs:15*60*1000,max:30,message:{error:'Too many assistant chat requests'} });
+const assistantLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: { error: 'Too many assistant chat requests' } });
 app.use('/api/assistant/chat', assistantLimiter);
 app.use('/api/assistant', assistantRoutes);
 app.use('/api/ai/chat', aiChatLimiter);
@@ -291,10 +293,10 @@ app.use('/api/assessments', assessmentRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/certificates', certificateRoutes);
 
-// 🆕 Phase 5 routes - Analytics & Recommendations
-app.use('/api/analytics', analyticsLimiter);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/recommendations', recommendationRoutes);
+// 🆕 Phase 5 routes - Analytics & Recommendations (REMOVED for optimization)
+// app.use('/api/analytics', analyticsLimiter); // ❌ Removed
+// app.use('/api/analytics', analyticsRoutes); // ❌ Removed
+// app.use('/api/recommendations', recommendationRoutes); // ❌ Removed
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/personalization', personalizationRoutes);
 
@@ -306,12 +308,12 @@ app.get('/', (req, res) => {
     phase: '5 - Advanced Analytics & Adaptive Intelligence',
     documentation: '/api/docs',
     health: '/health',
-    features: {
-      authentication: '✅ Active',
-      learningPaths: '✅ Active', 
-      progressTracking: '✅ Active',
-      aiAssistant: '✅ Active',
-      assessments: '✅ Active',
+      features: {
+        authentication: '✅ Active',
+        learningPaths: '✅ Active', // ✅ Restored
+        progressTracking: '✅ Active', // ✅ Restored
+        aiAssistant: '✅ Active',
+        assessments: '✅ Active',
       certificates: '✅ Active',
       analytics: '✅ Active',
       recommendations: '✅ Active',
@@ -319,9 +321,9 @@ app.get('/', (req, res) => {
       portfolio: '✅ Active',
       personalization: '✅ Active',
     },
-    endpoints: {
-      core: ['/api/auth', '/api/users', '/api/learning-paths', '/api/modules', '/api/progress'],
-      ai: ['/api/ai'],
+      endpoints: {
+        core: ['/api/auth', '/api/users', '/api/progress'],
+        ai: ['/api/ai'],
       assessment: ['/api/assessments', '/api/certificates'],
       analytics: ['/api/analytics', '/api/recommendations'],
       portfolio: ['/api/portfolio'],
@@ -336,12 +338,11 @@ app.use('*', (req, res) => {
     error: 'Route not found',
     message: `Cannot ${req.method} ${req.originalUrl}`,
     availableEndpoints: {
-      auth: '/api/auth/*',
-      users: '/api/users/*',
-      learningPaths: '/api/learning-paths/*',
-      modules: '/api/modules/*', 
-      progress: '/api/progress/*',
-      ai: '/api/ai/*',
+        auth: '/api/auth/*',
+        users: '/api/users/*',
+        // learningPaths: '/api/learning-paths/*', // ❌ Removed - deleted by user
+        progress: '/api/progress/*', // ✅ Restored
+        ai: '/api/ai/*',
       assessments: '/api/assessments/*',
       certificates: '/api/certificates/*',
       analytics: '/api/analytics/*',

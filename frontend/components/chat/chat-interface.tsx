@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { MessageContent } from "@/components/chat/message-content"
 import { 
   Send, 
   Bot, 
@@ -17,7 +18,17 @@ import {
   Edit3,
   Trash2,
   Clock,
-  Sparkles
+  Sparkles,
+  Download,
+  Share2,
+  Bookmark,
+  BookmarkCheck,
+  RefreshCw,
+  Zap,
+  MessageSquare,
+  AlertCircle,
+  CheckCircle,
+  XCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
@@ -27,6 +38,8 @@ interface Message {
   role: 'user' | 'assistant' | 'system'
   content: string
   timestamp: string
+  status?: 'sending' | 'sent' | 'delivered' | 'failed'
+  isBookmarked?: boolean
   metadata?: {
     intent?: string
     confidence?: number
@@ -36,6 +49,8 @@ interface Message {
       helpful?: boolean
       comment?: string
     }
+    tokens?: number
+    model?: string
   }
 }
 
@@ -45,10 +60,15 @@ interface ChatInterfaceProps {
   onMessageFeedback?: (messageId: string, feedback: { rating?: number; helpful?: boolean; comment?: string }) => void
   onEditMessage?: (messageId: string, newContent: string) => void
   onDeleteMessage?: (messageId: string) => void
+  onBookmarkMessage?: (messageId: string, bookmarked: boolean) => void
+  onRegenerateMessage?: (messageId: string) => void
+  onShareMessage?: (messageId: string) => void
   loading?: boolean
   conversationTitle?: string
   onTitleChange?: (newTitle: string) => void
   className?: string
+  showTypingIndicator?: boolean
+  typingText?: string
 }
 
 export function ChatInterface({
@@ -57,16 +77,23 @@ export function ChatInterface({
   onMessageFeedback,
   onEditMessage,
   onDeleteMessage,
+  onBookmarkMessage,
+  onRegenerateMessage,
+  onShareMessage,
   loading = false,
   conversationTitle,
   onTitleChange,
-  className
+  className,
+  showTypingIndicator = false,
+  typingText = "AI is thinking..."
 }: ChatInterfaceProps) {
   const [inputValue, setInputValue] = useState("")
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState("")
   const [showFeedback, setShowFeedback] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{ rating?: number; helpful?: boolean; comment?: string }>({})
+  const [bookmarkedMessages, setBookmarkedMessages] = useState<Set<string>>(new Set())
+  const [showMessageActions, setShowMessageActions] = useState<string | null>(null)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -126,6 +153,49 @@ export function ChatInterface({
     }
     setShowFeedback(null)
     setFeedback({})
+  }
+
+  const handleBookmarkToggle = (messageId: string) => {
+    const newBookmarked = !bookmarkedMessages.has(messageId)
+    setBookmarkedMessages(prev => {
+      const newSet = new Set(prev)
+      if (newBookmarked) {
+        newSet.add(messageId)
+      } else {
+        newSet.delete(messageId)
+      }
+      return newSet
+    })
+    if (onBookmarkMessage) {
+      onBookmarkMessage(messageId, newBookmarked)
+    }
+  }
+
+  const handleRegenerateMessage = (messageId: string) => {
+    if (onRegenerateMessage) {
+      onRegenerateMessage(messageId)
+    }
+  }
+
+  const handleShareMessage = (messageId: string) => {
+    if (onShareMessage) {
+      onShareMessage(messageId)
+    }
+  }
+
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'sending':
+        return <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+      case 'sent':
+        return <CheckCircle className="h-3 w-3 text-green-500" />
+      case 'delivered':
+        return <CheckCircle className="h-3 w-3 text-green-500" />
+      case 'failed':
+        return <XCircle className="h-3 w-3 text-red-500" />
+      default:
+        return null
+    }
   }
 
   const getPersonalityIcon = (role: string) => {
@@ -226,9 +296,10 @@ export function ChatInterface({
                       </div>
                     ) : (
                       <>
-                        <div className="whitespace-pre-wrap break-words">
-                          {message.content}
-                        </div>
+                        <MessageContent 
+                          content={message.content}
+                          className="text-sm"
+                        />
                         
                         <div className="flex items-center gap-2 mt-2 text-xs opacity-0 group-hover/message:opacity-100 transition-opacity">
                           <span className="flex items-center gap-1">
@@ -236,15 +307,32 @@ export function ChatInterface({
                             {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
                           </span>
                           
+                          {message.status && getStatusIcon(message.status)}
+                          
                           {message.metadata?.responseTime && (
-                            <span>
+                            <span className="flex items-center gap-1">
+                              <Zap className="h-3 w-3" />
                               {message.metadata.responseTime}ms
                             </span>
                           )}
                           
                           {message.metadata?.confidence && (
-                            <span>
-                              {Math.round(message.metadata.confidence)}% confidence
+                            <span className="flex items-center gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              {Math.round(message.metadata.confidence)}%
+                            </span>
+                          )}
+
+                          {message.metadata?.tokens && (
+                            <span className="flex items-center gap-1">
+                              <MessageSquare className="h-3 w-3" />
+                              {message.metadata.tokens} tokens
+                            </span>
+                          )}
+
+                          {message.metadata?.model && (
+                            <span className="text-gray-400">
+                              {message.metadata.model}
                             </span>
                           )}
                         </div>
@@ -256,9 +344,29 @@ export function ChatInterface({
                             variant="ghost"
                             onClick={() => handleCopyMessage(message.content)}
                             className="h-6 w-6 p-0 hover:bg-white/20"
+                            title="Copy message"
                           >
                             <Copy className="h-3 w-3" />
                           </Button>
+                          
+                          {onBookmarkMessage && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleBookmarkToggle(message.id)}
+                              className={cn(
+                                "h-6 w-6 p-0 hover:bg-white/20",
+                                bookmarkedMessages.has(message.id) && "text-yellow-500"
+                              )}
+                              title={bookmarkedMessages.has(message.id) ? "Remove bookmark" : "Bookmark message"}
+                            >
+                              {bookmarkedMessages.has(message.id) ? (
+                                <BookmarkCheck className="h-3 w-3" />
+                              ) : (
+                                <Bookmark className="h-3 w-3" />
+                              )}
+                            </Button>
+                          )}
                           
                           {message.role === 'user' && onEditMessage && (
                             <Button
@@ -266,8 +374,33 @@ export function ChatInterface({
                               variant="ghost"
                               onClick={() => handleEditStart(message)}
                               className="h-6 w-6 p-0 hover:bg-white/20"
+                              title="Edit message"
                             >
                               <Edit3 className="h-3 w-3" />
+                            </Button>
+                          )}
+                          
+                          {message.role === 'assistant' && onRegenerateMessage && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleRegenerateMessage(message.id)}
+                              className="h-6 w-6 p-0 hover:bg-white/20"
+                              title="Regenerate response"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                          )}
+                          
+                          {onShareMessage && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleShareMessage(message.id)}
+                              className="h-6 w-6 p-0 hover:bg-white/20"
+                              title="Share message"
+                            >
+                              <Share2 className="h-3 w-3" />
                             </Button>
                           )}
                           
@@ -277,6 +410,7 @@ export function ChatInterface({
                               variant="ghost"
                               onClick={() => onDeleteMessage(message.id)}
                               className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                              title="Delete message"
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
@@ -288,6 +422,7 @@ export function ChatInterface({
                               variant="ghost"
                               onClick={() => setShowFeedback(showFeedback === message.id ? null : message.id)}
                               className="h-6 w-6 p-0 hover:bg-white/20"
+                              title="Rate response"
                             >
                               <MoreHorizontal className="h-3 w-3" />
                             </Button>
@@ -305,21 +440,30 @@ export function ChatInterface({
                 </motion.div>
               ))}
               
-              {/* Loading indicator */}
+              {/* Enhanced Loading indicator */}
               {loading && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="flex gap-3 justify-start"
                 >
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
                     <Bot className="h-4 w-4 text-blue-500" />
                   </div>
-                  <div className="bg-gray-100 rounded-lg px-4 py-3">
+                  <div className="bg-gradient-to-r from-gray-100 to-gray-50 rounded-lg px-4 py-3 border border-gray-200">
                     <div className="flex items-center gap-2">
                       <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                      <span className="text-gray-600">AI is thinking...</span>
+                      <span className="text-gray-600">{typingText}</span>
                     </div>
+                    {showTypingIndicator && (
+                      <div className="flex items-center gap-1 mt-2">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               )}
@@ -420,8 +564,8 @@ export function ChatInterface({
         )}
       </AnimatePresence>
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50">
+      {/* Enhanced Input Area */}
+      <div className="p-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50">
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -431,23 +575,61 @@ export function ChatInterface({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message here... (Press Enter to send, Shift+Enter for new line)"
-                className="min-h-[44px] max-h-32 resize-none pr-12"
+                className="min-h-[44px] max-h-32 resize-none pr-12 bg-white text-gray-900 border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 disabled={loading}
               />
-              <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-                {inputValue.length}/4000
+              <div className="absolute bottom-2 right-2 text-xs text-gray-400 flex items-center gap-2">
+                <span className={cn(
+                  "transition-colors",
+                  inputValue.length > 3500 ? "text-red-500" : 
+                  inputValue.length > 3000 ? "text-yellow-500" : "text-gray-400"
+                )}>
+                  {inputValue.length}/4000
+                </span>
+                {inputValue.length > 0 && (
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                )}
               </div>
             </div>
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 shadow-sm hover:shadow-md transition-all duration-200"
             >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Send className="h-4 w-4" />
               )}
+            </Button>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+            <span>Quick actions:</span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setInputValue("Explain this concept in simple terms:")}
+              className="h-6 px-2 text-xs hover:bg-blue-100"
+            >
+              Explain
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setInputValue("Help me understand:")}
+              className="h-6 px-2 text-xs hover:bg-blue-100"
+            >
+              Help
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setInputValue("Give me examples of:")}
+              className="h-6 px-2 text-xs hover:bg-blue-100"
+            >
+              Examples
             </Button>
           </div>
         </div>

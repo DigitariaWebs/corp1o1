@@ -2,7 +2,7 @@
 const Certificate = require('../models/Certificate');
 const Assessment = require('../models/Assessment');
 const AssessmentSession = require('../models/AssessmentSession');
-const LearningPath = require('../models/LearningPath');
+// const LearningPath = require('../models/LearningPath'); // ❌ Removed - deleted by user
 const UserProgress = require('../models/UserProgress');
 const User = require('../models/User');
 const { AppError } = require('../middleware/errorHandler');
@@ -164,70 +164,8 @@ class CertificateService {
    * @returns {Promise<Object>} Generated certificate
    */
   async generatePathCompletionCertificate(userId, pathId, options = {}) {
-    try {
-      console.log(
-        `🛤️ Generating path completion certificate: User ${userId}, Path ${pathId}`,
-      );
-
-      // Get learning path and user progress
-      const [learningPath, pathProgress] = await Promise.all([
-        LearningPath.findById(pathId),
-        UserProgress.findOne({ userId, pathId, 'progress.completed': true }),
-      ]);
-
-      if (!learningPath) {
-        throw new AppError('Learning path not found', 404);
-      }
-
-      if (!pathProgress) {
-        throw new AppError('Learning path not completed', 400);
-      }
-
-      // Check if certificate already exists
-      const existingCertificate = await Certificate.findOne({
-        userId,
-        'achievementData.pathsCompleted.pathId': pathId,
-        status: 'issued',
-      });
-
-      if (existingCertificate) {
-        throw new AppError('Certificate already issued for this path', 400);
-      }
-
-      // Get user
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new AppError('User not found', 404);
-      }
-
-      // Build certificate data for path completion
-      const certificateData = await this.buildPathCertificateData(
-        user,
-        learningPath,
-        pathProgress,
-        options,
-      );
-
-      // Create and save certificate
-      const certificate = new Certificate(certificateData);
-      await certificate.save();
-
-      // Generate assets
-      await certificate.generateVerificationAssets();
-      await this.generateCertificateAssets(certificate);
-
-      // Update statistics
-      await this.updateUserCertificateStats(userId, certificate);
-
-      console.log(
-        `✅ Path completion certificate generated: ${certificate.certificateId}`,
-      );
-
-      return certificate;
-    } catch (error) {
-      console.error('❌ Error generating path certificate:', error);
-      throw error;
-    }
+    // Learning paths functionality has been removed
+    throw new AppError('Learning paths functionality is no longer available', 410);
   }
 
   /**

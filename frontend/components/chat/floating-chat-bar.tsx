@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { MessageContent } from "@/components/chat/message-content"
 import { 
   Send, 
   Bot, 
@@ -162,7 +163,12 @@ export function FloatingChatBar({
                   >
                     <div className="max-h-64 overflow-y-auto space-y-3 text-sm px-4">
                       {messages.map((m) => (
-                        <div key={m.id} className={cn('px-4 py-3 rounded-lg', m.role==='user'?'bg-blue-500 text-white':'bg-gray-100 text-gray-900')}>{m.content}</div>
+                        <div key={m.id} className={cn('px-4 py-3 rounded-lg', m.role==='user'?'bg-blue-500 text-white':'bg-gray-100 text-gray-900')}>
+                          <MessageContent 
+                            content={m.content}
+                            className="text-sm"
+                          />
+                        </div>
                       ))}
                     </div>
                   </motion.div>
