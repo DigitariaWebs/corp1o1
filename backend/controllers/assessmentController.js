@@ -1,46 +1,30 @@
-// controllers/assessmentController.js
 const Assessment = require('../models/Assessment');
 const AssessmentSession = require('../models/AssessmentSession');
 const User = require('../models/User');
-const { assessmentService } = require('../services/assessmentService');
-// Certificate service removed - functionality disabled
+const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { aiServiceManager } = require('../services/aiServiceManager');
-const { AI_MODELS, getModelConfig } = require('../config/aiModelConfig');
+const { openAIService } = require('../services/openaiService');
+const { AI_MODELS } = require('../config/aiModelConfig');
 
-/**
- * Get available assessments for user
- * GET /api/assessments/available
- */
 const getAvailableAssessments = catchAsync(async (req, res) => {
-  // Handle different user ID sources
   let userId = req.user?._id || req.userId || req.headers['user-id'];
   
-  // If no valid userId, use or create test user
-  const mongoose = require('mongoose');
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-    const User = require('../models/User');
-    let defaultUser = await User.findOne({ email: 'test@sokol.dev' });
-    if (defaultUser) {
-      userId = defaultUser._id;
-    } else {
-      // Return empty if no user
+    const defaultUser = await User.findOne({ email: 'test@sokol.dev' });
+    if (!defaultUser) {
       return res.status(200).json({
         success: true,
-        data: {
-          assessments: [],
-          totalCount: 0,
-          hasMore: false,
-        },
+        data: { assessments: [], totalCount: 0, hasMore: false },
       });
     }
+    userId = defaultUser._id;
   }
   
   const { category, difficulty, type, limit = 20, offset = 0 } = req.query;
 
-  console.log(`📝 Getting available assessments for user: ${userId}`);
 
-  // Build query filters
   const filters = {
     isActive: true,
     isPublished: true,
@@ -50,8 +34,6 @@ const getAvailableAssessments = catchAsync(async (req, res) => {
   if (difficulty && difficulty !== 'all') filters.difficulty = difficulty;
   if (type) filters.type = type;
 
-  // For now, simplify to get all matching assessments (including AI-generated)
-  // This bypasses complex eligibility checks that might filter out new assessments
   const eligibleAssessments = await Assessment.find(filters)
     .sort({ createdAt: -1 })
     .skip(parseInt(offset))
@@ -249,7 +231,7 @@ const startAssessment = catchAsync(async (req, res) => {
     `▶️ Starting assessment session: ${assessmentId} for user: ${userId}`,
   );
 
-  const sessionData = await assessmentService.createAssessmentSession(
+  const sessionData = await createAssessmentSessionInternal(
     userId,
     assessmentId,
     sessionOptions,
@@ -331,7 +313,7 @@ const submitAnswer = catchAsync(async (req, res) => {
     throw new AppError('Session not found', 404);
   }
 
-  const result = await assessmentService.submitAnswer(
+  const result = await submitAnswerInternal(
     sessionId,
     questionId,
     answer,
@@ -365,7 +347,7 @@ const completeAssessment = catchAsync(async (req, res) => {
     throw new AppError('Session not found', 404);
   }
 
-  const results = await assessmentService.completeAssessment(
+  const results = await completeAssessmentInternal(
     sessionId,
     finalAnswers,
   );
@@ -421,8 +403,8 @@ const planCustomAssessments = catchAsync(async (req, res) => {
     preferredDifficulty = 'intermediate',
   } = req.body || {};
 
-  // Create three assessment briefs: diagnostic, skills focus, stretch
-  const prompt = `Create a personalized learning assessment plan for the following profile:
+  // Create three assessment briefs: diagnostic, skills focus, stretch  
+  const _prompt = `Create a personalized learning assessment plan for the following profile:
 - Primary Domain: ${primaryDomain}
 - Specific Areas: ${subdomains.length > 0 ? subdomains.join(', ') : 'general knowledge in ' + primaryDomain}
 - Experience Level: ${yearsExperience} years
@@ -1020,13 +1002,13 @@ const evaluateAnswer = catchAsync(async (req, res) => {
         model: AI_MODELS.OPENAI_GPT4.model,
         temperature: 0.7,
         maxTokens: 600,
-      }
+      },
     );
 
     let evaluationResult;
     try {
       evaluationResult = JSON.parse(completion.content);
-    } catch (parseError) {
+    } catch (_parseError) {
       // Fallback if JSON parsing fails
       evaluationResult = {
         score: Math.floor(points * 0.7),
@@ -1095,10 +1077,10 @@ const evaluateAnswer = catchAsync(async (req, res) => {
  */
 const evaluateMultipleChoice = catchAsync(async (req, res) => {
   const {
-    question,
+    question: _question,
     selectedAnswer,
     correctAnswer,
-    options,
+    options: _options,
     personality = 'ARIA',
     points = 10,
   } = req.body;
@@ -1134,6 +1116,305 @@ const evaluateMultipleChoice = catchAsync(async (req, res) => {
   });
 });
 
+// ============================================================================
+// QUESTION GENERATION FUNCTIONS (merged from questionGenerationController.js)
+// ============================================================================
+
+/**
+ * Generate assessment questions using AI based on topic and difficulty
+ */
+const generateQuestions = async (req, res, next) => {
+  try {
+    const {
+      assessmentId,
+      title,
+      category,
+      difficulty: rawDifficulty = 'intermediate',
+      questionCount = 10,
+      includeTypes = ['multiple_choice'], // Only multiple choice questions
+      topic,
+      subtopics: _subtopics = [],
+    } = req.body;
+    const wantStream = req.query.stream === '1' || req.headers.accept === 'text/event-stream';
+
+    // Normalize difficulty to easy/medium/hard for consistent scoring/prompts
+    const difficulty = (
+      rawDifficulty === 'beginner' ? 'easy' :
+        rawDifficulty === 'intermediate' ? 'medium' :
+          (rawDifficulty === 'advanced' || rawDifficulty === 'expert') ? 'hard' :
+            rawDifficulty
+    );
+
+    // Validate inputs
+    if (!title || !category) {
+      throw new AppError('Title and category are required', 400);
+    }
+
+    // Non-streaming mode (default): generate all at once
+    if (!wantStream) {
+      let questions;
+      try {
+        questions = await aiServiceManager.generateQuestions(
+          title,
+          category,
+          topic || title,
+          difficulty,
+          questionCount,
+          includeTypes,
+          { subtopics: _subtopics },
+        );
+        console.log(`✅ Successfully generated ${questions.length} questions`);
+      } catch (aiError) {
+        console.error('❌ Question generation failed:', aiError.message);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to generate questions',
+          message: aiError.message,
+          hint: 'Check AI service configuration',
+        });
+      }
+
+      if (!questions || questions.length === 0) {
+        console.warn('⚠️ AI did not return any valid questions – generating fallback questions');
+        questions = generateFallbackQuestions(title, category, difficulty, questionCount);
+      }
+
+      questions = questions.map((q, index) => ({
+        ...q,
+        id: `${assessmentId}_q${index + 1}`,
+        difficulty: q.difficulty || difficulty,
+        points: q.points || (difficulty === 'easy' ? 5 : difficulty === 'hard' ? 15 : 10),
+        timeLimit: q.timeLimit || 300,
+      }));
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          assessmentId,
+          questions,
+          totalQuestions: questions.length,
+          totalPoints: questions.reduce((sum, q) => sum + q.points, 0),
+          estimatedDuration: Math.ceil(questions.reduce((sum, q) => sum + (q.timeLimit || 300), 0) / 60),
+        },
+      });
+    }
+
+    // Streaming mode: send first 5, then stream the rest in batches
+    const totalCount = Math.min(parseInt(questionCount, 10) || 10, 40);
+    const chunkSize = Math.max(1, Math.min(parseInt(req.query.chunkSize, 10) || 5, 10));
+    const topicText = topic || title;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders && res.flushHeaders();
+
+    function sse(obj) {
+      try {
+        res.write(`data:${JSON.stringify(obj)}\n\n`);
+      } catch (_) {
+        // ignore write errors
+      }
+    }
+
+    // Send init event
+    sse({ type: 'init', payload: { assessmentId, totalQuestions: totalCount, chunkSize } });
+
+    const allQuestions = [];
+    const seenQuestions = new Set();
+    let generated = 0;
+
+    async function generateBatch(batchCount) {
+      const avoid = Array.from(seenQuestions);
+      let batch = [];
+      try {
+        batch = await aiServiceManager.generateQuestions(
+          title,
+          category,
+          topicText,
+          difficulty,
+          batchCount,
+          includeTypes,
+          { avoidQuestions: avoid, subtopics: _subtopics },
+        );
+      } catch (err) {
+        console.error('❌ Batch generation failed:', err.message);
+        return [];
+      }
+
+      if (!batch || batch.length === 0) {
+        // try fallback for this batch
+        batch = generateFallbackQuestions(title, category, difficulty, batchCount);
+      }
+
+      const mapped = batch.map((q, i) => {
+        const idx = generated + i;
+        return {
+          ...q,
+          id: `${assessmentId}_q${idx + 1}`,
+          difficulty: q.difficulty || difficulty,
+          points: q.points || (difficulty === 'easy' ? 5 : difficulty === 'hard' ? 15 : 10),
+          timeLimit: q.timeLimit || 300,
+        };
+      });
+
+      // track seen
+      for (const q of mapped) {
+        if (q && typeof q.question === 'string') seenQuestions.add(q.question);
+      }
+
+      return mapped;
+    }
+
+    try {
+      // First chunk
+      const firstCount = Math.min(chunkSize, totalCount);
+      const firstBatch = await generateBatch(firstCount);
+      allQuestions.push(...firstBatch);
+      generated += firstBatch.length;
+      sse({ type: 'batch', payload: { startIndex: 0, questions: firstBatch } });
+
+      // Remaining chunks
+      while (generated < totalCount) {
+        const remaining = totalCount - generated;
+        const nextCount = Math.min(chunkSize, remaining);
+        const nextBatch = await generateBatch(nextCount);
+        const startIndex = generated;
+        allQuestions.push(...nextBatch);
+        generated += nextBatch.length;
+        sse({ type: 'batch', payload: { startIndex, questions: nextBatch } });
+      }
+
+      // Summary event
+      const totalPoints = allQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
+      const estimatedDuration = Math.ceil(allQuestions.reduce((sum, q) => sum + (q.timeLimit || 300), 0) / 60);
+      sse({ type: 'complete', payload: { totalQuestions: allQuestions.length, totalPoints, estimatedDuration } });
+    } catch (streamErr) {
+      console.error('❌ Streaming generation error:', streamErr);
+      sse({ type: 'error', payload: { message: streamErr.message || 'Unknown error' } });
+    } finally {
+      res.end();
+    }
+
+  } catch (error) {
+    console.error('Error generating questions:', error);
+    next(error);
+  }
+};
+
+/**
+ * Generate fallback questions if AI fails
+ */
+function generateFallbackQuestions(title, category, difficulty, count) {
+  const questions = [];
+  
+  for (let i = 1; i <= count; i++) {
+    // Create 4 options
+    const options = [
+      `Core concept A related to ${title}`,
+      `Core concept B related to ${title}`,
+      `Core concept C related to ${title}`,
+      `Core concept D related to ${title}`,
+    ];
+    
+    // Randomly select which option is correct (0-3)
+    const correctIndex = Math.floor(Math.random() * 4);
+    const correctAnswer = options[correctIndex];
+    
+    questions.push({
+      id: `q${i}`,
+      type: 'multiple_choice',
+      question: `Question ${i}: What is a key concept in ${title}?`,
+      options: options,
+      correctAnswer: correctAnswer,
+      points: difficulty === 'easy' ? 5 : difficulty === 'hard' ? 15 : 10,
+      difficulty,
+      timeLimit: 300,
+      hints: [`Think about the fundamentals of ${category}`],
+      explanation: `This tests your understanding of ${title} concepts. The correct answer is "${correctAnswer}".`,
+    });
+  }
+  
+  return questions;
+}
+
+/**
+ * Regenerate a specific question
+ */
+const regenerateQuestion = async (req, res, next) => {
+  try {
+    const {
+      questionId,
+      currentQuestion,
+      reason,
+      preferences,
+    } = req.body;
+
+    const _prompt = `Regenerate this assessment question with improvements:
+
+Current Question: ${currentQuestion.question}
+Type: ${currentQuestion.type}
+Reason for regeneration: ${reason || 'User requested a different question'}
+${preferences ? `Preferences: ${preferences}` : ''}
+
+Generate a new question that:
+1. Tests the same concept differently
+2. Maintains the same difficulty level (${currentQuestion.difficulty})
+3. Uses the same question type
+4. Avoids similarity to the original question
+
+Provide the response in the same JSON format as before.`;
+
+    const completion = await aiServiceManager.createChatCompletion({
+      model: 'gpt-4',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an expert assessment designer. Create an alternative question that tests the same knowledge differently.',
+        },
+        {
+          role: 'user',
+          content: _prompt,
+        },
+      ],
+      temperature: 0.8,
+      max_tokens: 2000, // Increased from 500 to ensure complete questions
+    });
+
+    let newQuestion;
+    try {
+      newQuestion = JSON.parse(completion.choices[0].message.content);
+    } catch (_parseError) {
+      // Return a slightly modified version of the original
+      newQuestion = {
+        ...currentQuestion,
+        question: `Alternative: ${currentQuestion.question}`,
+        id: questionId,
+      };
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        question: {
+          ...newQuestion,
+          id: questionId,
+        },
+      },
+    });
+
+  } catch (error) {
+    console.error('Error regenerating question:', error);
+    next(error);
+  }
+};
+
+// ============================================================================
+// ASSESSMENT SERVICE FUNCTIONS (merged from assessmentService.js)
+// ============================================================================
+
+
+
 module.exports = {
   getAvailableAssessments,
   getAssessmentDetails,
@@ -1150,4 +1431,6 @@ module.exports = {
   planCustomAssessments,
   evaluateAnswer,
   evaluateMultipleChoice,
+  generateQuestions,
+  regenerateQuestion,
 };

@@ -21,9 +21,13 @@ const {
   getAssessmentHistory,
   getAssessmentAnalytics,
   submitAssessmentFeedback,
+  planCustomAssessments,
+  generateQuestions,
+  regenerateQuestion,
+  evaluateAnswer,
+  evaluateMultipleChoice,
+  submitFullAssessment,
 } = require('../controllers/assessmentController');
-
-const { planCustomAssessments } = require('../controllers/assessmentController');
 
 // Validation schemas
 const assessmentQuerySchema = Joi.object({
@@ -413,16 +417,10 @@ router.put(
         });
       }
       
-      // Submit all answers and complete assessment
-      const results = await require('../services/assessmentService').submitFullAssessment(
-        sessionId,
-        answers,
-      );
-      
-      res.status(200).json({
-        success: true,
-        data: results,
-      });
+      // Use the new consolidated controller function
+      req.body.sessionId = sessionId;
+      req.body.answers = answers;
+      return submitFullAssessment(req, res, next);
     } catch (error) {
       next(error);
     }
@@ -510,7 +508,7 @@ router.post(
     topic: Joi.string().optional(),
     subtopics: Joi.array().items(Joi.string()).optional(),
   })),
-  require('../controllers/questionGenerationController').generateQuestions,
+  generateQuestions,
 );
 
 /**
@@ -527,7 +525,7 @@ router.post(
     reason: Joi.string().optional(),
     preferences: Joi.string().optional(),
   })),
-  require('../controllers/questionGenerationController').regenerateQuestion,
+  regenerateQuestion,
 );
 
 /**
@@ -550,7 +548,7 @@ router.post(
     rubric: Joi.string().optional(),
     context: Joi.string().optional(),
   })),
-  require('../controllers/assessmentController').evaluateAnswer,
+  evaluateAnswer,
 );
 
 /**
@@ -569,7 +567,7 @@ router.post(
     personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').default('ARIA'),
     points: Joi.number().min(1).max(100).default(10),
   })),
-  require('../controllers/assessmentController').evaluateMultipleChoice,
+  evaluateMultipleChoice,
 );
 
 /**
