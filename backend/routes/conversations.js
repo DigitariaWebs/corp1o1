@@ -4,23 +4,9 @@ const router = express.Router();
 const Joi = require('joi');
 
 // Import middleware
-const { authenticateWithClerk } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 
-// Import controllers
-const {
-  getConversations,
-  getConversation,
-  createConversation,
-  updateConversation,
-  deleteConversation,
-  addMessage,
-  getConversationMessages,
-  updateMessage,
-  deleteMessage,
-} = require('../controllers/conversationController');
-
-// Import public controllers for AI assistant
+// Import public controllers (no auth required)
 const {
   getPublicConversations,
   getPublicConversation,
@@ -31,7 +17,7 @@ const {
   getPublicConversationMessages,
   updatePublicMessage,
   deletePublicMessage,
-} = require('../controllers/conversationController');
+} = require('../controllers/chatController');
 
 // Validation schemas
 const createConversationSchema = Joi.object({
@@ -68,17 +54,7 @@ const updateMessageSchema = Joi.object({
   }),
 });
 
-const conversationQuerySchema = Joi.object({
-  limit: Joi.number().integer().min(1).max(50).default(20).messages({
-    'number.min': 'Limit must be at least 1',
-    'number.max': 'Limit cannot exceed 50',
-  }),
-  offset: Joi.number().integer().min(0).default(0).messages({
-    'number.min': 'Offset cannot be negative',
-  }),
-  // Personality system removed for optimization
-  personality: Joi.string().optional().messages({}),
-});
+
 
 const messageQuerySchema = Joi.object({
   limit: Joi.number().integer().min(1).max(100).default(50).messages({
@@ -153,245 +129,6 @@ router.put('/public/:id/messages/:messageId', validate(updateMessageSchema), upd
  */
 router.delete('/public/:id/messages/:messageId', deletePublicMessage);
 
-// Require Clerk-based auth for all conversation routes
-router.use(authenticateWithClerk);
-
-/**
- * @route   GET /api/conversations
- * @desc    Get user's conversations with pagination
- * @access  Private
- * @query   limit, offset, personality
- */
-router.get(
-  '/',
-  validate(conversationQuerySchema, 'query'),
-  getConversations,
-);
-
-/**
- * @route   POST /api/conversations
- * @desc    Create a new conversation
- * @access  Private
- * @body    { title?, personality? }
- */
-router.post(
-  '/',
-  validate(createConversationSchema),
-  createConversation,
-);
-
-/**
- * @route   GET /api/conversations/:conversationId
- * @desc    Get a specific conversation
- * @access  Private
- * @param   conversationId - UUID of the conversation
- */
-router.get(
-  '/:conversationId',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  getConversation,
-);
-
-/**
- * @route   PUT /api/conversations/:conversationId
- * @desc    Update a conversation (e.g., title)
- * @access  Private
- * @param   conversationId - UUID of the conversation
- * @body    { title? }
- */
-router.put(
-  '/:conversationId',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  validate(updateConversationSchema),
-  updateConversation,
-);
-
-/**
- * @route   DELETE /api/conversations/:conversationId
- * @desc    Delete a conversation
- * @access  Private
- * @param   conversationId - UUID of the conversation
- */
-router.delete(
-  '/:conversationId',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  deleteConversation,
-);
-
-/**
- * @route   GET /api/conversations/:conversationId/messages
- * @desc    Get messages for a conversation with pagination
- * @access  Private
- * @param   conversationId - UUID of the conversation
- * @query   limit, offset
- */
-router.get(
-  '/:conversationId/messages',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  validate(messageQuerySchema, 'query'),
-  getConversationMessages,
-);
-
-/**
- * @route   POST /api/conversations/:conversationId/messages
- * @desc    Add a message to a conversation
- * @access  Private
- * @param   conversationId - UUID of the conversation
- * @body    { content, role }
- */
-router.post(
-  '/:conversationId/messages',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  validate(addMessageSchema),
-  addMessage,
-);
-
-/**
- * @route   PUT /api/conversations/:conversationId/messages/:messageId
- * @desc    Update a message in a conversation
- * @access  Private
- * @param   conversationId - UUID of the conversation
- * @param   messageId - UUID of the message
- * @body    { content? }
- */
-router.put(
-  '/:conversationId/messages/:messageId',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-      messageId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Message ID must be a valid UUID',
-        'any.required': 'Message ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  validate(updateMessageSchema),
-  updateMessage,
-);
-
-/**
- * @route   DELETE /api/conversations/:conversationId/messages/:messageId
- * @desc    Delete a message from a conversation
- * @access  Private
- * @param   conversationId - UUID of the conversation
- * @param   messageId - UUID of the message
- */
-router.delete(
-  '/:conversationId/messages/:messageId',
-  (req, res, next) => {
-    const schema = Joi.object({
-      conversationId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Conversation ID must be a valid UUID',
-        'any.required': 'Conversation ID is required',
-      }),
-      messageId: Joi.string().uuid().required().messages({
-        'string.uuid': 'Message ID must be a valid UUID',
-        'any.required': 'Message ID is required',
-      }),
-    });
-
-    const { error } = schema.validate(req.params);
-    if (error) {
-      return res.status(400).json({
-        success: false,
-        error: error.details[0].message,
-      });
-    }
-    next();
-  },
-  deleteMessage,
-);
+// Removed all Clerk-authenticated private routes – only public endpoints remain.
 
 module.exports = router;

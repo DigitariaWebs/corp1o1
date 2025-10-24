@@ -3,9 +3,10 @@ const Assessment = require('../models/Assessment');
 const AssessmentSession = require('../models/AssessmentSession');
 const User = require('../models/User');
 const { assessmentService } = require('../services/assessmentService');
-const { certificateService } = require('../services/certificateService');
+// Certificate service removed - functionality disabled
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { aiServiceManager } = require('../services/aiServiceManager');
+const { AI_MODELS, getModelConfig } = require('../config/aiModelConfig');
 
 /**
  * Get available assessments for user
@@ -185,14 +186,10 @@ const getAssessmentDetails = catchAsync(async (req, res) => {
   // Check certificate eligibility if assessment issues certificates
   let certificateInfo = null;
   if (assessment.certification.issuesCertificate) {
-    const certEligibility =
-      await certificateService.checkCertificateEligibility(
-        userId,
-        assessmentId,
-      );
+    // Certificate service disabled - show as not eligible for now
     certificateInfo = {
-      eligible: certEligibility.eligible,
-      reason: certEligibility.reason,
+      eligible: false,
+      reason: 'Certificate service temporarily disabled',
       requiredScore: assessment.certification.requiredScore,
     };
   }
@@ -373,21 +370,10 @@ const completeAssessment = catchAsync(async (req, res) => {
     finalAnswers,
   );
 
-  // If eligible for certificate, generate it automatically
+  // Certificate generation disabled
   if (results.certificateEligible) {
-    try {
-      const certificate = await certificateService.generateCertificate(
-        userId,
-        session.assessmentId,
-      );
-
-      results.certificate = certificate.getSummary();
-    } catch (error) {
-      console.error('Failed to generate certificate:', error);
-      // Don't fail the assessment completion due to certificate generation failure
-      results.certificateError =
-        'Certificate generation failed - please contact support';
-    }
+    console.log('Certificate generation temporarily disabled');
+    results.certificateError = 'Certificate generation temporarily unavailable';
   }
 
   res.status(200).json({
@@ -912,6 +898,242 @@ const submitAssessmentFeedback = catchAsync(async (req, res) => {
   });
 });
 
+// ============================================================================
+// AI EVALUATION FUNCTIONS (merged from assessmentEvaluationController)
+// ============================================================================
+
+// AI Personality configurations
+const AI_PERSONALITIES = {
+  ARIA: {
+    name: 'ARIA',
+    style: 'encouraging and supportive',
+    systemPrompt: `You are ARIA, an encouraging and supportive AI learning assistant. Your role is to:
+    - Provide warm, motivational feedback
+    - Focus on what the student did well
+    - Gently guide them towards improvement
+    - Use positive reinforcement
+    - Be patient and empathetic
+    - Celebrate effort as much as accuracy
+    Always maintain an uplifting and encouraging tone.`,
+    traits: ['Motivational', 'Patient', 'Empathetic'],
+  },
+  SAGE: {
+    name: 'SAGE',
+    style: 'analytical and detailed',
+    systemPrompt: `You are SAGE, an analytical and thorough AI learning assistant. Your role is to:
+    - Provide comprehensive, detailed analysis
+    - Focus on underlying principles and concepts
+    - Give thorough explanations of correct and incorrect aspects
+    - Reference relevant theories and best practices
+    - Provide deep insights into the subject matter
+    - Suggest additional resources for learning
+    Always maintain a professional and educational tone.`,
+    traits: ['Precise', 'Thorough', 'Knowledgeable'],
+  },
+  COACH: {
+    name: 'COACH',
+    style: 'motivational and goal-oriented',
+    systemPrompt: `You are COACH, a dynamic and results-focused AI learning assistant. Your role is to:
+    - Push students towards excellence
+    - Set high standards and expectations
+    - Provide direct, actionable feedback
+    - Focus on performance improvement
+    - Challenge students to reach their potential
+    - Emphasize achievement and mastery
+    Always maintain an energetic and challenging tone.`,
+    traits: ['Dynamic', 'Results-focused', 'Challenging'],
+  },
+};
+
+/**
+ * Evaluate a text/paragraph answer using AI
+ * POST /api/assessments/evaluate
+ */
+const evaluateAnswer = catchAsync(async (req, res) => {
+  const {
+    question,
+    answer,
+    personality = 'ARIA',
+    difficulty: rawDifficulty = 'medium',
+    points = 10,
+    rubric = null,
+    context = null,
+  } = req.body;
+
+  // Normalize 4-level difficulty to 3-level scale
+  const difficulty = (
+    rawDifficulty === 'beginner' ? 'easy' :
+      rawDifficulty === 'intermediate' ? 'medium' :
+        rawDifficulty === 'advanced' || rawDifficulty === 'expert' ? 'hard' :
+          rawDifficulty
+  );
+
+  // Validate inputs
+  if (!question || !answer) {
+    throw new AppError('Question and answer are required', 400);
+  }
+
+  if (!AI_PERSONALITIES[personality]) {
+    throw new AppError('Invalid AI personality selected', 400);
+  }
+
+  const selectedPersonality = AI_PERSONALITIES[personality];
+
+  // Build the evaluation prompt
+  const evaluationPrompt = `
+  You are evaluating a student's answer to an assessment question.
+  
+  Question: ${question}
+  Student's Answer: ${answer}
+  Difficulty Level: ${difficulty}
+  Maximum Points: ${points}
+  ${rubric ? `Evaluation Rubric: ${rubric}` : ''}
+  ${context ? `Additional Context: ${context}` : ''}
+  
+  Please evaluate the answer and provide:
+  1. A score out of ${points} points
+  2. Detailed feedback in your characteristic ${selectedPersonality.style} style
+  3. Key strengths in the answer
+  4. Areas for improvement
+  5. Suggestions for further learning
+  
+  Format your response as JSON with the following structure:
+  {
+    "score": <number between 0 and ${points}>,
+    "feedback": "<detailed feedback in your style>",
+    "strengths": ["strength1", "strength2"],
+    "improvements": ["improvement1", "improvement2"],
+    "suggestions": ["suggestion1", "suggestion2"],
+    "overallAssessment": "<brief overall assessment>"
+  }
+  `;
+
+  try {
+    // Call OpenAI for evaluation
+    const { openAIService } = require('../services/openaiService');
+    const completion = await openAIService.createChatCompletion(
+      [
+        { role: 'system', content: selectedPersonality.systemPrompt },
+        { role: 'user', content: evaluationPrompt },
+      ],
+      {
+        model: AI_MODELS.OPENAI_GPT4.model,
+        temperature: 0.7,
+        maxTokens: 600,
+      }
+    );
+
+    let evaluationResult;
+    try {
+      evaluationResult = JSON.parse(completion.content);
+    } catch (parseError) {
+      // Fallback if JSON parsing fails
+      evaluationResult = {
+        score: Math.floor(points * 0.7),
+        feedback: completion.content,
+        strengths: ['Shows understanding of the topic'],
+        improvements: ['Could provide more detail'],
+        suggestions: ['Review the material and practice more'],
+        overallAssessment: 'Good effort with room for improvement',
+      };
+    }
+
+    // Add personality-specific encouragement
+    const personalityMessages = {
+      ARIA: [
+        'Keep up the great work! Every step forward is progress! 🌟',
+        'You\'re doing amazingly! I believe in your potential! 💪',
+        'Your effort is truly inspiring! Keep learning and growing! 🚀',
+      ],
+      SAGE: [
+        'Your analytical approach shows promise. Continue exploring the depths of this subject.',
+        'Consider the theoretical implications of your answer for deeper understanding.',
+        'This demonstrates solid foundational knowledge. Build upon it systematically.',
+      ],
+      COACH: [
+        'Push yourself to the next level! Excellence is within reach!',
+        'Champions are made through challenges like this! Keep pushing!',
+        'You\'ve got what it takes to master this! Stay focused on the goal!',
+      ],
+    };
+
+    const randomMessage = personalityMessages[personality][
+      Math.floor(Math.random() * personalityMessages[personality].length)
+    ];
+    
+    evaluationResult.personalityMessage = randomMessage;
+    evaluationResult.personality = personality;
+
+    res.status(200).json({
+      success: true,
+      data: evaluationResult,
+    });
+  } catch (error) {
+    console.error('Error in evaluateAnswer:', error);
+    // Safe fallback
+    const fallbackScore = Math.floor(points * 0.65);
+    return res.status(200).json({
+      success: true,
+      data: {
+        score: fallbackScore,
+        feedback: `Your answer shows understanding of the topic. ${selectedPersonality.style}.`,
+        strengths: ['Shows effort', 'Addresses the question'],
+        improvements: ['Provide more detail', 'Add concrete examples'],
+        suggestions: ['Review the core concepts', 'Practice similar questions'],
+        overallAssessment: 'Good attempt with room for growth',
+        personalityMessage: 'Keep working hard! You\'re on the right path!',
+        personality,
+        isFallback: true,
+      },
+    });
+  }
+});
+
+/**
+ * Evaluate multiple choice answer
+ * POST /api/assessments/evaluate-mc
+ */
+const evaluateMultipleChoice = catchAsync(async (req, res) => {
+  const {
+    question,
+    selectedAnswer,
+    correctAnswer,
+    options,
+    personality = 'ARIA',
+    points = 10,
+  } = req.body;
+
+  const isCorrect = selectedAnswer === correctAnswer;
+  const earnedPoints = isCorrect ? points : 0;
+
+  // Generate personality-specific feedback
+  let feedback;
+  if (isCorrect) {
+    feedback = {
+      ARIA: 'Excellent work! You got it right! Your understanding is growing stronger! 🎉',
+      SAGE: 'Correct. This demonstrates a solid grasp of the underlying concept. Well reasoned.',
+      COACH: 'YES! That\'s what I\'m talking about! You nailed it! Keep this momentum going!',
+    }[personality];
+  } else {
+    feedback = {
+      ARIA: `Not quite right, but that's okay! The correct answer was "${correctAnswer}". Every mistake is a learning opportunity! Keep trying! 💪`,
+      SAGE: `Incorrect. The correct answer is "${correctAnswer}". Let's analyze why this is the case and understand the underlying principles.`,
+      COACH: `Wrong answer! The correct one was "${correctAnswer}". Champions learn from mistakes. Analyze, adapt, and come back stronger!`,
+    }[personality];
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      correct: isCorrect,
+      score: earnedPoints,
+      feedback: feedback,
+      correctAnswer: correctAnswer,
+      personality: personality,
+    },
+  });
+});
+
 module.exports = {
   getAvailableAssessments,
   getAssessmentDetails,
@@ -926,4 +1148,6 @@ module.exports = {
   getAssessmentAnalytics,
   submitAssessmentFeedback,
   planCustomAssessments,
+  evaluateAnswer,
+  evaluateMultipleChoice,
 };

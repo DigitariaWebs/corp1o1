@@ -180,12 +180,6 @@ const schemas = {
         'number.max': 'Session duration cannot exceed 180 minutes',
       }),
 
-    aiPersonality: Joi.string()
-      .valid('ARIA', 'SAGE', 'COACH')
-      .optional()
-      .messages({
-        'any.only': 'AI personality must be one of: ARIA, SAGE, COACH',
-      }),
 
     adaptiveMode: Joi.boolean().optional(),
 

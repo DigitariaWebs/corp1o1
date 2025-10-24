@@ -45,7 +45,7 @@ const authConfig = {
     learningStyle: 'balanced', // visual, auditory, kinesthetic, reading, balanced
     preferredPace: 'medium', // slow, medium, fast
     optimalSessionDuration: 45, // minutes
-    aiPersonality: 'ARIA', // ARIA, SAGE, COACH
+    aiPersonality: 'ASSISTANT', // Simplified AI assistant
     adaptiveMode: true,
     voiceEnabled: false,
     notificationSettings: {

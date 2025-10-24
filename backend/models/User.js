@@ -45,11 +45,6 @@ const learningProfileSchema = new mongoose.Schema(
       max: 180,
       default: 45,
     },
-    aiPersonality: {
-      type: String,
-      enum: ['ARIA', 'SAGE', 'COACH'],
-      default: 'ARIA',
-    },
     adaptiveMode: {
       type: Boolean,
       default: true,
@@ -153,11 +148,6 @@ const aiSessionSchema = new mongoose.Schema(
     sessionId: {
       type: String,
       required: true,
-    },
-    aiPersonality: {
-      type: String,
-      enum: ['Assistant', 'SAGE', 'COACH'],
-      default: 'Assistant',
     },
     startTime: {
       type: Date,

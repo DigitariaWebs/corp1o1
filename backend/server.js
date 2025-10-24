@@ -18,22 +18,14 @@ const { errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');   // ✅ Correct
 // const learningPathRoutes = require('./routes/learningPaths'); // ❌ Removed - deleted by user
-const progressRoutes = require('./routes/progress'); // ✅ Restored - used in frontend
 // const moduleRoutes = require('./routes/modules'); // ❌ Removed - not used in frontend
 
 const aiRoutes = require('./routes/ai');
 // 🆕 Phase 4 routes
 const assessmentRoutes = require('./routes/assessments');
-const skillsRoutes = require('./routes/skills');
-const certificateRoutes = require('./routes/certificates');
 // 🆕 Phase 5 routes (simplified - removed unused features)
 // const analyticsRoutes = require('./routes/analytics'); // ❌ Removed
 // const recommendationRoutes = require('./routes/recommendations'); // ❌ Removed
-const portfolioRoutes = require('./routes/portfolio');
-const personalizationRoutes = require('./routes/personalization');
-const assistantRoutes = require('./routes/assistant');
-// 🆕 Onboarding routes
-const onboardingRoutes = require('./routes/onboarding');
 // 🆕 Webhook routes
 const webhookRoutes = require('./routes/webhooks');
 // 🆕 Conversation management routes
@@ -188,16 +180,6 @@ const aiChatLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// 🆕 Rate limiting for analytics endpoints
-const analyticsLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 50,
-  message: {
-    error: 'Too many analytics requests, please try again later.',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // Apply general rate limiting
 app.use(generalLimiter);
@@ -229,19 +211,10 @@ app.get('/health', async (req, res) => {
       const { openAIService } = require('./services/openaiService');
       const aiHealthy = await openAIService.healthCheck();
       aiStatus = aiHealthy ? 'healthy' : 'degraded';
-    } catch (error) {
+    } catch (_error) {
       aiStatus = 'error';
     }
 
-    // 🆕 Check analytics service health
-    let analyticsStatus = 'unknown';
-    try {
-      const { analyticsService } = require('./services/analyticsService');
-      const analyticsHealthy = await analyticsService.healthCheck();
-      analyticsStatus = analyticsHealthy ? 'healthy' : 'degraded';
-    } catch (error) {
-      analyticsStatus = 'error';
-    }
 
     const status = {
       status: 'ok',
@@ -249,7 +222,6 @@ app.get('/health', async (req, res) => {
       services: {
         database: dbStatus,
         ai: aiStatus,
-        analytics: analyticsStatus,
         server: 'running',
       },
       version: '1.0.0',
@@ -272,33 +244,22 @@ app.get('/health', async (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/learning-paths', learningPathRoutes); // ❌ Removed - deleted by user
-app.use('/api/progress', progressRoutes); // ✅ Restored - used in frontend
-// app.use('/api/modules', moduleRoutes); // ❌ Removed - not used in frontend
+  
 
-// 🆕 Onboarding routes
-app.use('/api/onboarding', onboardingRoutes);
 
 // AI Routes with specific rate limiting
-const assistantLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, message: { error: 'Too many assistant chat requests' } });
-app.use('/api/assistant/chat', assistantLimiter);
-app.use('/api/assistant', assistantRoutes);
 app.use('/api/ai/chat', aiChatLimiter);
 app.use('/api/ai', aiRoutes);
 // 🆕 Conversation management routes
 app.use('/api/conversations', conversationRoutes);
 
-// 🆕 Phase 4 routes - Assessments & Certificates
+// 🆕 Phase 4 routes - Assessments
 app.use('/api/assessments', assessmentRoutes);
-app.use('/api/skills', skillsRoutes);
-app.use('/api/certificates', certificateRoutes);
 
 // 🆕 Phase 5 routes - Analytics & Recommendations (REMOVED for optimization)
 // app.use('/api/analytics', analyticsLimiter); // ❌ Removed
 // app.use('/api/analytics', analyticsRoutes); // ❌ Removed
 // app.use('/api/recommendations', recommendationRoutes); // ❌ Removed
-app.use('/api/portfolio', portfolioRoutes);
-app.use('/api/personalization', personalizationRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -308,26 +269,17 @@ app.get('/', (req, res) => {
     phase: '5 - Advanced Analytics & Adaptive Intelligence',
     documentation: '/api/docs',
     health: '/health',
-      features: {
-        authentication: '✅ Active',
-        learningPaths: '✅ Active', // ✅ Restored
-        progressTracking: '✅ Active', // ✅ Restored
-        aiAssistant: '✅ Active',
-        assessments: '✅ Active',
-      certificates: '✅ Active',
-      analytics: '✅ Active',
-      recommendations: '✅ Active',
-      adaptiveLearning: '✅ Active',
-      portfolio: '✅ Active',
-      personalization: '✅ Active',
+    features: {
+      authentication: '✅ Active',
+      aiAssistant: '✅ Active',
+      assessments: '✅ Active',
+      conversations: '✅ Active',
     },
-      endpoints: {
-        core: ['/api/auth', '/api/users', '/api/progress'],
-        ai: ['/api/ai'],
-      assessment: ['/api/assessments', '/api/certificates'],
-      analytics: ['/api/analytics', '/api/recommendations'],
-      portfolio: ['/api/portfolio'],
-      personalization: ['/api/personalization'],
+    endpoints: {
+      core: ['/api/auth', '/api/users'],
+      ai: ['/api/ai'],
+      assessment: ['/api/assessments'],
+      conversations: ['/api/conversations'],
     },
   });
 });
@@ -338,16 +290,11 @@ app.use('*', (req, res) => {
     error: 'Route not found',
     message: `Cannot ${req.method} ${req.originalUrl}`,
     availableEndpoints: {
-        auth: '/api/auth/*',
-        users: '/api/users/*',
-        // learningPaths: '/api/learning-paths/*', // ❌ Removed - deleted by user
-        progress: '/api/progress/*', // ✅ Restored
-        ai: '/api/ai/*',
+      auth: '/api/auth/*',
+      users: '/api/users/*',
+      ai: '/api/ai/*',
       assessments: '/api/assessments/*',
-      certificates: '/api/certificates/*',
-      analytics: '/api/analytics/*',
-      recommendations: '/api/recommendations/*',
-      portfolio: '/api/portfolio/*',
+      conversations: '/api/conversations/*',
     },
   });
 });
@@ -362,10 +309,7 @@ const server = app.listen(PORT, () => {
   console.log(`📍 API endpoints available at http://localhost:${PORT}/api/`);
   console.log(`🤖 AI assistant endpoints at http://localhost:${PORT}/api/ai/`);
   console.log(`📊 Assessment endpoints at http://localhost:${PORT}/api/assessments/`);
-  console.log(`🏆 Certificate endpoints at http://localhost:${PORT}/api/certificates/`);
-  console.log(`📈 Analytics endpoints at http://localhost:${PORT}/api/analytics/`);
-  console.log(`🎯 Recommendation endpoints at http://localhost:${PORT}/api/recommendations/`);
-  console.log(`📁 Portfolio endpoints at http://localhost:${PORT}/api/portfolio/`);
+  console.log(`💬 Conversation endpoints at http://localhost:${PORT}/api/conversations/`);
   console.log(`💊 Health check at http://localhost:${PORT}/health`);
 });
 
@@ -374,10 +318,6 @@ const gracefulShutdown = (signal) => {
   console.log(`${signal} signal received: closing HTTP server`);
   server.close(() => {
     console.log('HTTP server closed');
-    
-    // Stop analytics processor
-    const { stopAnalyticsProcessor } = require('./jobs/analyticsProcessor');
-    stopAnalyticsProcessor();
     
     // Close database connection
     mongoose.connection.close(false, () => {
@@ -391,7 +331,7 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on('unhandledRejection', (err, _promise) => {
   console.error('Unhandled Promise Rejection:', err);
   server.close(() => {
     process.exit(1);

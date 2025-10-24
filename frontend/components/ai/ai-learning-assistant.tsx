@@ -58,6 +58,7 @@ import {
   Flame
 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
+import { sendChat } from "@/lib/ai-client"
 
 // Enhanced Types for the AI Assistant
 interface ChatMessage {
@@ -165,25 +166,7 @@ const ASSISTANT_PERSONALITIES: AssistantPersonality[] = [
   }
 ]
 
-// Enhanced mock responses for better fallback
-const ENHANCED_RESPONSES = {
-  learning_analysis: [
-    "Based on your learning pattern, I notice you perform best during focused 40-minute sessions. Your comprehension increases by 23% when concepts are presented with visual examples.",
-    "Your progress data shows strong analytical thinking but suggests more practice with practical applications. I recommend 15 minutes of hands-on exercises after each theoretical module.",
-    "I've detected that you tend to rush through easier concepts but slow down appropriately for complex topics. This shows good self-regulation - let's leverage this strength!"
-  ],
-  motivation_boost: [
-    "You're making incredible progress! Your consistency over the last week has improved by 34%. That kind of dedication sets you apart from 87% of learners at this level.",
-    "I can see you're facing some challenges, but remember - you've overcome 12 learning obstacles this month already. Your resilience is building real expertise.",
-    "Your learning velocity is accelerating! The concepts that took you 45 minutes last week are now being mastered in 28 minutes. Neural pathways are strengthening!"
-  ],
-  contextual_help: [
-    "Looking at your current module on {topic}, I notice this aligns perfectly with your strength in {strength}. Try approaching it from that angle - connect new concepts to what you already know well.",
-    "This {difficulty} level content might feel challenging, but your learning data shows you're ready. You scored 89% on the prerequisite concepts. Trust your preparation!",
-    "I see you've spent {time} minutes on this section. Based on similar learners' patterns, a 10-minute break followed by a different approach might help consolidate this knowledge."
-  ]
-}
-
+ 
 export function AILearningAssistant({
   isOpen,
   onClose,
@@ -253,10 +236,10 @@ export function AILearningAssistant({
   
   // Refs
   const chatEndRef = useRef<HTMLDivElement>(null)
-  const messageInputRef = useRef<HTMLInputElement>(null)
+  const messageInputRef = useRef<HTMLTextAreaElement>(null)
   const voiceRef = useRef<any>(null)
   const speechSynthRef = useRef<SpeechSynthesis | null>(null)
-  const streamingTimeoutRef = useRef<NodeJS.Timeout>()
+  const streamingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Auto-scroll to bottom with smooth animation
   useEffect(() => {
@@ -915,7 +898,7 @@ Remember: You have access to detailed learning analytics. Use this data to provi
 
   // Enhanced message sending with improved analytics
   const handleSendMessage = async () => {
-    if (!currentMessage.trim() || isTyping || isThinking) return
+    if (!currentMessage.trim()) return
 
     // Don't send slash commands as messages
     if (currentMessage.startsWith('/')) {
@@ -937,8 +920,8 @@ Remember: You have access to detailed learning analytics. Use this data to provi
     }
 
     setMessages(prev => [...prev, userMessage])
+    const userMessageText = currentMessage
     setCurrentMessage("")
-    setIsTyping(true)
 
     // Update session stats
     setSessionStats(prev => ({
@@ -948,15 +931,46 @@ Remember: You have access to detailed learning analytics. Use this data to provi
     }))
 
     try {
-      const aiResponse = await generateAIResponse(currentMessage)
-      setMessages(prev => [...prev, aiResponse])
+      // Start streaming AI response - no placeholder, just empty message
+      const assistantMsgId = `ai-${Date.now()}`
+      let fullContent = ''
+      
+      setMessages(prev => [...prev, {
+        id: assistantMsgId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        streamed: true,
+      }])
+
+      await sendChat(userMessageText, undefined, {
+        stream: true,
+        assistant: true,
+        onChunk: (chunk) => {
+          fullContent += chunk
+          setMessages(prev => prev.map(m => 
+            m.id === assistantMsgId 
+              ? { ...m, content: fullContent }
+              : m
+          ))
+        },
+      })
+
+      // Get final message for further processing
+      const finalMsg = {
+        id: assistantMsgId,
+        role: 'assistant' as const,
+        content: fullContent,
+        timestamp: new Date(),
+        streamed: true,
+      }
       
       // Add to conversation memory
-      setConversationMemory(prev => [...prev.slice(-12), aiResponse])
+      setConversationMemory(prev => [...prev.slice(-12), finalMsg])
       
       // Enhanced text-to-speech with voice mode awareness
       if (voiceEnabled && speechMode !== 'off') {
-        speakResponse(aiResponse.content, { interrupt: false })
+        speakResponse(finalMsg.content, { interrupt: false })
       }
       
       // Trigger adaptive recommendations
@@ -976,8 +990,6 @@ Remember: You have access to detailed learning analytics. Use this data to provi
         metadata: { confidence: 0 }
       }
       setMessages(prev => [...prev, errorMessage])
-    } finally {
-      setIsTyping(false)
     }
   }
 
@@ -1683,7 +1695,7 @@ Remember: You have access to detailed learning analytics. Use this data to provi
                     className={`bg-white border-gray-300 text-gray-900 resize-none h-10 sm:h-12 pr-12 text-sm rounded-xl ${
                       showCommandMenu ? 'border-blue-500 ring-2 ring-blue-200' : ''
                     }`}
-                    disabled={isTyping || isThinking}
+                    disabled={false}
                     rows={1}
                   />
                   
@@ -1741,7 +1753,7 @@ Remember: You have access to detailed learning analytics. Use this data to provi
                 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!currentMessage.trim() || isTyping || isThinking}
+                  disabled={!currentMessage.trim()}
                   size="sm"
                   className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 h-10 w-10 sm:h-12 sm:w-12 p-0 shrink-0"
                 >

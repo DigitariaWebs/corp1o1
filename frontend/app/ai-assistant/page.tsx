@@ -46,8 +46,6 @@ export default function AIAssistantPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isSending, setIsSending] = useState(false)
-  const [showTypingIndicator, setShowTypingIndicator] = useState(false)
-  const [typingText, setTypingText] = useState("AI is thinking...")
   const [showTemplates, setShowTemplates] = useState(false)
 
   // Load conversations on mount
@@ -55,83 +53,64 @@ export default function AIAssistantPage() {
     loadConversations()
   }, [loadConversations])
 
-  // Handle sending a message
+  // Handle sending a message with streaming
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || isSending) return
 
     setIsSending(true)
-    setShowTypingIndicator(true)
-    setTypingText("AI is thinking...")
     
     try {
       // Add user message
       const userMessage = addMessage({
         role: 'user',
-        content: content.trim(),
-        status: 'sent'
+        content: content.trim()
       })
-
-      // Simulate thinking process
-      const thinkingPhrases = [
-        "Analyzing your question...",
-        "Gathering relevant information...",
-        "Formulating the best response...",
-        "Almost ready..."
-      ]
-      
-      for (let i = 0; i < thinkingPhrases.length; i++) {
-        setTypingText(thinkingPhrases[i])
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
 
       // Get context for AI
       const contextMessages = getContextMessages([...messages, userMessage])
       
-      // Send to AI API using the same client as the chatbot
-      const response = await sendChat(content.trim(), undefined, {
+      // Add empty assistant message for streaming
+      const assistantMessage = addMessage({
+        role: 'assistant',
+        content: ''
+      })
+
+      let fullContent = ''
+      
+      // Send to AI API with streaming enabled
+      await sendChat(content.trim(), undefined, {
+        stream: true,
+        assistant: true,
         sessionId: activeConversationId || undefined,
-        personality: activeConversation?.personality || 'ARIA',
-        context: {
-          messages: contextMessages,
-          conversationId: activeConversationId
+        onChunk: (chunk) => {
+          fullContent += chunk
+          // Update the assistant message with accumulated content
+          updateMessage(assistantMessage.id, {
+            content: fullContent
+          })
         }
       })
 
-      console.log('AI API Response:', response)
-
-      // Add AI response with enhanced metadata
-      const aiContent = response?.reply || "I'm sorry, I couldn't process your message. Please try again."
-      
-      const aiResponse = addMessage({
-        role: 'assistant',
-        content: aiContent,
-        status: 'delivered',
+      // Update final metadata when done
+      updateMessage(assistantMessage.id, {
         metadata: {
-          confidence: response?.confidence || Math.floor(Math.random() * 20) + 80,
-          responseTime: response?.responseTime || Math.floor(Math.random() * 1000) + 500,
-          intent: response?.intent || 'general',
-          tokens: response?.tokens || Math.floor(Math.random() * 200) + 100,
-          model: response?.model || 'gpt-4'
+          confidence: Math.floor(Math.random() * 20) + 80,
+          responseTime: 0
         }
       })
       
       setIsSending(false)
-      setShowTypingIndicator(false)
 
     } catch (error) {
       console.error('Failed to send message:', error)
       
-      // Provide a helpful error message
-      const errorMessage = "I'm sorry, I encountered an error processing your message. Please try again."
-      
       // Add error message
       addMessage({
         role: 'assistant',
-        content: errorMessage,
+        content: "I'm sorry, I encountered an error processing your message. Please try again.",
         metadata: {
           confidence: 0,
-          responseTime: 0,
-          intent: 'error'
+          responseTime: 0
         }
       })
       
@@ -215,22 +194,6 @@ export default function AIAssistantPage() {
       deleteMessage(messageId)
       // TODO: Send deletion to API
     }
-  }
-
-  // Enhanced message handlers
-  const handleBookmarkMessage = (messageId: string, bookmarked: boolean) => {
-    console.log('Bookmark message:', messageId, bookmarked)
-    // TODO: Implement bookmark functionality
-  }
-
-  const handleRegenerateMessage = (messageId: string) => {
-    console.log('Regenerate message:', messageId)
-    // TODO: Implement regenerate functionality
-  }
-
-  const handleShareMessage = (messageId: string) => {
-    console.log('Share message:', messageId)
-    // TODO: Implement share functionality
   }
 
   // Get conversation title
@@ -342,13 +305,8 @@ export default function AIAssistantPage() {
               onMessageFeedback={handleMessageFeedback}
               onEditMessage={handleEditMessage}
               onDeleteMessage={handleDeleteMessage}
-              onBookmarkMessage={handleBookmarkMessage}
-              onRegenerateMessage={handleRegenerateMessage}
-              onShareMessage={handleShareMessage}
               loading={isSending}
               conversationTitle={getConversationTitle()}
-              showTypingIndicator={showTypingIndicator}
-              typingText={typingText}
               className="h-full"
             />
           </div>

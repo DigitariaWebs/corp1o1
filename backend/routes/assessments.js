@@ -23,8 +23,6 @@ const {
   submitAssessmentFeedback,
 } = require('../controllers/assessmentController');
 
-// Import AI evaluation service for testing
-const { aiEvaluationService } = require('../services/aiEvaluationService');
 const { planCustomAssessments } = require('../controllers/assessmentController');
 
 // Validation schemas
@@ -432,96 +430,6 @@ router.put(
 );
 
 /**
- * @route   POST /api/assessments/:assessmentId/ai-evaluate
- * @desc    AI-powered evaluation of assessment answers
- * @access  Private
- * @body    sessionId, questionId, answer, evaluationContext
- */
-router.post(
-  '/:assessmentId/ai-evaluate',
-  validate(assessmentIdParamSchema, 'params'),
-  validate(Joi.object({
-    sessionId: Joi.string().uuid().required(),
-    questionId: Joi.string().required(),
-    answer: Joi.alternatives().try(
-      Joi.string(),
-      Joi.number(),
-      Joi.boolean(),
-      Joi.array(),
-      Joi.object(),
-    ).required(),
-    evaluationContext: Joi.object({
-      questionType: Joi.string().optional(),
-      difficulty: Joi.string().optional(),
-      maxPoints: Joi.number().optional(),
-      timeSpent: Joi.number().optional(),
-    }).optional(),
-  })),
-  async (req, res, next) => {
-    try {
-      const userId = req.user._id;
-      const { assessmentId } = req.params;
-      const { sessionId, questionId, answer, evaluationContext } = req.body;
-      
-      // Import AI service
-      const aiEvaluationService = require('../services/aiEvaluationService');
-      
-      // Verify session ownership
-      const session = await require('../models/AssessmentSession').findOne({
-        sessionId,
-        userId,
-        assessmentId,
-      });
-      
-      if (!session) {
-        return res.status(404).json({
-          success: false,
-          error: 'Session not found',
-          message: 'Invalid session for this assessment',
-        });
-      }
-      
-      // Get question details
-      const question = await require('../models/Question').findOne({
-        questionId,
-        assessmentId,
-      });
-      
-      if (!question) {
-        return res.status(404).json({
-          success: false,
-          error: 'Question not found',
-          message: 'Question not found in this assessment',
-        });
-      }
-      
-      // Perform AI evaluation
-      const evaluation = await aiEvaluationService.evaluateAnswer(
-        question,
-        answer,
-        evaluationContext,
-      );
-      
-      res.status(200).json({
-        success: true,
-        data: {
-          evaluation,
-          metadata: {
-            questionId,
-            sessionId,
-            evaluatedAt: new Date(),
-            aiProvider: evaluation.provider,
-            model: evaluation.model,
-          },
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
-
-/**
  * @route   GET /api/assessments/health
  * @desc    Health check for assessment service
  * @access  Private
@@ -642,7 +550,7 @@ router.post(
     rubric: Joi.string().optional(),
     context: Joi.string().optional(),
   })),
-  require('../controllers/assessmentEvaluationController').evaluateAnswer,
+  require('../controllers/assessmentController').evaluateAnswer,
 );
 
 /**
@@ -661,39 +569,7 @@ router.post(
     personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').default('ARIA'),
     points: Joi.number().min(1).max(100).default(10),
   })),
-  require('../controllers/assessmentEvaluationController').evaluateMultipleChoice,
-);
-
-/**
- * @route   GET /api/assessments/personalities
- * @desc    Get available AI personalities
- * @access  Private
- */
-router.get(
-  '/personalities',
-  authenticateWithClerk,
-  require('../controllers/assessmentEvaluationController').getPersonalities,
-);
-
-/**
- * @route   POST /api/assessments/study-recommendations
- * @desc    Generate personalized study recommendations
- * @access  Private
- */
-router.post(
-  '/study-recommendations',
-  authenticateWithClerk,
-  validate(Joi.object({
-    assessmentResults: Joi.object({
-      score: Joi.number().required(),
-      strengths: Joi.array().items(Joi.string()).optional(),
-      weaknesses: Joi.array().items(Joi.string()).optional(),
-    }).required(),
-    personality: Joi.string().valid('ARIA', 'SAGE', 'COACH').default('ARIA'),
-    learningGoals: Joi.string().optional(),
-    timeAvailable: Joi.string().optional(),
-  })),
-  require('../controllers/assessmentEvaluationController').generateStudyRecommendations,
+  require('../controllers/assessmentController').evaluateMultipleChoice,
 );
 
 /**

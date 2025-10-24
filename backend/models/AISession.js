@@ -228,9 +228,7 @@ const aiSessionSchema = new mongoose.Schema({
   
   aiPersonality: {
     type: String,
-    enum: ['ASSISTANT'],
     default: 'ASSISTANT',
-    required: [true, 'AI personality is required'],
   },
   
   // Conversation title
@@ -277,8 +275,8 @@ const aiSessionSchema = new mongoose.Schema({
   configuration: {
     modelType: {
       type: String,
-      enum: ['openai-gpt4', 'openai-gpt35', 'claude', 'local'],
-      default: 'openai-gpt4',
+      enum: ['openai-gpt4', 'openai-gpt35', 'openai-o3-deep-research', 'claude', 'local'],
+      default: 'openai-o3-deep-research',
     },
     maxMessages: {
       type: Number,
@@ -330,7 +328,6 @@ const aiSessionSchema = new mongoose.Schema({
 aiSessionSchema.index({ userId: 1, startTime: -1 });
 // Unique index for sessionId is declared at field level
 aiSessionSchema.index({ status: 1, lastInteraction: -1 });
-aiSessionSchema.index({ aiPersonality: 1, status: 1 });
 aiSessionSchema.index({ 'context.currentModule': 1 });
 aiSessionSchema.index({ 'context.currentPath': 1 });
 
@@ -375,7 +372,7 @@ aiSessionSchema.methods.updateAnalytics = function() {
       adaptationEffectiveness: 0,
       personalizationScore: 0,
       contextRelevance: 0,
-      sessionQuality: 0
+      sessionQuality: 0,
     };
   }
   

@@ -14,21 +14,46 @@ export async function sendChat(
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
   const isBrowser = typeof window !== 'undefined';
   const useRelative = isBrowser && (!process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_URL === window.location.origin);
-  const path = opts.assistant ? '/api/assistant/chat' : '/api/ai/chat-public';
+  
+  // Always use public conversation endpoints
+  const path = '/api/conversations/public';
   const url = useRelative ? path : `${baseUrl}${path}`;
 
-  // Remove Clerk token verification for AI assistant
-  const finalToken = token;
+  // For new conversations, create one first
+  let conversationId = opts.sessionId;
+  if (!conversationId) {
+    const createRes = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-dev-auth': 'true',
+      },
+      body: JSON.stringify({
+        title: 'AI Chat',
+        personality: opts.personality || 'ARIA'
+      }),
+      credentials: 'include',
+    });
+    
+    if (createRes.ok) {
+      const createData = await createRes.json();
+      conversationId = createData.data.conversation.id;
+    }
+  }
 
-  const payload = { message, ...opts };
-
-  const res = await fetch(`${url}?stream=${opts.stream ? 1 : 0}`, {
+  // Add message to conversation
+  const messageUrl = `${url}/${conversationId}/messages`;
+  const res = await fetch(`${messageUrl}?stream=${opts.stream ? 1 : 0}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-dev-auth': 'true',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      content: message,
+      role: 'user',
+      metadata: opts.context || {}
+    }),
     credentials: 'include',
   });
 

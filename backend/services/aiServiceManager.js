@@ -24,7 +24,7 @@ class AIServiceManager {
         purpose: 'Accurate evaluation and grading',
       },
       conversation: {
-        model: process.env.OPENAI_MODEL_CONVERSATION || 'gpt-4o',
+        model: process.env.OPENAI_MODEL_CONVERSATION || 'o3-deep-research',
         temperature: 0.7,
         maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_CONVERSATION) || 4000, // Increased for detailed responses
         purpose: 'Comprehensive conversational responses',

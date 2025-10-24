@@ -5,7 +5,7 @@ class OpenAIService {
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY?.trim();
     this.baseURL = 'https://api.openai.com/v1';
-    this.defaultModel = process.env.OPENAI_MODEL || 'gpt-4o';
+    this.defaultModel = process.env.OPENAI_MODEL || 'o3-deep-research';
     this.fallbackModel = 'gpt-4o-mini';
     
     // Advanced models for different use cases
@@ -366,6 +366,7 @@ class OpenAIService {
       'gpt-4-turbo-preview',
       'gpt-3.5-turbo',
       'gpt-3.5-turbo-16k',
+      'o3-deep-research',
     ];
   }
 
@@ -380,6 +381,7 @@ class OpenAIService {
       'gpt-4-turbo-preview': { input: 0.01, output: 0.03 },
       'gpt-3.5-turbo': { input: 0.0015, output: 0.002 },
       'gpt-3.5-turbo-16k': { input: 0.003, output: 0.004 },
+      'o3-deep-research': { input: 0.05, output: 0.15 }, // Estimated pricing for o3-deep-research
     };
 
     return pricing[model] || pricing['gpt-3.5-turbo'];
