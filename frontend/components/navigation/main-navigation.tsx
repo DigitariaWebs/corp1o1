@@ -49,6 +49,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  Video,
 } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
@@ -63,117 +64,83 @@ export function MainNavigation() {
 
   if (!user) return null
 
-  // Role-based navigation items
-  const getNavigationItems = () => {
-    const baseItems = [
-      {
-        label: "AI Assistant",
-        href: "/ai-assistant",
-        icon: Brain,
-        description: "AI Learning Assistant",
-      },
-      {
-        label: t("navigation.dashboard"),
-        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard",
-        icon: Layout,
-        description: t("navigation.dashboard"),
-      },
-    ]
+  // Navigation items
+  const mainNavigationItems = [
+    {
+      label: "AI Assistant",
+      href: "/ai-assistant",
+      icon: Brain,
+      description: "AI Learning Assistant",
+    },
+    {
+      label: t("navigation.dashboard"),
+      href: "/dashboard",
+      icon: Layout,
+      description: t("navigation.dashboard"),
+    },
+    {
+      label: t("navigation.learning"),
+      href: "/learning",
+      icon: BookOpen,
+      description: "Parcours d'apprentissage",
+    },
+  ]
 
-    if (user.role === "admin") {
-      return [
-        ...baseItems,
-        { label: t("navigation.users"), href: "/admin/users", icon: Users, description: "Gestion des utilisateurs" },
+  // Secondary navigation in dropdown
+  const secondaryNavigationItems = [
+    {
+      section: "Évaluation & Portfolio",
+      items: [
+        {
+          label: t("navigation.portfolio"),
+          href: "/portfolio",
+          icon: Code,
+          description: "GitHub, Behance, LinkedIn",
+        },
+        {
+          label: t("navigation.assessments"),
+          href: "/assessments",
+          icon: FileCheck,
+          description: t("assessments.title"),
+        },
         {
           label: t("navigation.analytics"),
-          href: "/admin/analytics",
+          href: "/analytics",
           icon: BarChart3,
-          description: "Analytics système",
+          description: "Statistiques détaillées",
         },
-      ]
-    }
-
-    if (user.role === "enterprise") {
-      return [
-        ...baseItems,
+      ],
+    },
+    {
+      section: "Compétences & Certifications",
+      items: [
         {
-          label: t("navigation.employees"),
-          href: "/enterprise/employees",
-          icon: Users,
-          description: "Gestion des employés",
-        },
-        {
-          label: t("navigation.departments"),
-          href: "/enterprise/departments",
-          icon: Building,
-          description: "Départements",
+          label: t("navigation.skills"),
+          href: "/skills",
+          icon: Target,
+          description: t("skills.title"),
         },
         {
-          label: t("navigation.learning"),
-          href: "/enterprise/learning",
-          icon: BookOpen,
-          description: "Parcours d'apprentissage",
+          label: t("navigation.certificates"),
+          href: "/certificates",
+          icon: Award,
+          description: t("certificates.title"),
         },
-      ]
-    }
+      ],
+    },
+    {
+      section: "Découverte",
+      items: [
+        {
+          label: t("navigation.marketplace"),
+          href: "/marketplace",
+          icon: Store,
+          description: "Talents et opportunités",
+        },
+      ],
+    },
+  ]
 
-    // Regular user navigation
-    return [
-      ...baseItems,
-      { label: t("navigation.skills"), href: "/skills", icon: Target, description: t("skills.title") },
-{
-                label: t("navigation.learning"),
-                href: "/learning",
-                icon: BookOpen,
-                description: "Parcours d'apprentissage",
-              },
-      { label: t("navigation.certificates"), href: "/certificates", icon: Award, description: t("certificates.title") },
-    ]
-  }
-
-  // Secondary navigation in dropdown for regular users
-  const secondaryNavigationItems =
-    user.role === "user"
-      ? [
-          {
-            section: "Évaluation & Portfolio",
-            items: [
-              {
-                label: t("navigation.portfolio"),
-                href: "/portfolio",
-                icon: Code,
-                description: "GitHub, Behance, LinkedIn",
-              },
-                    {
-        label: t("navigation.assessments"),
-        href: "/assessments",
-        icon: FileCheck,
-        description: t("assessments.title"),
-      },
-
-              {
-                label: t("navigation.analytics"),
-                href: "/analytics",
-                icon: BarChart3,
-                description: "Statistiques détaillées",
-              },
-            ],
-          },
-          {
-            section: "Découverte",
-            items: [
-              {
-                label: t("navigation.marketplace"),
-                href: "/marketplace",
-                icon: Store,
-                description: "Talents et opportunités",
-              },
-            ],
-          },
-        ]
-      : []
-
-  const mainNavigationItems = getNavigationItems()
 
   const subscriptionColors = {
     free: "from-gray-500 to-gray-600",
@@ -252,7 +219,7 @@ export function MainNavigation() {
           <p className="text-sm font-medium text-white truncate">{user.name}</p>
           <div className="flex items-center justify-between mt-1">
             <p className="text-xs text-gray-400 capitalize">
-              {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+              {user.role}
             </p>
             <Badge
               className={`text-xs px-1.5 py-0.5 bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}
@@ -347,7 +314,7 @@ export function MainNavigation() {
               </Avatar>
               <h3 className="text-lg font-bold text-white mb-1">{user.name}</h3>
               <p className="text-gray-400 text-sm mb-3 capitalize">
-                {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+                {user.role}
               </p>
               <Badge className={`bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}>
                 <Zap className="w-3 h-3 mr-1" />
@@ -470,9 +437,22 @@ export function MainNavigation() {
                 </motion.div>
               )
             })}
-
-            {/* "Plus" Dropdown for Secondary Items (only for regular users) */}
-            {user.role === "user" && secondaryNavigationItems.length > 0 && (
+            {/* Conference Button */}
+            <Link href="/conference">
+              <Button
+                variant={isActiveRoute("/conference") ? "default" : "ghost"}
+                className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                  isActiveRoute("/conference")
+                    ? "bg-gradient-to-r from-revolutionary-cyan/25 to-revolutionary-blue/25 text-white border border-revolutionary-cyan/40 shadow-lg shadow-revolutionary-cyan/10"
+                    : "text-gray-300 hover:text-white hover:bg-slate-800/50"
+                }`}
+              >
+                <Video className="h-4 w-4 mr-2" />
+                {t("navigation.conference")}
+              </Button>
+            </Link>
+            {/* "Plus" Dropdown for Secondary Items */}
+            {secondaryNavigationItems.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -515,6 +495,8 @@ export function MainNavigation() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+ 
           </div>
 
           {/* Right Side Controls */}

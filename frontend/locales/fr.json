@@ -28,6 +28,7 @@
     "login": "Connexion",
     "register": "S'inscrire",
     "notifications": "Notifications",
+    "conference": "Conférence",
     "voice_listening": "Écoute active...",
     "voice_commands": "Dites \"Naviguer vers...\" ou \"Commencer évaluation\""
   },

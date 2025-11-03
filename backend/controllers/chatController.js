@@ -1,11 +1,13 @@
 // controllers/chatController.js
 // Consolidated AI chat controller - merged from aiController, assistantController, conversationController
 
+const mongoose = require('mongoose');
 const AISession = require('../models/AISession');
 const { openAIService } = require('../services/openaiService');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { v4: uuidv4 } = require('uuid');
 const { getModelConfig } = require('../config/aiModelConfig');
+const { getPromptForType, isValidConversationType } = require('../config/conversationPrompts');
 
 
 /**
@@ -13,56 +15,49 @@ const { getModelConfig } = require('../config/aiModelConfig');
  * POST /api/ai/feedback
  */
 exports.provideFeedback = catchAsync(async (req, res) => {
-  const userId = req.user._id;
   const { messageId, rating, helpful, comment } = req.body;
-
-  if (!messageId) {
-    throw new AppError('Message ID is required', 400);
-  }
-
-  if (rating && (rating < 1 || rating > 5)) {
-    throw new AppError('Rating must be between 1 and 5', 400);
-  }
+  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
 
   // Find the session containing this message
   const session = await AISession.findOne({
-    userId,
-    'messages.messageId': messageId,
+    userId: anonymousUserId,
+    'messages.messageId': messageId
   });
 
   if (!session) {
-    throw new AppError('Message not found in user sessions', 404);
+    throw new AppError('Message not found', 404);
   }
 
   // Add feedback to the message
-  const feedbackAdded = session.addMessageFeedback(messageId, {
+  const success = session.addMessageFeedback(messageId, {
     rating,
     helpful,
-    comment: comment?.substring(0, 500),
-    timestamp: new Date(),
+    comment
   });
 
-  if (!feedbackAdded) {
-    throw new AppError('Failed to add feedback to message', 500);
+  if (!success) {
+    throw new AppError('Failed to add feedback', 500);
   }
 
   await session.save();
 
-  res.status(200).json({
+  res.json({
     success: true,
     data: {
       message: 'Feedback recorded successfully',
       messageId,
-      feedback: { rating, helpful, comment },
-    },
+      feedback: {
+        rating,
+        helpful,
+        comment
+      }
+    }
   });
 });
 
 // ============================================================================
 // PUBLIC CONVERSATION ENDPOINTS (no auth required)
 // ============================================================================
-
-const mongoose = require('mongoose');
 
 /**
  * Get public conversations
@@ -78,7 +73,7 @@ exports.getPublicConversations = catchAsync(async (req, res) => {
     .sort({ lastInteraction: -1 })
     .limit(parseInt(limit))
     .skip(parseInt(offset))
-    .select('sessionId aiPersonality startTime endTime lastInteraction status messages')
+    .select('sessionId aiPersonality conversationType startTime endTime lastInteraction status messages')
     .lean();
 
   const conversations = sessions.map((session) => {
@@ -89,6 +84,7 @@ exports.getPublicConversations = catchAsync(async (req, res) => {
       id: session.sessionId,
       title: firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
       personality: session.aiPersonality,
+      conversationType: session.conversationType || 'GENERAL',
       createdAt: session.startTime,
       updatedAt: session.lastInteraction,
       messageCount: session.messages.length,
@@ -139,6 +135,7 @@ exports.getPublicConversation = catchAsync(async (req, res) => {
     id: session.sessionId,
     title: firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
     personality: session.aiPersonality,
+    conversationType: session.conversationType || 'GENERAL',
     createdAt: session.startTime,
     updatedAt: session.lastInteraction,
     messageCount: session.messages.length,
@@ -161,13 +158,19 @@ exports.getPublicConversation = catchAsync(async (req, res) => {
  * POST /api/conversations/public
  */
 exports.createPublicConversation = catchAsync(async (req, res) => {
-  const { title } = req.body;
+  const { title, conversationType } = req.body;
   const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  
+  // Validate conversation type if provided
+  const validConversationType = conversationType && isValidConversationType(conversationType) 
+    ? conversationType 
+    : 'GENERAL';
   
   const newSession = new AISession({
     sessionId: uuidv4(),
     userId: anonymousUserId,
     aiPersonality: 'ASSISTANT',
+    conversationType: validConversationType,
     startTime: new Date(),
     status: 'active',
     context: {
@@ -186,6 +189,7 @@ exports.createPublicConversation = catchAsync(async (req, res) => {
     id: newSession.sessionId,
     title: title || 'New Conversation',
     personality: newSession.aiPersonality,
+    conversationType: newSession.conversationType || 'GENERAL',
     createdAt: newSession.startTime,
     updatedAt: newSession.lastInteraction,
     messageCount: 0,
@@ -231,6 +235,7 @@ exports.updatePublicConversation = catchAsync(async (req, res) => {
     id: session.sessionId,
     title: title || 'Updated Conversation',
     personality: session.aiPersonality,
+    conversationType: session.conversationType || 'GENERAL',
     createdAt: session.startTime,
     updatedAt: session.lastInteraction,
     messageCount: session.messages.length,
@@ -339,8 +344,12 @@ exports.addPublicMessage = catchAsync(async (req, res) => {
       .slice(-8)
       .map((msg) => ({ role: msg.role, content: msg.content }));
 
+    // Get the appropriate system prompt based on conversation type
+    const conversationType = session.conversationType || 'GENERAL';
+    const systemPrompt = getPromptForType(conversationType);
+
     const optimizedHistory = [
-      { role: 'system', content: 'You are a helpful AI assistant. Provide clear, concise, and accurate responses to user questions.' },
+      { role: 'system', content: systemPrompt },
       ...conversationHistory,
     ];
 

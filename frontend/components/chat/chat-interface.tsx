@@ -263,10 +263,10 @@ export function ChatInterface({
                   )}
                   
                   <div className={cn(
-                    "max-w-[80%] rounded-lg px-4 py-3 relative group/message",
+                    "max-w-[85%] rounded-xl px-5 py-4 relative group/message shadow-sm",
                     message.role === 'user' 
-                      ? 'bg-blue-500 text-white' 
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-blue-600 text-white shadow-blue-500/20' 
+                      : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
                   )}>
                     {editingMessageId === message.id ? (
                       <div className="space-y-2">
@@ -298,7 +298,7 @@ export function ChatInterface({
                       <>
                         <MessageContent 
                           content={message.content}
-                          className="text-sm"
+                          className=""
                         />
                         
                         <div className="flex items-center gap-2 mt-2 text-xs opacity-0 group-hover/message:opacity-100 transition-opacity">

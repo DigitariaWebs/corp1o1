@@ -28,6 +28,7 @@
     "login": "Login",
     "register": "Sign Up",
     "notifications": "Notifications",
+    "conference": "Conference",
     "voice_listening": "Active listening...",
     "voice_commands": "Say \"Navigate to...\" or \"Start assessment\""
   },

@@ -30,6 +30,8 @@ const assessmentRoutes = require('./routes/assessments');
 const webhookRoutes = require('./routes/webhooks');
 // 🆕 Conversation management routes
 const conversationRoutes = require('./routes/conversations');
+// 🆕 Floating chat routes (lightweight fast chatbot)
+const floatingChatRoutes = require('./routes/floatingChat');
 
 const app = express();
 
@@ -40,9 +42,10 @@ const app = express();
 
     const runPostConnectInit = async () => {
       try {
-        // Drop legacy index that causes plan creation failures
-        const { dropLegacyAssessmentQuestionIdIndex } = require('./config/database-indexes');
+        // Drop legacy indexes that cause creation failures
+        const { dropLegacyAssessmentQuestionIdIndex, dropLegacyAISessionMessageIdIndex } = require('./config/database-indexes');
         await dropLegacyAssessmentQuestionIdIndex();
+        await dropLegacyAISessionMessageIdIndex();
         // await initializeAIPrompts(); // ❌ Removed - AIPrompt model deleted
         // await initializeAnalytics(); // ❌ Removed - Analytics system simplified
       } catch (e) {
@@ -252,6 +255,8 @@ app.use('/api/ai/chat', aiChatLimiter);
 app.use('/api/ai', aiRoutes);
 // 🆕 Conversation management routes
 app.use('/api/conversations', conversationRoutes);
+// 🆕 Floating chat routes (lightweight fast chatbot)
+app.use('/api/floating-chat', floatingChatRoutes);
 
 // 🆕 Phase 4 routes - Assessments
 app.use('/api/assessments', assessmentRoutes);
@@ -280,6 +285,7 @@ app.get('/', (req, res) => {
       ai: ['/api/ai'],
       assessment: ['/api/assessments'],
       conversations: ['/api/conversations'],
+      floatingChat: ['/api/floating-chat'],
     },
   });
 });

@@ -108,6 +108,11 @@ export default function ReduxAssessmentPage() {
   const [aiMessages, setAiMessages] = useState<Array<{role: 'ai' | 'user', content: string}>>([]);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState<{
+    generated: number;
+    total: number;
+    message: string;
+  } | null>(null);
 
   // Mock user for navigation
   const mockUser = {
@@ -211,15 +216,31 @@ export default function ReduxAssessmentPage() {
       const assessmentTitle = assessmentDetails?.title || "Assessment";
       const assessmentCategory = assessmentDetails?.category || "General";
       const assessmentDifficulty = assessmentDetails?.difficulty || "intermediate";
-      const assessmentTopic = assessmentDetails?.topic || assessmentTitle;
+      
+      // Extract topic from various possible fields in the assessment details
+      // For specific subjects like "JavaScript Fundamentals", use the title as the topic
+      const assessmentTopic = assessmentDetails?.topic || 
+                             assessmentDetails?.subject || 
+                             assessmentDetails?.domain ||
+                             assessmentDetails?.title || 
+                             "General Assessment";
+      
+      // Ensure the topic is specific and descriptive for AI generation
+      const specificTopic = assessmentTopic.includes('Fundamentals') || 
+                           assessmentTopic.includes('Advanced') || 
+                           assessmentTopic.includes('Mastery') ? 
+                           assessmentTopic : `${assessmentTopic} Fundamentals`;
       
       console.log('🎯 Generating questions for:', {
         title: assessmentTitle,
         topic: assessmentTopic,
+        specificTopic: specificTopic,
         category: assessmentCategory,
         difficulty: assessmentDifficulty,
         description: assessmentDetails?.description
       });
+      
+      console.log('📋 Full assessment details received:', assessmentDetails);
 
       // Start the assessment session with real title
       dispatch(startAssessment({
@@ -234,8 +255,8 @@ export default function ReduxAssessmentPage() {
         title: assessmentTitle,
         category: assessmentCategory,
         difficulty: assessmentDifficulty,
-        questionCount: 10,
-        topic: assessmentTopic, // Use the topic we defined above
+        questionCount: 40, // Increased to 40 questions
+        topic: specificTopic, // Use the specific topic for better AI generation
         token: token || null
       })).unwrap();
 
@@ -266,6 +287,15 @@ export default function ReduxAssessmentPage() {
         role: 'ai',
         content: personality.greeting
       }]);
+
+      // Show progress for 40 questions
+      if (generated && generated.length > 20) {
+        setGenerationProgress({
+          generated: generated.length,
+          total: 40,
+          message: "Questions are being generated..."
+        });
+      }
 
       toast.success("Assessment started! Good luck!");
     } catch (error) {
@@ -467,7 +497,28 @@ export default function ReduxAssessmentPage() {
             <h2 className="text-xl font-semibold text-white mb-2">
               {"AI is generating your personalized questions..."}
             </h2>
-            <p className="text-gray-400">This may take a few moments</p>
+            <p className="text-gray-400 mb-4">This may take a few moments</p>
+            
+            {/* Progress indicator for 40 questions */}
+            {generationProgress && (
+              <div className="w-full max-w-md">
+                <div className="flex justify-between text-sm text-gray-300 mb-2">
+                  <span>{generationProgress.message}</span>
+                  <span>{generationProgress.generated}/{generationProgress.total}</span>
+                </div>
+                <Progress 
+                  value={(generationProgress.generated / generationProgress.total) * 100} 
+                  className="w-full"
+                />
+              </div>
+            )}
+            
+            {/* Show current question count if available */}
+            {currentSession && currentSession.questions.length > 0 && (
+              <div className="mt-4 text-sm text-cyan-400">
+                {currentSession.questions.length} questions ready
+              </div>
+            )}
           </div>
         </div>
       </div>

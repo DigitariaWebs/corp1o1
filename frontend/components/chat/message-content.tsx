@@ -80,53 +80,53 @@ function formatTextContent(text: string): React.ReactNode {
   
   return lines.map((line, index) => {
     // Format bold text **text**
-    let formattedLine = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    let formattedLine = line.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
     
     // Format italic text *text*
-    formattedLine = formattedLine.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    formattedLine = formattedLine.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>');
     
-    // Format inline code `code`
-    formattedLine = formattedLine.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-slate-700 text-cyan-300 rounded text-sm font-mono">$1</code>');
+    // Format inline code `code` - smaller, more subtle
+    formattedLine = formattedLine.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-gray-100 text-gray-900 rounded text-xs font-mono border border-gray-200">$1</code>');
     
-    // Format headers
+    // Format headers - reduced but still bold and prominent relative to text
     if (line.startsWith("### ")) {
       return (
-        <h3 key={index} className="text-lg font-semibold mt-4 mb-2" dangerouslySetInnerHTML={{ __html: formattedLine.substring(4) }} />
+        <h3 key={index} className="text-base font-bold mt-4 mb-2 text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine.substring(4) }} />
       );
     } else if (line.startsWith("## ")) {
       return (
-        <h2 key={index} className="text-xl font-bold mt-4 mb-2" dangerouslySetInnerHTML={{ __html: formattedLine.substring(3) }} />
+        <h2 key={index} className="text-lg font-bold mt-5 mb-2.5 text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine.substring(3) }} />
       );
     } else if (line.startsWith("# ")) {
       return (
-        <h1 key={index} className="text-2xl font-bold mt-4 mb-2" dangerouslySetInnerHTML={{ __html: formattedLine.substring(2) }} />
+        <h1 key={index} className="text-xl font-bold mt-5 mb-3 text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine.substring(2) }} />
       );
     }
     
-    // Format bullet points
+    // Format bullet points - reduced font size
     if (line.trim().startsWith("- ") || line.trim().startsWith("* ")) {
       return (
-        <li key={index} className="ml-4 list-disc" dangerouslySetInnerHTML={{ __html: formattedLine.trim().substring(2) }} />
+        <li key={index} className="ml-5 list-disc mb-1.5 text-sm leading-relaxed text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine.trim().substring(2) }} />
       );
     }
     
-    // Format numbered lists
+    // Format numbered lists - reduced font size
     const numberedMatch = line.trim().match(/^(\d+)\.\s/);
     if (numberedMatch) {
       return (
-        <li key={index} className="ml-4 list-decimal" dangerouslySetInnerHTML={{ __html: formattedLine.trim().substring(numberedMatch[0].length) }} />
+        <li key={index} className="ml-5 list-decimal mb-1.5 text-sm leading-relaxed text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine.trim().substring(numberedMatch[0].length) }} />
       );
     }
     
-    // Regular line
+    // Regular line - reduced font size with good line height
     if (line.trim()) {
       return (
-        <p key={index} className="mb-2" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+        <p key={index} className="mb-2 text-sm leading-6 text-gray-900" dangerouslySetInnerHTML={{ __html: formattedLine }} />
       );
     }
     
     // Empty line - add spacing
-    return <div key={index} className="h-2" />;
+    return <div key={index} className="h-1.5" />;
   });
 }
 
@@ -134,11 +134,11 @@ export function MessageContent({ content, className = "" }: MessageContentProps)
   const blocks = parseMessageContent(content);
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`space-y-3 ${className}`}>
       {blocks.map((block, index) => {
         if (block.type === "code") {
           return (
-            <div key={index} className="my-4">
+            <div key={index} className="my-4 -mx-1">
               <CodeBlock
                 language={block.language || "text"}
                 filename={block.filename || `code.${block.language || "txt"}`}

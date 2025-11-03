@@ -47,6 +47,7 @@ export default function AIAssistantPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [isSending, setIsSending] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [selectedConversationType, setSelectedConversationType] = useState<'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL' | null>(null)
 
   // Load conversations on mount
   useEffect(() => {
@@ -60,6 +61,19 @@ export default function AIAssistantPage() {
     setIsSending(true)
     
     try {
+      // If no active conversation and we have a selected type, create conversation first
+      let conversationId = activeConversationId
+      if (!conversationId && selectedConversationType) {
+        const newConversation = await createConversation(
+          `New ${selectedConversationType} Conversation`,
+          undefined,
+          selectedConversationType
+        )
+        conversationId = newConversation.id
+        setActiveConversation(conversationId)
+        setSelectedConversationType(null) // Clear the selected type after creating conversation
+      }
+      
       // Add user message
       const userMessage = addMessage({
         role: 'user',
@@ -81,7 +95,7 @@ export default function AIAssistantPage() {
       await sendChat(content.trim(), undefined, {
         stream: true,
         assistant: true,
-        sessionId: activeConversationId || undefined,
+        sessionId: conversationId || undefined,
         onChunk: (chunk) => {
           fullContent += chunk
           // Update the assistant message with accumulated content
@@ -128,16 +142,12 @@ export default function AIAssistantPage() {
     setShowTemplates(true)
   }
 
-  // Handle template selection
-  const handleTemplateSelect = async (template: any) => {
-    try {
-      const newConversation = await createConversation()
-      setActiveConversation(newConversation.id)
+  // Handle template selection - store the type but don't create conversation yet
+  const handleTemplateSelect = (template: { conversationType: string; title?: string }) => {
+    setSelectedConversationType(template.conversationType as 'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL')
       setShowTemplates(false)
-      // TODO: Pre-fill the input with the template prompt
-    } catch (error) {
-      console.error('Failed to create conversation:', error)
-    }
+    // Clear any active conversation so we're ready for a new one
+    setActiveConversation(null)
   }
 
   // Handle conversation deletion

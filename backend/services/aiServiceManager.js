@@ -14,7 +14,7 @@ class AIServiceManager {
       assessment: {
         model: process.env.OPENAI_MODEL_ASSESSMENT || 'gpt-4o',
         temperature: parseFloat(process.env.OPENAI_TEMP_ASSESSMENT) || 0.5,
-        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 6000, // Increased for detailed responses
+        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS_ASSESSMENT) || 12000, // Increased for 40 questions
         purpose: 'Complex assessment and question generation',
       },
       evaluation: {
@@ -193,55 +193,59 @@ Customize the skills and descriptions based on the specific domain and topics pr
     const config = this.getServiceConfig('assessment');
     const { avoidQuestions = [], subtopics = [] } = options;
     
-    const prompt = `You must generate exactly ${count} assessment questions about "${topic}" in valid JSON format.
+    const prompt = `You are an expert assessment designer. Generate exactly ${count} high-quality assessment questions about "${topic}" in valid JSON format.
 
-IMPORTANT: Focus specifically on "${topic}" - create real, practical questions about this exact subject.
-
-Context:
-- Assessment Title: ${title}
-- Topic/Subject: ${topic}
+ASSESSMENT CONTEXT:
+- Title: ${title}
+- Subject: ${topic}
 - Category: ${category}  
-- Difficulty Level: ${difficulty}
+- Difficulty: ${difficulty}
 - Question Types: ${types.join(', ')}
-${subtopics && subtopics.length > 0 ? `- Target Subtopics (spread coverage across the set): ${subtopics.join(', ')}` : ''}
+${subtopics && subtopics.length > 0 ? `- Subtopics to cover: ${subtopics.join(', ')}` : ''}
 
-${avoidQuestions && avoidQuestions.length > 0 ? `Avoid duplicating or closely paraphrasing ANY of these existing questions:
+${avoidQuestions && avoidQuestions.length > 0 ? `EXISTING QUESTIONS TO AVOID:
 ${avoidQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}
 ` : ''}
 
-CRITICAL: 
-1. Generate questions SPECIFICALLY about "${topic}" - not generic assessment questions
-2. Return ONLY valid JSON. No explanations, no markdown, no extra text.
-3. Make questions practical and real-world focused for ${topic}
+GENERATION REQUIREMENTS:
+1. Create ${count} COMPREHENSIVE questions specifically about "${topic}"
+2. Each question must test REAL, PRACTICAL knowledge of ${topic}
+3. Questions should progress from basic to advanced concepts
+4. Cover different aspects: theory, practice, troubleshooting, best practices
+5. Include scenario-based questions when relevant
+6. Make questions that professionals in ${topic} would actually encounter
 
-Create a JSON object with this exact structure (ALL questions must be multiple_choice):
+QUESTION FORMAT REQUIREMENTS:
+- Each question must have exactly 4 options (A, B, C, D)
+- RANDOMIZE correct answer positions across all questions
+- Make wrong options plausible but clearly incorrect to experts
+- Keep options concise and mutually exclusive
+- Include realistic time limits based on question complexity
+
+DIFFICULTY DISTRIBUTION for ${count} questions:
+- ${difficulty === 'easy' ? '80%' : difficulty === 'medium' ? '60%' : '40%'} basic/fundamental concepts
+- ${difficulty === 'easy' ? '20%' : difficulty === 'medium' ? '30%' : '40%'} intermediate applications  
+- ${difficulty === 'easy' ? '0%' : difficulty === 'medium' ? '10%' : '20%'} advanced/expert scenarios
+
+Return ONLY valid JSON with this exact structure:
 {
   "questions": [
     {
       "id": "q1",
       "type": "multiple_choice",
-      "question": "Specific technical question about ${topic}",
-      "options": ["Real option A", "Real option B", "Real option C", "Real option D"],
-      "correctAnswer": "Real option B",
+      "question": "Detailed, specific question about ${topic}",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "Option B",
       "points": 10,
       "difficulty": "${difficulty}",
       "timeLimit": 300,
-      "hints": ["Specific hint about ${topic}"],
-      "explanation": "Why this answer is correct and what ${topic} concept it tests"
+      "hints": ["Helpful hint about ${topic}"],
+      "explanation": "Detailed explanation of why this answer is correct and what ${topic} concept it demonstrates"
     }
   ]
 }
 
-CRITICAL REQUIREMENTS for answer randomization:
-1. Generate exactly ${count} multiple choice questions about ${topic}
-2. Each question must have 4 realistic, plausible options
-3. RANDOMLY place the correct answer in positions A, B, C, or D (don't always make A correct)
-4. Vary the correct answer position across questions - mix them up!
-5. Make all wrong options believable but clearly incorrect to someone who knows ${topic}
- 6. Test practical ${topic} knowledge that professionals would encounter
- 7. Ensure each question is unique across this set and not a trivial rewording of previously listed questions
- 8. Keep options concise, unambiguous, and mutually exclusive
- 9. Prefer scenario-based or code/snippet-based questions when appropriate for ${topic}`;
+CRITICAL: Return ONLY the JSON object. No explanations, no markdown, no extra text.`;
 
     try {
       console.log(`📝 Generating ${count} questions for ${topic} using ${config.model}`);
@@ -274,7 +278,7 @@ Create multiple choice questions that a ${topic} professional would actually enc
         {
           model: config.model,
           temperature: config.temperature + 0.1, // Slightly higher for variety but not too much to avoid formatting issues
-          max_tokens: Math.max(6000, config.maxTokens * 2), // Significantly more tokens to prevent truncation
+          max_tokens: Math.max(12000, config.maxTokens * 2), // Increased for 40 questions
           response_format: { type: 'json_object' }, // Force JSON output
         },
       );

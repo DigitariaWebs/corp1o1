@@ -26,6 +26,12 @@ const createConversationSchema = Joi.object({
   }),
   // Personality system removed for optimization
   personality: Joi.string().optional().messages({}),
+  conversationType: Joi.string()
+    .valid('LEARNING', 'EDUCATION', 'PROBLEM_SOLVING', 'PROGRAMMING', 'MATHEMATICS', 'GENERAL')
+    .optional()
+    .messages({
+      'any.only': 'conversationType must be one of: LEARNING, EDUCATION, PROBLEM_SOLVING, PROGRAMMING, MATHEMATICS, GENERAL',
+    }),
 });
 
 const updateConversationSchema = Joi.object({
