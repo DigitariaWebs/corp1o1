@@ -10,17 +10,41 @@ export default function JoinMeeting({ enable, setEnable }: ModalProps) {
   return (
     <Transition appear show={enable} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={closeModal}>
-        {/* ... Transition and Dialog setup ... */}
-        <DialogPanel className="w-full max-w-2xl rounded-2xl bg-white p-6 text-center">
-          <CallLinkForm />
-        </DialogPanel>
+        <TransitionChild
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/75" />
+        </TransitionChild>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <TransitionChild
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white p-6 text-center shadow-xl">
+                <CallLinkForm setEnable={setEnable} />
+              </DialogPanel>
+            </TransitionChild>
+          </div>
+        </div>
       </Dialog>
     </Transition>
   );
 }
 
 // Form inside the join modal
-const CallLinkForm = () => {
+const CallLinkForm = ({ setEnable }: { setEnable: React.Dispatch<React.SetStateAction<boolean>> }) => {
   const [link, setLink] = useState("");
   const router = useRouter();
 
@@ -29,7 +53,10 @@ const CallLinkForm = () => {
     if (!link) return;
     // Normalize link: allow full URL or just ID
     const callId = link.startsWith("http") ? link.split("/").pop() : link;
-    if (callId) router.push(`/facetime/${callId}`);
+    if (callId) {
+      setEnable(false); // Close modal before navigation
+      router.push(`/facetime/${callId}`);
+    }
   };
 
   return (

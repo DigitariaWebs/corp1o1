@@ -83,6 +83,14 @@ const MeetingForm = ({
           custom: { description },
         },
       });
+      
+      // Open the meeting in a new tab
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : (process.env.NEXT_PUBLIC_FACETIME_HOST || process.env.NEXT_PUBLIC_APP_URL || '');
+      const facetimeUrl = `${baseUrl}/facetime/${call.id}`;
+      window.open(facetimeUrl, '_blank');
+      
       setFacetimeLink(call.id);
       setShowMeetingLink(true);
     } catch (error) {
