@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -175,7 +174,7 @@ export function MainNavigation() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center space-x-3"
           >
-            <Link href="/main" className="flex items-center">
+            <a href="/main" className="flex items-center">
               <Image 
                 src="/logo.png" 
                 alt="Corp1o1" 
@@ -183,7 +182,7 @@ export function MainNavigation() {
                 height={40} 
                 className="h-8"
               />
-            </Link>
+            </a>
           </motion.div>
 {/* User Profile with Hover Sidebar + Click Dropdown */}
 <div className="relative">
@@ -234,30 +233,30 @@ export function MainNavigation() {
           <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
             Mon Compte
           </DropdownMenuLabel>
-          <Link href="/profile">
+          <a href="/profile">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <User className="mr-3 h-8 w-8" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.profile")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
-          <Link href="/settings">
+          </a>
+          <a href="/settings">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <Settings className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.settings")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
-          <Link href="/subscription">
+          </a>
+          <a href="/subscription">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <CreditCard className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.subscription")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
+          </a>
         </div>
 
         <DropdownMenuSeparator className="bg-slate-700" />
@@ -266,14 +265,14 @@ export function MainNavigation() {
           <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
             Aide & Sécurité
           </DropdownMenuLabel>
-          <Link href="/help">
+          <a href="/help">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <HelpCircle className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.support")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
+          </a>
         </div>
 
         <DropdownMenuSeparator className="bg-slate-700" />
@@ -390,18 +389,18 @@ export function MainNavigation() {
 
             {/* Quick Actions */}
             <div className="space-y-2">
-              <Link href="/profile">
+              <a href="/profile">
                 <Button className="w-full bg-slate-700 hover:bg-slate-600 text-white">
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
-              </Link>
-              <Link href="/settings">
+              </a>
+              <a href="/settings">
                 <Button variant="outline" className="w-full border-slate-600 text-gray-300 hover:bg-slate-700">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>
@@ -421,7 +420,7 @@ export function MainNavigation() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Link href={item.href}>
+                  <a href={item.href}>
                     <Button
                       variant={isActive ? "default" : "ghost"}
                       className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
@@ -433,12 +432,12 @@ export function MainNavigation() {
                       <item.icon className="h-4 w-4 mr-2" />
                       {item.label}
                     </Button>
-                  </Link>
+                  </a>
                 </motion.div>
               )
             })}
             {/* Conference Button */}
-            <Link href="/conference">
+            <a href="/conference">
               <Button
                 variant={isActiveRoute("/conference") ? "default" : "ghost"}
                 className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
@@ -450,7 +449,7 @@ export function MainNavigation() {
                 <Video className="h-4 w-4 mr-2" />
                 {t("navigation.conference")}
               </Button>
-            </Link>
+            </a>
             {/* "Plus" Dropdown for Secondary Items */}
             {secondaryNavigationItems.length > 0 && (
               <DropdownMenu>
@@ -476,7 +475,7 @@ export function MainNavigation() {
                         {section.section}
                       </DropdownMenuLabel>
                       {section.items.map((item) => (
-                        <Link key={item.href} href={item.href}>
+                        <a key={item.href} href={item.href}>
                           <DropdownMenuItem
                             className={`text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer ${
                               isActiveRoute(item.href) ? "bg-gradient-to-r from-revolutionary-cyan/20 to-revolutionary-blue/20 text-revolutionary-cyan border-l-2 border-revolutionary-cyan" : ""
@@ -488,7 +487,7 @@ export function MainNavigation() {
                               <p className="text-xs text-gray-500">{item.description}</p>
                             </div>
                           </DropdownMenuItem>
-                        </Link>
+                        </a>
                       ))}
                     </div>
                   ))}
@@ -534,7 +533,7 @@ export function MainNavigation() {
             </Button>
 
             {/* Notifications */}
-            <Link href="/notifications">
+            <a href="/notifications">
               <Button
                 variant="ghost"
                 size="sm"
@@ -547,7 +546,7 @@ export function MainNavigation() {
                   </Badge>
                 )}
               </Button>
-            </Link>
+            </a>
 
              
           </div>
@@ -597,7 +596,7 @@ export function MainNavigation() {
             {mainNavigationItems.slice(0, 4).map((item) => {
               const isActive = isActiveRoute(item.href)
               return (
-                <Link key={item.href} href={item.href}>
+                <a key={item.href} href={item.href}>
                   <Button
                     variant={isActive ? "default" : "ghost"}
                     size="sm"
@@ -608,7 +607,7 @@ export function MainNavigation() {
                     <item.icon className="h-4 w-4" />
                     <span className="text-xs">{item.label}</span>
                   </Button>
-                </Link>
+                </a>
               )
             })}
           </div>

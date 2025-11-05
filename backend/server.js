@@ -261,6 +261,14 @@ app.use('/api/floating-chat', floatingChatRoutes);
 // 🆕 Phase 4 routes - Assessments
 app.use('/api/assessments', assessmentRoutes);
 
+// 🆕 Conference routes
+const conferenceRoutes = require('./routes/conferences');
+app.use('/api/conferences', conferenceRoutes);
+
+// 🆕 Certificate routes
+const certificateRoutes = require('./routes/certificates');
+app.use('/api/certificates', certificateRoutes);
+
 // 🆕 Phase 5 routes - Analytics & Recommendations (REMOVED for optimization)
 // app.use('/api/analytics', analyticsLimiter); // ❌ Removed
 // app.use('/api/analytics', analyticsRoutes); // ❌ Removed

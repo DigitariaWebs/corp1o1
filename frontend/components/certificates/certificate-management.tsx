@@ -33,23 +33,27 @@ import { useAuth } from "@/contexts/auth-context"
 interface Certificate {
   id: string
   certificateId: string
-  title: string
-  type: string
-  category: string
-  level: string
-  issueDate: string
-  validUntil?: string
+  userName: string
+  dateOfIssue: string
   status: string
-  isValid: boolean
-  isExpired: boolean
+  pdfPath?: string
+  // Legacy fields for backward compatibility
+  title?: string
+  type?: string
+  category?: string
+  level?: string
+  issueDate?: string
+  validUntil?: string
+  isValid?: boolean
+  isExpired?: boolean
   finalScore?: number
-  skillsVerified: number
-  assets: {
+  skillsVerified?: number
+  assets?: {
     pdf?: string
     image?: string
     thumbnail?: string
   }
-  verification: {
+  verification?: {
     verificationCode: string
     verificationUrl: string
   }
@@ -57,13 +61,16 @@ interface Certificate {
 
 export function CertificateManagement() {
   const { t } = useTranslation()
-  const { getToken } = useAuth()
+  const { getToken, user } = useAuth()
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
   const [showVerification, setShowVerification] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [analytics, setAnalytics] = useState<any>(null)
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
   // Load certificates from API
   useEffect(() => {
@@ -75,20 +82,33 @@ export function CertificateManagement() {
       setLoading(true)
       setError(null)
 
-      const token = await getToken()
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+      // Try to get token, but don't require it (public route)
+      let token = null
+      try {
+        token = await getToken()
+      } catch (tokenError) {
+        // Token not available, continue without auth
+        console.log('No auth token available, using public access')
       }
 
-      // Try to fetch user certificates
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Add auth header only if token is available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      // Fetch user certificates from backend (public route)
       try {
-        const certificatesResponse = await fetch('/api/certificates?limit=50', { headers })
+        const certificatesResponse = await fetch(`${API_BASE_URL}/api/certificates?limit=50`, { headers })
         if (certificatesResponse.ok) {
           const certificatesData = await certificatesResponse.json()
-          setCertificates(certificatesData.data?.certificates || [])
-          if (certificatesData.data?.certificates?.length > 0) {
-            setSelectedCertificate(certificatesData.data.certificates[0])
+          const certs = certificatesData.data?.certificates || []
+          setCertificates(certs)
+          if (certs.length > 0) {
+            setSelectedCertificate(certs[0])
           }
         } else {
           // Use empty array if API fails
@@ -100,29 +120,18 @@ export function CertificateManagement() {
         setCertificates([])
       }
 
-      // Try to fetch analytics
-      try {
-        const analyticsResponse = await fetch('/api/certificates/analytics', { headers })
-        if (analyticsResponse.ok) {
-          const analyticsData = await analyticsResponse.json()
-          setAnalytics(analyticsData.data)
-        }
-      } catch (analyticsError) {
-        console.log('Analytics not available')
-      }
-
     } catch (err) {
       console.error('Error loading certificates:', err)
       
       // Provide more specific error messages
       let errorMessage = 'Failed to load certificates'
       if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch certificates')) {
-          errorMessage = 'Unable to load certificates. This might be because you haven\'t earned any certificates yet, or you need to complete assessments and learning paths first.'
+        if (err.message.includes('Failed to fetch')) {
+          errorMessage = 'Unable to connect to the server. Please check your connection.'
         } else if (err.message.includes('401')) {
           errorMessage = 'Authentication error. Please sign in again.'
         } else if (err.message.includes('403')) {
-          errorMessage = 'Access denied. You may need to complete skill assessments or learning paths to earn certificates.'
+          errorMessage = 'Access denied.'
         } else if (err.message.includes('500')) {
           errorMessage = 'Server error. Please try again in a few moments.'
         } else {
@@ -131,59 +140,61 @@ export function CertificateManagement() {
       }
       
       setError(errorMessage)
-      // Fallback to mock data
-      const mockCertificates: Certificate[] = [
-        {
-          id: "cert-001",
-          certificateId: "CERT001",
-          title: "Expert en Communication Interpersonnelle",
-          type: "completion",
-          category: "Communication & Leadership",
-          level: "expert",
-          issueDate: "2024-01-15T10:00:00Z",
-          status: "issued",
-          isValid: true,
-          isExpired: false,
-          finalScore: 95,
-          skillsVerified: 4,
-          assets: {
-            pdf: "/certificates/cert-001.pdf",
-            image: "/certificates/cert-001.png",
-            thumbnail: "/certificates/cert-001-thumb.png"
-          },
-          verification: {
-            verificationCode: "ABC123DEF456",
-            verificationUrl: "https://corp1o1.com/verify/ABC123DEF456"
-          }
-        },
-        {
-          id: "cert-002",
-          certificateId: "CERT002",
-          title: "Innovateur Créatif",
-          type: "mastery",
-          category: "Innovation & Créativité",
-          level: "advanced",
-          issueDate: "2024-01-10T14:30:00Z",
-          status: "issued",
-          isValid: true,
-          isExpired: false,
-          finalScore: 88,
-          skillsVerified: 3,
-          assets: {
-            pdf: "/certificates/cert-002.pdf",
-            image: "/certificates/cert-002.png",
-            thumbnail: "/certificates/cert-002-thumb.png"
-          },
-          verification: {
-            verificationCode: "XYZ789GHI012",
-            verificationUrl: "https://corp1o1.com/verify/XYZ789GHI012"
-          }
-        }
-      ]
-      setCertificates(mockCertificates)
-      setSelectedCertificate(mockCertificates[0])
+      setCertificates([])
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGenerateCertificate = async () => {
+    try {
+      setGenerating(true)
+      setError(null)
+
+      // Try to get token, but don't require it (public route)
+      let token = null
+      try {
+        token = await getToken()
+      } catch (tokenError) {
+        // Token not available, continue without auth
+        console.log('No auth token available, using public access')
+      }
+
+      // Get user name from auth context or use default
+      const userName = user?.name || user?.firstName && user?.lastName 
+        ? `${user.firstName} ${user.lastName}`
+        : user?.email?.split('@')[0] || 'User'
+
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Add auth header only if token is available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/certificates/generate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ userName })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        // Reload certificates to show the new one
+        await loadCertificates()
+        // Show success message (you can add a toast notification here)
+        console.log('Certificate generated successfully!')
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || errorData.error || 'Failed to generate certificate')
+      }
+    } catch (err) {
+      console.error('Error generating certificate:', err)
+      setError(err instanceof Error ? err.message : 'Failed to generate certificate')
+    } finally {
+      setGenerating(false)
     }
   }
 
@@ -246,12 +257,22 @@ export function CertificateManagement() {
 
   const handleDownload = async (certificate: Certificate, format: 'pdf' | 'png' | 'jpg' = 'pdf') => {
     try {
-      const token = await getToken()
-      const headers = {
-        'Authorization': `Bearer ${token}`
+      // Try to get token, but don't require it (public route)
+      let token = null
+      try {
+        token = await getToken()
+      } catch (tokenError) {
+        // Token not available, continue without auth
       }
 
-      const response = await fetch(`/api/certificates/${certificate.id}/download?format=${format}`, {
+      const headers: HeadersInit = {}
+      
+      // Add auth header only if token is available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/certificates/${certificate.id}/download?format=${format}`, {
         headers
       })
 
@@ -260,7 +281,8 @@ export function CertificateManagement() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `${certificate.title}.${format}`
+        const fileName = certificate.title || `certificate-${certificate.certificateId}`
+        a.download = `${fileName}.${format}`
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -271,9 +293,9 @@ export function CertificateManagement() {
       }
     } catch (err) {
       console.error('Error downloading certificate:', err)
-      // Fallback: try to open the PDF URL directly
-      if (certificate.assets.pdf) {
-        window.open(certificate.assets.pdf, '_blank')
+      // Fallback: try to open the PDF URL directly if available
+      if (certificate.pdfPath) {
+        window.open(`${API_BASE_URL}${certificate.pdfPath}`, '_blank')
       }
     }
   }
@@ -375,9 +397,28 @@ export function CertificateManagement() {
     return (
       <div className="space-y-8">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h2 className="text-3xl font-bold text-white mb-4">Certificates</h2>
-          <p className="text-gray-300 text-lg">Showcase your verified skills and achievements</p>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-white mb-4">Certificates</h2>
+            <p className="text-gray-300 text-lg">Showcase your verified skills and achievements</p>
+          </div>
+          <Button
+            onClick={handleGenerateCertificate}
+            disabled={generating}
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3"
+          >
+            {generating ? (
+              <>
+                <Shield className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate Certificate
+              </>
+            )}
+          </Button>
         </motion.div>
 
         {/* Empty State */}
@@ -397,8 +438,26 @@ export function CertificateManagement() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Button 
-                onClick={() => window.location.href = '/assessments'} 
+                onClick={handleGenerateCertificate}
+                disabled={generating}
                 className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-8 py-4 text-lg"
+              >
+                {generating ? (
+                  <>
+                    <Shield className="h-5 w-5 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    Generate My Certificate
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={() => window.location.href = '/assessments'} 
+                variant="outline"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700 px-8 py-4 text-lg"
               >
                 <Target className="h-5 w-5 mr-2" />
                 Take Skill Assessments
@@ -444,9 +503,28 @@ export function CertificateManagement() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h2 className="text-3xl font-bold text-white mb-4">{t("certificates.title")}</h2>
-        <p className="text-gray-300 text-lg">{t("certificates.subtitle")}</p>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-4">{t("certificates.title")}</h2>
+          <p className="text-gray-300 text-lg">{t("certificates.subtitle")}</p>
+        </div>
+        <Button
+          onClick={handleGenerateCertificate}
+          disabled={generating}
+          className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-6 py-3"
+        >
+          {generating ? (
+            <>
+              <Shield className="h-4 w-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate Certificate
+            </>
+          )}
+        </Button>
       </motion.div>
 
       {/* Stats Overview */}
@@ -513,48 +591,28 @@ export function CertificateManagement() {
                             : "hover:shadow-lg"
                         }`}
                       >
-                        <div className="relative">
-                          <Image
-                            src={certificate.image || "/placeholder.svg"}
-                            alt={certificate.title}
-                            width={400}
-                            height={300}
-                            className="w-full h-48 object-cover"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                          {/* Rarity Badge */}
-                          {certificate.rarity && (
-                            <div className="absolute top-3 right-3">
-                              <Badge
-                                className={`bg-gradient-to-r ${rarityColors[certificate.rarity]} text-white border-0`}
-                              >
-                                {certificate.rarity.toUpperCase()}
-                              </Badge>
+                        <div className="relative bg-gradient-to-br from-slate-700 to-slate-800 p-6 h-48 flex flex-col justify-between">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="text-white font-semibold text-lg mb-2">
+                                {certificate.title || 'Certificate of Completion'}
+                              </h3>
+                              <p className="text-gray-300 text-sm mb-1">{certificate.userName}</p>
+                              <p className="text-gray-400 text-xs">
+                                {new Date(certificate.dateOfIssue || certificate.issueDate || '').toLocaleDateString()}
+                              </p>
                             </div>
-                          )}
-
-                          {/* Verification Badge */}
-                          {certificate.verified && (
-                            <div className="absolute top-3 left-3">
-                              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-                                <CheckCircle className="h-5 w-5 text-white" />
-                              </div>
+                            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
+                              <CheckCircle className="h-5 w-5 text-white" />
                             </div>
-                          )}
-
-                          {/* Certificate Info Overlay */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 className="text-white font-semibold text-lg mb-1">{certificate.title}</h3>
-                            <div className="flex items-center justify-between">
-                              <Badge className={levelColors[certificate.level]}>
-                                {t(`assessments.${certificate.level}`)}
-                              </Badge>
-                              <div className="flex items-center text-white text-sm">
-                                <Shield className="h-4 w-4 mr-1" />
-                                {certificate.confidence}%
-                              </div>
-                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
+                              {certificate.certificateId}
+                            </Badge>
+                            <Badge className={certificate.status === 'issued' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
+                              {certificate.status}
+                            </Badge>
                           </div>
                         </div>
                       </Card>
@@ -580,88 +638,51 @@ export function CertificateManagement() {
                 <Card className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-sm border border-slate-600/30">
                   <CardHeader>
                     <CardTitle className="text-white text-xl flex items-center">
-                      {React.createElement(typeIcons[selectedCertificate.type], {
-                        className: "h-6 w-6 mr-3",
-                      })}
-                      {selectedCertificate.title}
+                      <Award className="h-6 w-6 mr-3" />
+                      {selectedCertificate.title || 'Certificate of Completion'}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Certificate Image */}
-                    <div className="relative">
-                      <Image
-                        src={selectedCertificate.image || "/placeholder.svg"}
-                        alt={selectedCertificate.title}
-                        width={400}
-                        height={300}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      {selectedCertificate.rarity && (
-                        <div className="absolute top-3 right-3">
-                          <Badge
-                            className={`bg-gradient-to-r ${
-                              rarityColors[selectedCertificate.rarity]
-                            } text-white border-0`}
-                          >
-                            {selectedCertificate.rarity.toUpperCase()}
-                          </Badge>
+                    {/* Certificate Preview */}
+                    <div className="relative bg-gradient-to-br from-slate-700 to-slate-800 p-8 rounded-lg border border-slate-600">
+                      <div className="text-center">
+                        <Award className="h-16 w-16 text-cyan-400 mx-auto mb-4" />
+                        <h3 className="text-white font-bold text-xl mb-2">
+                          {selectedCertificate.title || 'Certificate of Completion'}
+                        </h3>
+                        <p className="text-gray-300 text-lg mb-4">{selectedCertificate.userName}</p>
+                        <div className="flex items-center justify-center gap-4 text-sm text-gray-400">
+                          <span>ID: {selectedCertificate.certificateId}</span>
+                          <span>•</span>
+                          <span>{new Date(selectedCertificate.dateOfIssue || selectedCertificate.issueDate || '').toLocaleDateString()}</span>
                         </div>
-                      )}
+                      </div>
                     </div>
 
                     {/* Certificate Details */}
                     <div className="space-y-4">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">{t("certificates.domain")}</span>
-                        <span className="text-white font-medium">{selectedCertificate.domain}</span>
+                        <span className="text-gray-400">Certificate ID</span>
+                        <span className="text-white font-medium font-mono text-sm">{selectedCertificate.certificateId}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Niveau</span>
-                        <Badge className={levelColors[selectedCertificate.level]}>
-                          {t(`assessments.${selectedCertificate.level}`)}
+                        <span className="text-gray-400">Recipient</span>
+                        <span className="text-white font-medium">{selectedCertificate.userName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">{t("certificates.issue_date") || "Issue Date"}</span>
+                        <span className="text-white font-medium">
+                          {new Date(selectedCertificate.dateOfIssue || selectedCertificate.issueDate || '').toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Status</span>
+                        <Badge className={selectedCertificate.status === 'issued' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}>
+                          {selectedCertificate.status}
                         </Badge>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">{t("certificates.issue_date")}</span>
-                        <span className="text-white font-medium">{selectedCertificate.issueDate}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">{t("certificates.ai_confidence")}</span>
-                        <span className="text-cyan-400 font-medium">{selectedCertificate.confidence}%</span>
-                      </div>
                     </div>
 
-                    {/* Skills */}
-                    <div>
-                      <h4 className="text-white font-semibold mb-3">{t("certificates.validated_skills")}</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedCertificate.skills.map((skill) => (
-                          <Badge key={skill} variant="secondary" className="bg-slate-700 text-gray-300">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Blockchain Info */}
-                    {selectedCertificate.blockchain && (
-                      <div className="p-4 rounded-lg bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-500/30">
-                        <div className="flex items-center mb-2">
-                          <Zap className="h-5 w-5 text-purple-400 mr-2" />
-                          <span className="text-purple-400 font-semibold">{t("certificates.blockchain_verified")}</span>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">{t("certificates.network")}</span>
-                            <span className="text-white">{selectedCertificate.blockchain.network}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">{t("certificates.token_id")}</span>
-                            <span className="text-white font-mono">{selectedCertificate.blockchain.tokenId}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Actions */}
                     <div className="grid grid-cols-2 gap-3">

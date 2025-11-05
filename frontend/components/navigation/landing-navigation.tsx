@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui-v2/button"
 import { Menu, X, Globe, User } from "lucide-react"
@@ -43,7 +42,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Link href="/main" className="flex items-center">
+              <a href="/main" className="flex items-center">
                 <Image 
                   src="/logo.png" 
                   alt="Corp1o1" 
@@ -51,7 +50,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
                   height={40} 
                   className="h-8"
                 />
-              </Link>
+              </a>
             </div>
 
             {/* Desktop Navigation */}
@@ -96,7 +95,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
 
               {/* Show Dashboard button if signed in, otherwise show auth buttons */}
               {isSignedIn && user ? (
-                <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
+                <a href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
                   <Button
                     variant="primary"
                     size="sm"
@@ -105,7 +104,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
                     <User className="h-4 w-4 mr-2" />
                     Tableau de bord
                   </Button>
-                </Link>
+                </a>
               ) : (
                 <>
                   {/* Sign In Button */}
@@ -190,7 +189,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
                 </Button>
                 {/* Show Dashboard button if signed in, otherwise show auth buttons */}
                 {isSignedIn && user ? (
-                  <Link href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
+                  <a href={user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/main"}>
                     <Button
                       onClick={() => setIsMenuOpen(false)}
                       variant="primary"
@@ -199,7 +198,7 @@ export function LandingNavigation({ onDemoClick, onBetaClick }: LandingNavigatio
                       <User className="h-4 w-4 mr-2" />
                       Tableau de bord
                     </Button>
-                  </Link>
+                  </a>
                 ) : (
                   <>
                     <SignInButton 

@@ -51,7 +51,7 @@ export default function ConferencePage() {
   const [viewMode, setViewMode] = useState<"grid" | "speaker">("grid");
 
   // Create or join a conference
-  const createConference = async (instant: boolean = false) => {
+  const createConference = async (instant: boolean = false, conferenceType: "public" | "private" = "public", pin?: string) => {
     if (!client || !user) {
       toast({
         title: "Error",
@@ -69,11 +69,18 @@ export default function ConferencePage() {
         throw new Error("Failed to create conference");
       }
 
+      // Generate PIN if private and not provided
+      const meetingPin = conferenceType === "private" && !pin 
+        ? Math.floor(1000 + Math.random() * 9000).toString()
+        : pin;
+
       await call.getOrCreate({
         data: {
           starts_at: instant ? new Date().toISOString() : undefined,
           custom: {
             description: `Conference created by ${user.fullName || user.primaryEmailAddress?.emailAddress || "User"}`,
+            conferenceType,
+            ...(meetingPin && { pin: meetingPin }),
           },
         },
       });
@@ -83,7 +90,7 @@ export default function ConferencePage() {
         const baseUrl = typeof window !== 'undefined' 
           ? window.location.origin 
           : (process.env.NEXT_PUBLIC_FACETIME_HOST || process.env.NEXT_PUBLIC_APP_URL || '');
-        const facetimeUrl = `${baseUrl}/facetime/${id}`;
+        const facetimeUrl = `${baseUrl}/conference/${id}`;
         window.open(facetimeUrl, '_blank');
         
         toast({
@@ -134,7 +141,7 @@ export default function ConferencePage() {
 
   const copyConferenceLink = () => {
     if (!callId) return;
-    const link = `${window.location.origin}/facetime/${callId}`;
+    const link = `${window.location.origin}/conference/${callId}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link Copied",
@@ -390,7 +397,7 @@ export default function ConferencePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Card className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors cursor-pointer"
                 onClick={() => {
-                  createConference(true);
+                  setShowInstantModal(true);
                 }}>
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
@@ -428,7 +435,7 @@ export default function ConferencePage() {
           <CardContent>
             <div className="space-y-4">
               <Button
-                onClick={() => createConference(true)}
+                onClick={() => setShowInstantModal(true)}
                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                 size="lg"
                 disabled={!client || !user}

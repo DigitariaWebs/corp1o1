@@ -1,7 +1,6 @@
 "use client";
 import { useState, Fragment } from "react";
 import { Dialog, DialogTitle, DialogPanel, Transition, TransitionChild } from "@headlessui/react";
-import { useRouter } from "next/navigation";
 
 interface ModalProps { enable: boolean; setEnable: React.Dispatch<React.SetStateAction<boolean>>; }
 
@@ -46,7 +45,6 @@ export default function JoinMeeting({ enable, setEnable }: ModalProps) {
 // Form inside the join modal
 const CallLinkForm = ({ setEnable }: { setEnable: React.Dispatch<React.SetStateAction<boolean>> }) => {
   const [link, setLink] = useState("");
-  const router = useRouter();
 
   const handleJoinMeeting = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -55,7 +53,7 @@ const CallLinkForm = ({ setEnable }: { setEnable: React.Dispatch<React.SetStateA
     const callId = link.startsWith("http") ? link.split("/").pop() : link;
     if (callId) {
       setEnable(false); // Close modal before navigation
-      router.push(`/facetime/${callId}`);
+      window.location.href = `/conference/${callId}`;
     }
   };
 
@@ -71,7 +69,7 @@ const CallLinkForm = ({ setEnable }: { setEnable: React.Dispatch<React.SetStateA
         <input
           type="url" id="link" value={link} required
           onChange={(e) => setLink(e.target.value)}
-          placeholder="https://your-app.com/facetime/meeting-id"
+          placeholder="https://your-app.com/conference/meeting-id"
           className="mt-1 block w-full text-sm py-2 px-3 border border-gray-300 rounded mb-4"
         />
         <button type="submit" className="w-full bg-green-600 text-white py-2 rounded">

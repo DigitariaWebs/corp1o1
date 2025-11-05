@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
 import { HeroSection } from "@/components/hero-section"
 import SuccessStories from "@/components/success-stories"
@@ -15,7 +14,6 @@ import { HowItWorksSection } from "@/components/how-it-works-section"
 import { Footer } from "@/components/footer"
 
 export default function HomePage() {
-  const router = useRouter()
   const { isSignedIn, isLoading, user } = useAuth()
   const [isDemoModalOpen, setIsDemoModalOpen] = useState(false)
   const [isRegistrationModalOpen, setIsRegistrationModalOpen] = useState(false)
@@ -30,9 +28,9 @@ export default function HomePage() {
         ? "/enterprise" 
         : "/main"
       
-      router.push(dashboardPath)
+      window.location.href = dashboardPath
     }
-  }, [isLoading, isSignedIn, user, router])
+  }, [isLoading, isSignedIn, user])
 
   // Show loading or redirect screen for authenticated users
   if (isLoading) {
@@ -60,7 +58,7 @@ export default function HomePage() {
 
   const handleDemoClick = () => {
     // Navigate to dedicated demo page instead of modal
-    router.push("/demo")
+    window.location.href = "/demo"
   }
 
   const handleBetaClick = () => {

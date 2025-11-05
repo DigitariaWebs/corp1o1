@@ -1,6 +1,4 @@
 "use client"
-
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { Brain, Github, Twitter, MessageCircle, Mail, MapPin, Phone, Heart } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation"
@@ -139,12 +137,12 @@ export function Footer() {
                 <ul className="space-y-2">
                   {section.links.map((link) => (
                     <li key={link.label}>
-                      <Link
+                      <a
                         href={link.href}
                         className="text-muted-foreground hover:text-white transition-colors duration-300 text-sm"
                       >
                         {link.label}
-                      </Link>
+                      </a>
                     </li>
                   ))}
                 </ul>

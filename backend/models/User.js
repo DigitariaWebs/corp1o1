@@ -118,57 +118,317 @@ const refreshTokenSchema = new mongoose.Schema(
   { _id: false },
 );
 
-// NEW: AI chat message & session sub-schemas
-const aiMessageSchema = new mongoose.Schema(
-  {
-    messageId: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      enum: ['user', 'assistant', 'system'],
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    timestamp: {
-      type: Date,
-      default: Date.now,
-    },
-    metadata: mongoose.Schema.Types.Mixed,
+// AI chat message & session sub-schemas (matching AISession model structure)
+const aiMessageSchema = new mongoose.Schema({
+  messageId: {
+    type: String,
+    required: true,
   },
-  { _id: false },
-);
-
-const aiSessionSchema = new mongoose.Schema(
-  {
-    sessionId: {
-      type: String,
-      required: true,
+  role: {
+    type: String,
+    enum: ['user', 'assistant', 'system'],
+    required: true,
+  },
+  content: {
+    type: String,
+    required: true,
+    maxlength: [4000, 'Message content cannot exceed 4000 characters'],
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+  // Metadata about the message
+  metadata: {
+    responseTime: {
+      type: Number, // milliseconds
+      default: 0,
     },
-    startTime: {
-      type: Date,
-      default: Date.now,
-    },
-    endTime: Date,
-    status: {
-      type: String,
-      enum: ['active', 'closed'],
-      default: 'active',
-    },
-    messages: [aiMessageSchema],
-    lastInteraction: Date,
-    // lightweight analytics
-    messageCount: {
+    tokenCount: {
       type: Number,
       default: 0,
     },
+    confidence: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    intent: {
+      type: String,
+      enum: ['help', 'motivation', 'clarification', 'assessment', 'general', 'feedback'],
+      default: 'general',
+    },
+    topics: [{
+      type: String,
+      trim: true,
+    }],
+    urgency: {
+      type: String,
+      enum: ['low', 'medium', 'high'],
+      default: 'low',
+    },
+    // User feedback on AI response
+    feedback: {
+      rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: null,
+      },
+      helpful: {
+        type: Boolean,
+        default: null,
+      },
+      comment: {
+        type: String,
+        maxlength: 500,
+      },
+      timestamp: Date,
+    },
+    // Error information if message failed
+    error: {
+      occurred: {
+        type: Boolean,
+        default: false,
+      },
+      message: String,
+      code: String,
+      timestamp: Date,
+    },
   },
-  { _id: false },
-);
+}, { _id: true });
+
+// Session context schema
+const sessionContextSchema = new mongoose.Schema({
+  // Current learning context
+  currentModule: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'LearningModule',
+    default: null,
+  },
+  currentPath: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'LearningPath',
+    default: null,
+  },
+  learningSession: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'LearningSession',
+    default: null,
+  },
+  
+  // Session characteristics
+  sessionDuration: {
+    type: Number, // minutes since session start
+    default: 0,
+  },
+  userState: {
+    type: String,
+    enum: ['focused', 'struggling', 'motivated', 'fatigued', 'confused', 'engaged'],
+    default: 'focused',
+  },
+  lastActivity: {
+    type: Date,
+    default: Date.now,
+  },
+  
+  // Learning progress context
+  progressContext: {
+    currentProgress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    recentPerformance: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+    strugglingAreas: [String],
+    strengths: [String],
+    lastAssessmentScore: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
+  },
+  
+  // Environmental context
+  deviceType: {
+    type: String,
+    enum: ['desktop', 'tablet', 'mobile', 'unknown'],
+    default: 'unknown',
+  },
+  platform: String,
+  timezone: String,
+}, { _id: false });
+
+// Conversation analytics schema
+const conversationAnalyticsSchema = new mongoose.Schema({
+  // Message statistics
+  totalMessages: {
+    type: Number,
+    default: 0,
+  },
+  userMessages: {
+    type: Number,
+    default: 0,
+  },
+  assistantMessages: {
+    type: Number,
+    default: 0,
+  },
+  
+  // Response quality metrics
+  averageResponseTime: {
+    type: Number, // milliseconds
+    default: 0,
+  },
+  averageConfidence: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0,
+  },
+  averageRating: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0,
+  },
+  
+  // Engagement metrics
+  engagementScore: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0,
+  },
+  helpfulnessScore: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: 0,
+  },
+  
+  // Topic analysis
+  topicsDiscussed: [String],
+  mostCommonIntent: String,
+  
+  // Adaptation tracking
+  adaptationsApplied: [{
+    type: String,
+    timestamp: Date,
+    effectiveness: Number,
+  }],
+}, { _id: false });
+
+// AI Session schema (embedded in User document)
+const aiSessionSchema = new mongoose.Schema({
+  // Session identification
+  sessionId: {
+    type: String,
+    required: true,
+  },
+  
+  aiPersonality: {
+    type: String,
+    default: 'ASSISTANT',
+  },
+  
+  // Conversation type for prompt selection
+  conversationType: {
+    type: String,
+    enum: ['LEARNING', 'EDUCATION', 'PROBLEM_SOLVING', 'PROGRAMMING', 'MATHEMATICS', 'GENERAL'],
+    default: 'GENERAL',
+  },
+  
+  // Conversation title
+  title: {
+    type: String,
+    default: 'New Conversation',
+    maxlength: [100, 'Title cannot exceed 100 characters'],
+    trim: true,
+  },
+  
+  // Session timing
+  startTime: {
+    type: Date,
+    default: Date.now,
+  },
+  
+  endTime: {
+    type: Date,
+    default: null,
+  },
+  
+  lastInteraction: {
+    type: Date,
+    default: Date.now,
+  },
+  
+  // Session status
+  status: {
+    type: String,
+    enum: ['active', 'paused', 'completed', 'timeout', 'error'],
+    default: 'active',
+  },
+  
+  // Complete conversation history
+  messages: [aiMessageSchema],
+  
+  // Dynamic session context
+  context: sessionContextSchema,
+  
+  // Session analytics and metrics
+  analytics: conversationAnalyticsSchema,
+  
+  // Session configuration
+  configuration: {
+    modelType: {
+      type: String,
+      enum: ['openai-gpt4', 'openai-gpt35', 'openai-o3-deep-research', 'claude', 'local'],
+      default: 'openai-o3-deep-research',
+    },
+    maxMessages: {
+      type: Number,
+      default: 100,
+    },
+    sessionTimeout: {
+      type: Number, // minutes
+      default: 30,
+    },
+    adaptiveMode: {
+      type: Boolean,
+      default: true,
+    },
+    contextAware: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  
+  // Session outcomes and summary
+  outcomes: {
+    problemsSolved: {
+      type: Number,
+      default: 0,
+    },
+    conceptsClarified: [String],
+    recommendationsGiven: [String],
+    userSatisfaction: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
+    sessionNotes: String,
+  },
+}, { _id: false });
 
 // User schema
 const userSchema = new mongoose.Schema(
@@ -1126,6 +1386,225 @@ userSchema.methods.getSkillsSummary = function () {
       bestScore: skill.bestScore,
     })),
   };
+};
+
+// ============================================================================
+// AI SESSION HELPER METHODS
+// ============================================================================
+
+// Find AI session by sessionId
+userSchema.methods.findAISession = function (sessionId) {
+  return this.aiChats.find(session => session.sessionId === sessionId);
+};
+
+// Get or create AI session
+userSchema.methods.getOrCreateAISession = function (sessionId, options = {}) {
+  let session = this.findAISession(sessionId);
+  
+  if (!session) {
+    const { v4: uuidv4 } = require('uuid');
+    session = {
+      sessionId: sessionId || uuidv4(),
+      aiPersonality: options.aiPersonality || 'ASSISTANT',
+      conversationType: options.conversationType || 'GENERAL',
+      title: options.title || 'New Conversation',
+      startTime: new Date(),
+      lastInteraction: new Date(),
+      status: 'active',
+      messages: [],
+      context: {
+        sessionDuration: 0,
+        userState: 'focused',
+        lastActivity: new Date(),
+        deviceType: 'unknown',
+        platform: 'web',
+        timezone: options.timezone || 'UTC',
+      },
+      analytics: {
+        totalMessages: 0,
+        userMessages: 0,
+        assistantMessages: 0,
+        averageResponseTime: 0,
+        averageConfidence: 0,
+        averageRating: 0,
+        engagementScore: 0,
+        helpfulnessScore: 0,
+        topicsDiscussed: [],
+      },
+      configuration: {
+        modelType: options.modelType || 'openai-o3-deep-research',
+        maxMessages: 100,
+        sessionTimeout: 30,
+        adaptiveMode: true,
+        contextAware: true,
+      },
+      outcomes: {
+        problemsSolved: 0,
+        conceptsClarified: [],
+        recommendationsGiven: [],
+        userSatisfaction: null,
+        sessionNotes: null,
+      },
+    };
+    this.aiChats.push(session);
+  }
+  
+  return session;
+};
+
+// Add message to AI session
+userSchema.methods.addMessageToAISession = function (sessionId, role, content, metadata = {}) {
+  const session = this.findAISession(sessionId);
+  if (!session) {
+    throw new Error('Session not found');
+  }
+  
+  const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  
+  const message = {
+    messageId,
+    role,
+    content: content.substring(0, 4000),
+    timestamp: new Date(),
+    metadata: {
+      ...metadata,
+      responseTime: metadata.responseTime || 0,
+      tokenCount: metadata.tokenCount || 0,
+      confidence: metadata.confidence || 0,
+      intent: metadata.intent || 'general',
+      topics: metadata.topics || [],
+      urgency: metadata.urgency || 'low',
+    },
+  };
+  
+  session.messages.push(message);
+  session.lastInteraction = new Date();
+  
+  // Enforce message limit
+  if (session.messages.length > session.configuration.maxMessages) {
+    session.messages = session.messages.slice(-session.configuration.maxMessages);
+  }
+  
+  // Update analytics
+  this.updateAISessionAnalytics(session);
+  
+  return message;
+};
+
+// Update AI session analytics
+userSchema.methods.updateAISessionAnalytics = function (session) {
+  if (!session.analytics) {
+    session.analytics = {
+      totalMessages: 0,
+      userMessages: 0,
+      assistantMessages: 0,
+      averageResponseTime: 0,
+      averageConfidence: 0,
+      averageRating: 0,
+      engagementScore: 0,
+      helpfulnessScore: 0,
+      topicsDiscussed: [],
+    };
+  }
+  
+  const userMessages = session.messages.filter(m => m.role === 'user');
+  const assistantMessages = session.messages.filter(m => m.role === 'assistant');
+  
+  session.analytics.totalMessages = session.messages.length;
+  session.analytics.userMessages = userMessages.length;
+  session.analytics.assistantMessages = assistantMessages.length;
+  
+  // Calculate average response time
+  if (assistantMessages.length > 0) {
+    const totalResponseTime = assistantMessages.reduce((sum, msg) => 
+      sum + (msg.metadata?.responseTime || 0), 0);
+    session.analytics.averageResponseTime = totalResponseTime / assistantMessages.length;
+  }
+  
+  // Calculate average confidence
+  if (assistantMessages.length > 0) {
+    const totalConfidence = assistantMessages.reduce((sum, msg) => 
+      sum + (msg.metadata?.confidence || 0), 0);
+    session.analytics.averageConfidence = totalConfidence / assistantMessages.length;
+  }
+  
+  // Calculate average rating from feedback
+  const ratedMessages = assistantMessages.filter(m => m.metadata?.feedback?.rating);
+  if (ratedMessages.length > 0) {
+    const totalRating = ratedMessages.reduce((sum, msg) => 
+      sum + msg.metadata.feedback.rating, 0);
+    session.analytics.averageRating = totalRating / ratedMessages.length;
+  }
+  
+  // Extract topics discussed
+  session.analytics.topicsDiscussed = [
+    ...new Set(session.messages.flatMap(m => m.metadata?.topics || [])),
+  ];
+  
+  // Find most common intent
+  const intents = session.messages.map(m => m.metadata?.intent).filter(Boolean);
+  const intentCounts = {};
+  intents.forEach(intent => {
+    intentCounts[intent] = (intentCounts[intent] || 0) + 1;
+  });
+  session.analytics.mostCommonIntent = Object.keys(intentCounts).reduce((a, b) => 
+    intentCounts[a] > intentCounts[b] ? a : b, '');
+  
+  // Calculate engagement score
+  const duration = session.endTime ? 
+    (session.endTime - session.startTime) / (1000 * 60) : 
+    (new Date() - session.startTime) / (1000 * 60);
+  const messageFrequency = session.messages.length / Math.max(duration, 1);
+  const feedbackPositivity = ratedMessages.length > 0 ? 
+    ratedMessages.filter(m => m.metadata.feedback.rating >= 4).length / ratedMessages.length : 0.5;
+  
+  session.analytics.engagementScore = Math.round(
+    (messageFrequency * 20) + (feedbackPositivity * 80),
+  );
+  
+  // Calculate helpfulness score
+  const helpfulMessages = assistantMessages.filter(m => 
+    m.metadata?.feedback?.helpful === true,
+  );
+  session.analytics.helpfulnessScore = assistantMessages.length > 0 ? 
+    Math.round((helpfulMessages.length / assistantMessages.length) * 100) : 0;
+};
+
+// Add feedback to message in AI session
+userSchema.methods.addMessageFeedbackToAISession = function (sessionId, messageId, feedback) {
+  const session = this.findAISession(sessionId);
+  if (!session) {
+    return false;
+  }
+  
+  const message = session.messages.find(m => m.messageId === messageId);
+  if (!message) {
+    return false;
+  }
+  
+  if (!message.metadata) {
+    message.metadata = {};
+  }
+  
+  message.metadata.feedback = {
+    ...feedback,
+    timestamp: new Date(),
+  };
+  
+  // Update analytics
+  this.updateAISessionAnalytics(session);
+  
+  return true;
+};
+
+// Delete AI session
+userSchema.methods.deleteAISession = function (sessionId) {
+  const index = this.aiChats.findIndex(session => session.sessionId === sessionId);
+  if (index !== -1) {
+    this.aiChats.splice(index, 1);
+    return true;
+  }
+  return false;
 };
 
 // Static method to find by Clerk ID

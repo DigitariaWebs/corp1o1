@@ -2,34 +2,73 @@
 // Consolidated AI chat controller - merged from aiController, assistantController, conversationController
 
 const mongoose = require('mongoose');
-const AISession = require('../models/AISession');
+const User = require('../models/User');
 const { openAIService } = require('../services/openaiService');
 const { AppError, catchAsync } = require('../middleware/errorHandler');
 const { v4: uuidv4 } = require('uuid');
 const { getModelConfig } = require('../config/aiModelConfig');
 const { getPromptForType, isValidConversationType } = require('../config/conversationPrompts');
 
+/**
+ * Get or create anonymous user for public conversations
+ */
+async function getAnonymousUser() {
+  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  let user = await User.findById(anonymousUserId);
+  
+  if (!user) {
+    // Create anonymous user if it doesn't exist
+    user = await User.create({
+      _id: anonymousUserId,
+      clerkUserId: 'anonymous',
+      email: 'anonymous@public.local',
+      firstName: 'Anonymous',
+      lastName: 'User',
+      isActive: true,
+    });
+  }
+  
+  return user;
+}
 
 /**
  * Provide feedback on AI response
  * POST /api/ai/feedback
  */
 exports.provideFeedback = catchAsync(async (req, res) => {
-  const { messageId, rating, helpful, comment } = req.body;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const { messageId, sessionId, rating, helpful, comment } = req.body;
+  
+  // Get user (from request if authenticated, or anonymous)
+  let user = req.user;
+  if (!user) {
+    user = await getAnonymousUser();
+  } else {
+    user = await User.findById(user._id || user);
+    if (!user) {
+      throw new AppError('User not found', 404);
+    }
+  }
 
-  // Find the session containing this message
-  const session = await AISession.findOne({
-    userId: anonymousUserId,
-    'messages.messageId': messageId
-  });
+  // Find session containing this message
+  let session = null;
+  if (sessionId) {
+    session = user.findAISession(sessionId);
+  } else {
+    // Search through all sessions for the message
+    for (const s of user.aiChats) {
+      if (s.messages.some(m => m.messageId === messageId)) {
+        session = s;
+        break;
+      }
+    }
+  }
 
   if (!session) {
-    throw new AppError('Message not found', 404);
+    throw new AppError('Session or message not found', 404);
   }
 
   // Add feedback to the message
-  const success = session.addMessageFeedback(messageId, {
+  const success = user.addMessageFeedbackToAISession(session.sessionId, messageId, {
     rating,
     helpful,
     comment
@@ -39,7 +78,7 @@ exports.provideFeedback = catchAsync(async (req, res) => {
     throw new AppError('Failed to add feedback', 500);
   }
 
-  await session.save();
+  await user.save();
 
   res.json({
     success: true,
@@ -66,15 +105,16 @@ exports.provideFeedback = catchAsync(async (req, res) => {
 exports.getPublicConversations = catchAsync(async (req, res) => {
   const { limit = 20, offset = 0 } = req.query;
 
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
-  const query = { userId: anonymousUserId };
-
-  const sessions = await AISession.find(query)
-    .sort({ lastInteraction: -1 })
-    .limit(parseInt(limit))
-    .skip(parseInt(offset))
-    .select('sessionId aiPersonality conversationType startTime endTime lastInteraction status messages')
-    .lean();
+  const user = await getAnonymousUser();
+  
+  // Get sessions sorted by lastInteraction
+  const sessions = [...user.aiChats]
+    .sort((a, b) => {
+      const aTime = a.lastInteraction ? new Date(a.lastInteraction).getTime() : new Date(a.startTime).getTime();
+      const bTime = b.lastInteraction ? new Date(b.lastInteraction).getTime() : new Date(b.startTime).getTime();
+      return bTime - aTime;
+    })
+    .slice(parseInt(offset), parseInt(offset) + parseInt(limit));
 
   const conversations = sessions.map((session) => {
     const firstUserMessage = session.messages.find(msg => msg.role === 'user');
@@ -82,11 +122,11 @@ exports.getPublicConversations = catchAsync(async (req, res) => {
     
     return {
       id: session.sessionId,
-      title: firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
+      title: session.title || firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
       personality: session.aiPersonality,
       conversationType: session.conversationType || 'GENERAL',
       createdAt: session.startTime,
-      updatedAt: session.lastInteraction,
+      updatedAt: session.lastInteraction || session.startTime,
       messageCount: session.messages.length,
       status: session.status,
       lastMessage: lastMessage ? {
@@ -104,8 +144,8 @@ exports.getPublicConversations = catchAsync(async (req, res) => {
       pagination: {
         limit: parseInt(limit),
         offset: parseInt(offset),
-        total: conversations.length,
-        hasMore: conversations.length === parseInt(limit),
+        total: user.aiChats.length,
+        hasMore: (parseInt(offset) + parseInt(limit)) < user.aiChats.length,
       },
     }
   });
@@ -117,12 +157,9 @@ exports.getPublicConversations = catchAsync(async (req, res) => {
  */
 exports.getPublicConversation = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  }).lean();
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
@@ -133,11 +170,11 @@ exports.getPublicConversation = catchAsync(async (req, res) => {
 
   const conversation = {
     id: session.sessionId,
-    title: firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
+    title: session.title || firstUserMessage?.content?.substring(0, 50) || 'New Conversation',
     personality: session.aiPersonality,
     conversationType: session.conversationType || 'GENERAL',
     createdAt: session.startTime,
-    updatedAt: session.lastInteraction,
+    updatedAt: session.lastInteraction || session.startTime,
     messageCount: session.messages.length,
     status: session.status,
     lastMessage: lastMessage ? {
@@ -159,41 +196,31 @@ exports.getPublicConversation = catchAsync(async (req, res) => {
  */
 exports.createPublicConversation = catchAsync(async (req, res) => {
   const { title, conversationType } = req.body;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
   // Validate conversation type if provided
   const validConversationType = conversationType && isValidConversationType(conversationType) 
     ? conversationType 
     : 'GENERAL';
   
-  const newSession = new AISession({
-    sessionId: uuidv4(),
-    userId: anonymousUserId,
-    aiPersonality: 'ASSISTANT',
+  const session = user.getOrCreateAISession(uuidv4(), {
+    title: title || 'New Conversation',
     conversationType: validConversationType,
-    startTime: new Date(),
-    status: 'active',
-    context: {
-      sessionDuration: 0,
-      userState: 'focused',
-      lastActivity: new Date(),
-      deviceType: 'unknown',
-      platform: 'web',
-      timezone: 'UTC'
-    }
+    aiPersonality: 'ASSISTANT',
+    timezone: 'UTC',
   });
 
-  await newSession.save();
+  await user.save();
 
   const conversation = {
-    id: newSession.sessionId,
-    title: title || 'New Conversation',
-    personality: newSession.aiPersonality,
-    conversationType: newSession.conversationType || 'GENERAL',
-    createdAt: newSession.startTime,
-    updatedAt: newSession.lastInteraction,
-    messageCount: 0,
-    status: newSession.status,
+    id: session.sessionId,
+    title: session.title || 'New Conversation',
+    personality: session.aiPersonality,
+    conversationType: session.conversationType || 'GENERAL',
+    createdAt: session.startTime,
+    updatedAt: session.lastInteraction || session.startTime,
+    messageCount: session.messages.length,
+    status: session.status,
     lastMessage: null
   };
 
@@ -210,34 +237,28 @@ exports.createPublicConversation = catchAsync(async (req, res) => {
 exports.updatePublicConversation = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { title } = req.body;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  });
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
   }
 
   if (title) {
-    const firstUserMessage = session.messages.find(msg => msg.role === 'user');
-    if (firstUserMessage) {
-      firstUserMessage.content = title;
-    }
+    session.title = title;
+    session.lastInteraction = new Date();
   }
 
-
-  await session.save();
+  await user.save();
 
   const conversation = {
     id: session.sessionId,
-    title: title || 'Updated Conversation',
+    title: session.title || 'Updated Conversation',
     personality: session.aiPersonality,
     conversationType: session.conversationType || 'GENERAL',
     createdAt: session.startTime,
-    updatedAt: session.lastInteraction,
+    updatedAt: session.lastInteraction || session.startTime,
     messageCount: session.messages.length,
     status: session.status
   };
@@ -254,16 +275,15 @@ exports.updatePublicConversation = catchAsync(async (req, res) => {
  */
 exports.deletePublicConversation = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOneAndDelete({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  });
+  const deleted = user.deleteAISession(id);
 
-  if (!session) {
+  if (!deleted) {
     throw new AppError('Conversation not found', 404);
   }
+
+  await user.save();
 
   res.json({
     success: true,
@@ -278,12 +298,9 @@ exports.deletePublicConversation = catchAsync(async (req, res) => {
 exports.getPublicConversationMessages = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { limit = 50, offset = 0 } = req.query;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  }).lean();
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
@@ -320,20 +337,17 @@ exports.getPublicConversationMessages = catchAsync(async (req, res) => {
 exports.addPublicMessage = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { content, role = 'user', metadata = {} } = req.body;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  });
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
   }
 
   // Add user message
-  const userMessage = session.addMessage(role, content, metadata);
-  await session.save();
+  const userMessage = user.addMessageToAISession(session.sessionId, role, content, metadata);
+  await user.save();
 
   // If it's a user message, generate AI response  
   if (role === 'user') {
@@ -356,55 +370,76 @@ exports.addPublicMessage = catchAsync(async (req, res) => {
     if (wantStream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
       res.flushHeaders && res.flushHeaders();
 
-      const { stream } = await openAIService.createChatCompletion(
-        optimizedHistory,
-        {
-          model: getModelConfig('conversation').model,
-          userId: anonymousUserId.toString(),
-          stream: true,
-        },
-      );
-
       let assistantContent = '';
-      
-      for await (const chunk of stream) {
-        // Parse the SSE chunk from OpenAI
-        const lines = chunk.toString().split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6); // Remove 'data: ' prefix
-            if (data === '[DONE]') {
-              break;
-            }
-            
-            try {
-              const parsed = JSON.parse(data);
-              const deltaContent = parsed.choices?.[0]?.delta?.content;
-              if (deltaContent) {
-                assistantContent += deltaContent;
-                // Send just the text content
-                res.write(`data: ${deltaContent}\n\n`);
+      let streamError = null;
+
+      try {
+        const { stream } = await openAIService.createChatCompletion(
+          optimizedHistory,
+          {
+            model: getModelConfig('conversation').model,
+            userId: user._id.toString(),
+            stream: true,
+          },
+        );
+        
+        for await (const chunk of stream) {
+          // Parse the SSE chunk from OpenAI
+          const lines = chunk.toString().split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim(); // Remove 'data: ' prefix
+              if (data === '[DONE]') {
+                break;
               }
-            } catch (_e) {
-              // Skip invalid JSON chunks
-              continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                const deltaContent = parsed.choices?.[0]?.delta?.content;
+                if (deltaContent) {
+                  assistantContent += deltaContent;
+                  // Send just the text content (frontend expects plain text after "data:")
+                  res.write(`data:${deltaContent}\n\n`);
+                  // Flush to ensure immediate delivery
+                  if (res.flush) res.flush();
+                }
+              } catch (_e) {
+                // Skip invalid JSON chunks
+                continue;
+              }
             }
           }
         }
+      } catch (error) {
+        console.error('Streaming error:', error);
+        streamError = error;
+        // Send error to client
+        res.write(`data:${JSON.stringify({ error: 'Failed to generate response' })}\n\n`);
       }
       
-      // Send completion signal (removed to avoid showing in chat)
-      // res.write(`data: [DONE]\n\n`);
-      res.end();
+      // Always close the stream properly
+      try {
+        res.end();
+      } catch (e) {
+        console.error('Error closing stream:', e);
+      }
 
-      // Add AI response to session
-      session.addMessage('assistant', assistantContent, {
-        model: getModelConfig('conversation').model,
-        timestamp: new Date(),
-      });
-      await session.save();
+      // Save the assistant response after stream closes (if we got content)
+      if (assistantContent && !streamError) {
+        try {
+          user.addMessageToAISession(session.sessionId, 'assistant', assistantContent, {
+            model: getModelConfig('conversation').model,
+            timestamp: new Date(),
+          });
+          await user.save();
+        } catch (saveError) {
+          console.error('Error saving assistant message:', saveError);
+        }
+      }
+      
       return;
     }
 
@@ -412,25 +447,26 @@ exports.addPublicMessage = catchAsync(async (req, res) => {
     console.log('📤 Sending request to OpenAI...');
     const aiResponse = await openAIService.createChatCompletion(optimizedHistory, {
       model: getModelConfig('conversation').model,
-      userId: anonymousUserId.toString(),
+      userId: user._id.toString(),
     });
     console.log('✅ Received AI response:', aiResponse.content?.substring(0, 100) + '...');
 
-    session.addMessage('assistant', aiResponse.content, {
+    user.addMessageToAISession(session.sessionId, 'assistant', aiResponse.content, {
       model: aiResponse.model,
       timestamp: new Date(),
     });
-    await session.save();
+    await user.save();
 
     // Send response in SSE format (same as streaming)
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
     
-    // Send the complete response as text
-    res.write(`data: ${aiResponse.content}\n\n`);
+    // Send the complete response as text (frontend expects plain text after "data:")
+    res.write(`data:${aiResponse.content}\n\n`);
     
     // Send completion signal (removed to avoid showing in chat)
-    // res.write(`data: [DONE]\n\n`);
+    // res.write(`data:[DONE]\n\n`);
     
     res.end();
   } else {
@@ -457,12 +493,9 @@ exports.addPublicMessage = catchAsync(async (req, res) => {
 exports.updatePublicMessage = catchAsync(async (req, res) => {
   const { id, messageId } = req.params;
   const { content, metadata } = req.body;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  });
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
@@ -474,9 +507,13 @@ exports.updatePublicMessage = catchAsync(async (req, res) => {
   }
 
   if (content) message.content = content;
-  if (metadata) message.metadata = { ...message.metadata, ...metadata };
+  if (metadata) {
+    if (!message.metadata) message.metadata = {};
+    message.metadata = { ...message.metadata, ...metadata };
+  }
 
-  await session.save();
+  session.lastInteraction = new Date();
+  await user.save();
 
   res.json({
     success: true,
@@ -498,12 +535,9 @@ exports.updatePublicMessage = catchAsync(async (req, res) => {
  */
 exports.deletePublicMessage = catchAsync(async (req, res) => {
   const { id, messageId } = req.params;
-  const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
+  const user = await getAnonymousUser();
   
-  const session = await AISession.findOne({ 
-    sessionId: id, 
-    userId: anonymousUserId 
-  });
+  const session = user.findAISession(id);
 
   if (!session) {
     throw new AppError('Conversation not found', 404);
@@ -515,7 +549,8 @@ exports.deletePublicMessage = catchAsync(async (req, res) => {
   }
 
   session.messages.splice(messageIndex, 1);
-  await session.save();
+  session.lastInteraction = new Date();
+  await user.save();
 
   res.json({
     success: true,
