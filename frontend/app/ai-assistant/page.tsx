@@ -48,27 +48,28 @@ export default function AIAssistantPage() {
   const [isSending, setIsSending] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [selectedConversationType, setSelectedConversationType] = useState<'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL' | null>(null)
+  const [hasCheckedInitialLoad, setHasCheckedInitialLoad] = useState(false)
 
   // Load conversations on mount
   useEffect(() => {
     loadConversations()
   }, [loadConversations])
 
-  // Show templates modal automatically when page loads with no active conversation
+  // Show modal on initial page access if no active conversation
   useEffect(() => {
-    // Only show modal if:
-    // 1. Conversations have been loaded (not loading)
-    // 2. No active conversation
-    // 3. No conversations exist or user hasn't selected a type yet
-    // 4. Modal is not already shown
-    if (!loading && !activeConversationId && !showTemplates && !selectedConversationType) {
-      // Small delay to ensure UI is ready
+    // Show modal when page loads if there's no active conversation
+    // Wait for conversations to load first, and only check once per page load
+    if (!loading && !hasCheckedInitialLoad) {
+      setHasCheckedInitialLoad(true)
+      // Small delay to ensure page is fully rendered
       const timer = setTimeout(() => {
-        setShowTemplates(true)
+        if (!activeConversationId) {
+          setShowTemplates(true)
+        }
       }, 300)
       return () => clearTimeout(timer)
     }
-  }, [loading, activeConversationId, showTemplates, selectedConversationType])
+  }, [loading, activeConversationId, hasCheckedInitialLoad])
 
   // Handle sending a message with streaming
   const handleSendMessage = async (content: string) => {
