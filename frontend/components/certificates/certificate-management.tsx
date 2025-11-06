@@ -61,7 +61,7 @@ interface Certificate {
 
 export function CertificateManagement() {
   const { t } = useTranslation()
-  const { getToken, user } = useAuth()
+  const { user } = useAuth()
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null)
   const [showVerification, setShowVerification] = useState(false)
@@ -82,22 +82,8 @@ export function CertificateManagement() {
       setLoading(true)
       setError(null)
 
-      // Try to get token, but don't require it (public route)
-      let token = null
-      try {
-        token = await getToken()
-      } catch (tokenError) {
-        // Token not available, continue without auth
-        console.log('No auth token available, using public access')
-      }
-
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
-      }
-      
-      // Add auth header only if token is available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
       }
 
       // Fetch user certificates from backend (public route)
@@ -151,15 +137,6 @@ export function CertificateManagement() {
       setGenerating(true)
       setError(null)
 
-      // Try to get token, but don't require it (public route)
-      let token = null
-      try {
-        token = await getToken()
-      } catch (tokenError) {
-        // Token not available, continue without auth
-        console.log('No auth token available, using public access')
-      }
-
       // Get user name from auth context or use default
       const userName = user?.name || user?.firstName && user?.lastName 
         ? `${user.firstName} ${user.lastName}`
@@ -167,11 +144,6 @@ export function CertificateManagement() {
 
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
-      }
-      
-      // Add auth header only if token is available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
       }
 
       const response = await fetch(`${API_BASE_URL}/api/certificates/generate`, {
@@ -230,10 +202,8 @@ export function CertificateManagement() {
 
   const handleShare = async (certificate: Certificate) => {
     try {
-      const token = await getToken()
       const headers = {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       }
 
       // Share certificate (this would track sharing analytics)
@@ -257,20 +227,7 @@ export function CertificateManagement() {
 
   const handleDownload = async (certificate: Certificate, format: 'pdf' | 'png' | 'jpg' = 'pdf') => {
     try {
-      // Try to get token, but don't require it (public route)
-      let token = null
-      try {
-        token = await getToken()
-      } catch (tokenError) {
-        // Token not available, continue without auth
-      }
-
       const headers: HeadersInit = {}
-      
-      // Add auth header only if token is available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
 
       const response = await fetch(`${API_BASE_URL}/api/certificates/${certificate.id}/download?format=${format}`, {
         headers

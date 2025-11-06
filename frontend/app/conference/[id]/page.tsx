@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { StreamCall, StreamTheme } from "@stream-io/video-react-sdk";
 import { useGetCallById } from "@/app/hooks/useGetCallById";
 import { useAuth as useAppAuth } from "@/contexts/auth-context";
@@ -13,7 +13,6 @@ export default function ConferencePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user: clerkUser, isLoaded: userLoaded } = useUser();
-  const { getToken } = useAuth();
   const { user: authUser, isLoading: authLoading } = useAppAuth();
   const [confirmJoin, setConfirmJoin] = useState(false);
   const [camEnabled, setCamEnabled] = useState(true);
