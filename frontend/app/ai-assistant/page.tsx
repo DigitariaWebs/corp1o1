@@ -54,6 +54,22 @@ export default function AIAssistantPage() {
     loadConversations()
   }, [loadConversations])
 
+  // Show templates modal automatically when page loads with no active conversation
+  useEffect(() => {
+    // Only show modal if:
+    // 1. Conversations have been loaded (not loading)
+    // 2. No active conversation
+    // 3. No conversations exist or user hasn't selected a type yet
+    // 4. Modal is not already shown
+    if (!loading && !activeConversationId && !showTemplates && !selectedConversationType) {
+      // Small delay to ensure UI is ready
+      const timer = setTimeout(() => {
+        setShowTemplates(true)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [loading, activeConversationId, showTemplates, selectedConversationType])
+
   // Handle sending a message with streaming
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || isSending) return
