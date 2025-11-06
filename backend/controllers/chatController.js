@@ -10,9 +10,31 @@ const { getModelConfig } = require('../config/aiModelConfig');
 const { getPromptForType, isValidConversationType } = require('../config/conversationPrompts');
 
 /**
+ * Wait for database connection to be ready
+ */
+async function waitForDatabaseConnection(maxWaitMs = 10000) {
+  const startTime = Date.now();
+  
+  while (mongoose.connection.readyState !== 1) {
+    // Check if we've exceeded the maximum wait time
+    if (Date.now() - startTime > maxWaitMs) {
+      throw new Error('Database connection timeout - connection not ready after 10 seconds');
+    }
+    
+    // Wait a bit before checking again
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
+  return true;
+}
+
+/**
  * Get or create anonymous user for public conversations
  */
 async function getAnonymousUser() {
+  // Wait for database connection to be ready before querying
+  await waitForDatabaseConnection();
+  
   const anonymousUserId = new mongoose.Types.ObjectId('000000000000000000000000');
   let user = await User.findById(anonymousUserId);
   

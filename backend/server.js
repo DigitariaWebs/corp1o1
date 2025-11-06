@@ -35,33 +35,73 @@ const floatingChatRoutes = require('./routes/floatingChat');
 
 const app = express();
 
-// Database connection
-(async () => {
-  try {
-    const conn = await connectDatabase();
+// Database connection - ensure it's established before handling requests
+let dbConnectionPromise = null;
 
-    const runPostConnectInit = async () => {
-      try {
-        // Drop legacy indexes that cause creation failures
-        const { dropLegacyAssessmentQuestionIdIndex, dropLegacyAISessionMessageIdIndex } = require('./config/database-indexes');
-        await dropLegacyAssessmentQuestionIdIndex();
-        await dropLegacyAISessionMessageIdIndex();
-        // await initializeAIPrompts(); // ❌ Removed - AIPrompt model deleted
-        // await initializeAnalytics(); // ❌ Removed - Analytics system simplified
-      } catch (e) {
-        console.error('❌ Post-connection initialization failed:', e);
-      }
-    };
-
-    if (conn && mongoose.connection.readyState === 1) {
-      await runPostConnectInit();
-    } else {
-      mongoose.connection.once('connected', runPostConnectInit);
-    }
-  } catch (error) {
-    console.error('❌ Database initialization failed:', error);
+const ensureDatabaseConnection = async () => {
+  // If already connected, return immediately
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
-})();
+
+  // If connection is in progress, wait for it
+  if (dbConnectionPromise) {
+    return dbConnectionPromise;
+  }
+
+  // Start new connection
+  dbConnectionPromise = (async () => {
+    try {
+      const conn = await connectDatabase();
+      
+      const runPostConnectInit = async () => {
+        try {
+          // Drop legacy indexes that cause creation failures
+          const { dropLegacyAssessmentQuestionIdIndex, dropLegacyAISessionMessageIdIndex } = require('./config/database-indexes');
+          await dropLegacyAssessmentQuestionIdIndex();
+          await dropLegacyAISessionMessageIdIndex();
+        } catch (e) {
+          console.error('❌ Post-connection initialization failed:', e);
+        }
+      };
+
+      if (conn && mongoose.connection.readyState === 1) {
+        await runPostConnectInit();
+      } else {
+        mongoose.connection.once('connected', runPostConnectInit);
+      }
+      
+      return conn;
+    } catch (error) {
+      console.error('❌ Database initialization failed:', error);
+      dbConnectionPromise = null; // Reset on error so we can retry
+      throw error;
+    }
+  })();
+
+  return dbConnectionPromise;
+};
+
+// Start database connection immediately
+ensureDatabaseConnection().catch(err => {
+  console.error('❌ Failed to establish database connection:', err);
+});
+
+// Middleware to ensure database connection before handling requests
+const ensureDbConnectionMiddleware = async (req, res, next) => {
+  try {
+    // If not connected, wait for connection (with timeout)
+    if (mongoose.connection.readyState !== 1) {
+      await ensureDatabaseConnection();
+    }
+    next();
+  } catch (error) {
+    console.error('❌ Database connection error in middleware:', error);
+    // Don't block the request, but log the error
+    // Some endpoints might work without DB (like health checks)
+    next();
+  }
+};
 
 // Initialize AI prompts in database (REMOVED - no longer needed)
 // const initializeAIPrompts = async () => {
@@ -193,6 +233,9 @@ app.use('/api/webhooks', webhookRoutes);
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Ensure database connection before handling API requests
+app.use('/api', ensureDbConnectionMiddleware);
 
 // Clerk middleware (after body parsing)
 app.use(clerkMiddleware());
