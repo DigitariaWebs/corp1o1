@@ -6,9 +6,8 @@ import { MainNavigation } from "@/components/navigation/main-navigation"
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar"
 import { ChatInterface } from "@/components/chat/chat-interface"
 import { ConversationTemplates } from "@/components/chat/conversation-templates"
-import { useConversationContext, Message, Conversation } from "@/hooks/use-conversation-context"
+import { useConversationRedux } from "@/hooks/use-conversation-redux"
 import { conversationApi } from "@/lib/conversation-api"
-import { sendChat } from "@/lib/ai-client"
 import { Brain, MessageSquare, Settings, HelpCircle, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -20,7 +19,9 @@ export default function AIAssistantPage() {
     activeConversationId,
     messages,
     loading,
+    isSending,
     error,
+    selectedConversationType,
     setActiveConversation,
     addMessage,
     updateMessage,
@@ -29,13 +30,11 @@ export default function AIAssistantPage() {
     createConversation,
     deleteConversation,
     updateConversationTitle,
+    sendMessage,
+    setSelectedConversationType,
     getContextMessages,
     getContextSummary
-  } = useConversationContext({
-    maxContextMessages: 15,
-    systemPrompt: "You are ARIA, a supportive and encouraging AI learning assistant. You help users with their learning journey, provide guidance, answer questions, and offer motivation. Be empathetic, patient, and focus on positive reinforcement.",
-    includeSystemMessages: true
-  })
+  } = useConversationRedux()
 
   // Ensure conversations is always an array
   const safeConversations = conversations || []
@@ -45,107 +44,44 @@ export default function AIAssistantPage() {
   console.log('AI Assistant - safeConversations:', safeConversations)
 
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const [isSending, setIsSending] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
-  const [selectedConversationType, setSelectedConversationType] = useState<'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL' | null>(null)
-  const [hasCheckedInitialLoad, setHasCheckedInitialLoad] = useState(false)
+  const [hasShownInitialModal, setHasShownInitialModal] = useState(false)
 
   // Load conversations on mount
   useEffect(() => {
     loadConversations()
-  }, [loadConversations])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Show modal on initial page access if no active conversation
+  // Show modal immediately on page access if no active conversation
   useEffect(() => {
-    // Show modal when page loads if there's no active conversation
-    // Wait for conversations to load first, and only check once per page load
-    if (!loading && !hasCheckedInitialLoad) {
-      setHasCheckedInitialLoad(true)
-      // Small delay to ensure page is fully rendered
-      const timer = setTimeout(() => {
-        if (!activeConversationId) {
-          setShowTemplates(true)
-        }
-      }, 300)
-      return () => clearTimeout(timer)
+    // Show modal immediately when page loads if there's no active conversation
+    if (!hasShownInitialModal && !activeConversationId) {
+      setShowTemplates(true)
+      setHasShownInitialModal(true)
     }
-  }, [loading, activeConversationId, hasCheckedInitialLoad])
+  }, [hasShownInitialModal, activeConversationId])
 
   // Handle sending a message with streaming
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || isSending) return
-
-    setIsSending(true)
     
     try {
-      // If no active conversation and we have a selected type, create conversation first
-      let conversationId = activeConversationId
-      if (!conversationId && selectedConversationType) {
-        const newConversation = await createConversation(
-          `New ${selectedConversationType} Conversation`,
-          undefined,
-          selectedConversationType
-        )
-        conversationId = newConversation.id
-        setActiveConversation(conversationId)
-        setSelectedConversationType(null) // Clear the selected type after creating conversation
-      }
-      
-      // Add user message
-      const userMessage = addMessage({
-        role: 'user',
-        content: content.trim()
-      })
-
-      // Get context for AI
-      const contextMessages = getContextMessages([...messages, userMessage])
-      
-      // Add empty assistant message for streaming
-      const assistantMessage = addMessage({
-        role: 'assistant',
-        content: ''
-      })
-
-      let fullContent = ''
-      
-      // Send to AI API with streaming enabled
-      await sendChat(content.trim(), undefined, {
-        stream: true,
-        assistant: true,
-        sessionId: conversationId || undefined,
-        onChunk: (chunk) => {
-          fullContent += chunk
-          // Update the assistant message with accumulated content
-          updateMessage(assistantMessage.id, {
-            content: fullContent
-          })
-        }
-      })
-
-      // Update final metadata when done
-      updateMessage(assistantMessage.id, {
-        metadata: {
-          confidence: Math.floor(Math.random() * 20) + 80,
-          responseTime: 0
-        }
-      })
-      
-      setIsSending(false)
-
+      await sendMessage(content.trim())
     } catch (error) {
       console.error('Failed to send message:', error)
       
       // Add error message
-      addMessage({
-        role: 'assistant',
-        content: "I'm sorry, I encountered an error processing your message. Please try again.",
-        metadata: {
-          confidence: 0,
-          responseTime: 0
-        }
-      })
-      
-      setIsSending(false)
+      if (activeConversationId) {
+        addMessage({
+          role: 'assistant',
+          content: "I'm sorry, I encountered an error processing your message. Please try again.",
+          metadata: {
+            confidence: 0,
+            responseTime: 0
+          }
+        })
+      }
     }
   }
 
@@ -162,7 +98,7 @@ export default function AIAssistantPage() {
   // Handle template selection - store the type but don't create conversation yet
   const handleTemplateSelect = (template: { conversationType: string; title?: string }) => {
     setSelectedConversationType(template.conversationType as 'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL')
-      setShowTemplates(false)
+    setShowTemplates(false)
     // Clear any active conversation so we're ready for a new one
     setActiveConversation(null)
   }

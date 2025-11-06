@@ -1,11 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { CodeBlock } from "@/components/ui/code-block";
 
 interface MessageContentProps {
   content: string;
   className?: string;
+  isStreaming?: boolean;
 }
 
 interface ParsedBlock {
@@ -53,14 +54,17 @@ function parseMessageContent(content: string): ParsedBlock[] {
   }
 
   // Add remaining text after last code block
-  if (lastIndex < content.length) {
-    const textContent = content.substring(lastIndex).trim();
-    if (textContent) {
-      blocks.push({
-        type: "text",
-        content: textContent,
-      });
-    }
+  const remainingContent = content.substring(lastIndex);
+  
+  // Check if there's an incomplete code block (starts with ``` but no closing ```)
+  const hasIncompleteCodeBlock = /```/.test(remainingContent) && !remainingContent.includes('```', remainingContent.indexOf('```') + 3);
+  
+  if (remainingContent.trim()) {
+    // If there's an incomplete code block, show it as text (will format properly when complete)
+    blocks.push({
+      type: "text",
+      content: remainingContent,
+    });
   }
 
   // If no code blocks found, return original content as text
@@ -196,15 +200,40 @@ function formatTextContent(text: string): React.ReactNode {
   return result.length > 0 ? result : <p className="text-base leading-7 text-gray-800">No content</p>;
 }
 
-export function MessageContent({ content, className = "" }: MessageContentProps) {
-  const blocks = parseMessageContent(content);
+export function MessageContent({ content, className = "", isStreaming = false }: MessageContentProps) {
+  // Track when streaming completes to force re-render
+  const [formatKey, setFormatKey] = useState(0);
+  const [wasStreaming, setWasStreaming] = useState(false);
+
+  // Detect when streaming completes and force re-render
+  useEffect(() => {
+    if (wasStreaming && !isStreaming) {
+      // Streaming just completed - force re-render with formatting
+      setFormatKey(prev => prev + 1);
+    }
+    setWasStreaming(isStreaming);
+  }, [isStreaming, wasStreaming]);
+
+  // During streaming, show plain text. After streaming completes, format it
+  const blocks = useMemo(() => {
+    if (!content) return [];
+    // If streaming, return plain text block
+    if (isStreaming) {
+      return [{
+        type: "text" as const,
+        content: content,
+      }];
+    }
+    // After streaming, parse and format
+    return parseMessageContent(content);
+  }, [content, isStreaming, formatKey]); // Include formatKey to force re-parse when streaming completes
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div key={`content-${formatKey}`} className={`space-y-4 ${className}`}>
       {blocks.map((block, index) => {
         if (block.type === "code") {
           return (
-            <div key={index} className="my-6 -mx-1">
+            <div key={`code-${index}-${formatKey}`} className="my-6 -mx-1">
               <CodeBlock
                 language={block.language || "text"}
                 filename={block.filename || `code.${block.language || "txt"}`}
@@ -213,11 +242,20 @@ export function MessageContent({ content, className = "" }: MessageContentProps)
             </div>
           );
         } else {
-          return (
-            <div key={index} className="whitespace-pre-wrap break-words">
-              {formatTextContent(block.content)}
-            </div>
-          );
+          // During streaming, show plain text. After streaming, show formatted
+          if (isStreaming) {
+            return (
+              <div key={`text-${index}-${formatKey}`} className="whitespace-pre-wrap break-words text-gray-800">
+                {content}
+              </div>
+            );
+          } else {
+            return (
+              <div key={`text-${index}-${formatKey}`} className="whitespace-pre-wrap break-words">
+                {formatTextContent(block.content)}
+              </div>
+            );
+          }
         }
       })}
     </div>

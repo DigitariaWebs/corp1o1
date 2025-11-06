@@ -98,9 +98,22 @@ export function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-scroll to bottom when new messages arrive
+  // Track last content for streaming updates
+  const lastContentRef = useRef<string>('')
+  
+  // Auto-scroll to bottom when new messages arrive or content updates (for streaming)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    const lastMessage = messages[messages.length - 1]
+    const currentContent = lastMessage?.content || ''
+    
+    // Scroll if content has changed (for streaming) or new message added
+    if (currentContent !== lastContentRef.current) {
+      lastContentRef.current = currentContent
+      // Use requestAnimationFrame to ensure DOM is updated after render
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+      })
+    }
   }, [messages])
 
   // Auto-resize textarea
@@ -244,9 +257,13 @@ export function ChatInterface({
             </div>
           ) : (
             <AnimatePresence>
-              {messages.map((message, index) => (
+              {messages.map((message, index) => {
+                // Use message ID and streaming state in key to force re-render when streaming completes
+                const isStreaming = loading && message.role === 'assistant' && message.id === messages[messages.length - 1]?.id;
+                const messageKey = `${message.id}-${isStreaming ? 'streaming' : 'complete'}`;
+                return (
                 <motion.div
-                  key={message.id}
+                  key={messageKey}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -296,10 +313,29 @@ export function ChatInterface({
                       </div>
                     ) : (
                       <>
-                        <MessageContent 
-                          content={message.content}
-                          className=""
-                        />
+                        {message.content ? (
+                          <MessageContent 
+                            key={`msg-content-${message.id}-${isStreaming ? 'streaming' : 'complete'}`}
+                            content={message.content}
+                            className=""
+                            isStreaming={isStreaming}
+                          />
+                        ) : (
+                          // Show placeholder when message is empty (streaming just started)
+                          <div className="text-gray-400 italic">AI is thinking...</div>
+                        )}
+                        
+                        {/* Streaming indicator - show when loading and this is the last assistant message */}
+                        {loading && message.role === 'assistant' && message.id === messages[messages.length - 1]?.id && (
+                          <div className="flex items-center gap-1 mt-2 text-xs text-blue-600">
+                            <div className="flex gap-1">
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                            <span className="ml-1 font-medium">Streaming response...</span>
+                          </div>
+                        )}
                         
                         <div className="flex items-center gap-2 mt-2 text-xs opacity-0 group-hover/message:opacity-100 transition-opacity">
                           <span className="flex items-center gap-1">
@@ -438,10 +474,10 @@ export function ChatInterface({
                     </div>
                   )}
                 </motion.div>
-              ))}
+              )})}
               
-              {/* Enhanced Loading indicator */}
-              {loading && (
+              {/* Enhanced Loading indicator - only show if there's no assistant message being streamed */}
+              {loading && (!messages.length || messages[messages.length - 1]?.role !== 'assistant') && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
