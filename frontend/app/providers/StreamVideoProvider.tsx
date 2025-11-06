@@ -4,12 +4,18 @@ import { useState, useEffect, ReactNode } from "react";
 import { StreamVideo, StreamVideoClient } from "@stream-io/video-react-sdk";
 import { useUser, useAuth } from "@clerk/nextjs";
 
-const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY!;
+const apiKey = process.env.NEXT_PUBLIC_STREAM_API_KEY;
 
 export const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
   const [videoClient, setVideoClient] = useState<StreamVideoClient | null>(null);
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
+
+  // If Stream API key is not configured, just render children without Stream
+  if (!apiKey) {
+    console.warn("⚠️ NEXT_PUBLIC_STREAM_API_KEY is not set. Video features will be disabled.");
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     if (!isLoaded || !user || !apiKey) {
@@ -71,8 +77,9 @@ export const StreamVideoProvider = ({ children }: { children: ReactNode }) => {
   }, [user, isLoaded, getToken]);
 
   // Show loading state while client is being initialized
+  // But don't block rendering - render children even if video client isn't ready
   if (!videoClient) {
-    return null;
+    return <>{children}</>;
   }
 
   return <StreamVideo client={videoClient}>{children}</StreamVideo>;

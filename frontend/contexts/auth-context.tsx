@@ -142,7 +142,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncUserData = async () => {
       try {
-        if (!clerkLoaded) return
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.warn("⚠️ [AUTH] Auth sync timeout - setting loading to false")
+          setIsLoading(false)
+        }, 10000) // 10 second timeout
+
+        if (!clerkLoaded) {
+          clearTimeout(timeoutId)
+          return
+        }
 
         // Check if account deletion is in progress
         const isDeletionInProgress = sessionStorage.getItem('account-deletion-in-progress')
@@ -152,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false)
           sessionStorage.removeItem('account-deletion-in-progress')
           window.location.href = '/'
+          clearTimeout(timeoutId)
           return
         }
 
@@ -169,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log("📊 [AUTH] Using Clerk fallback data:", mappedUser)
               setUser(mappedUser)
               setIsLoading(false)
+              clearTimeout(timeoutId)
               return
             }
             
@@ -188,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setIsLoading(false)
+        clearTimeout(timeoutId)
       } catch (outerError) {
         console.error("Critical error in syncUserData:", outerError)
         setUser(null)
