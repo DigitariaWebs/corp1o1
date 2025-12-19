@@ -52,7 +52,7 @@ const initialState: AssessmentState = {
   sessionHistory: [],
 };
 
-// Async thunk to generate questions using AI
+// Async thunk to generate questions using AI with streaming support
 export const generateAssessmentQuestions = createAsyncThunk(
   'assessment/generateQuestions',
   async ({ 
@@ -71,31 +71,82 @@ export const generateAssessmentQuestions = createAsyncThunk(
     questionCount: number;
     topic?: string;
     token: string | null;
-  }) => {
-    const response = await fetch(`${BACKEND_URL}/api/assessments/generate-questions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-dev-auth': 'true', // Local dev bypass for Clerk
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify({
-        assessmentId,
-        title,
-        category,
-        difficulty,
-        questionCount,
-        topic,
-        includeTypes: ['multiple_choice'], // Only multiple choice questions
-      }),
-    });
+  }, { dispatch }) => {
+     // For 40 questions, use regular API with extended timeout
+     if (questionCount > 20) {
+       console.log(`🔄 Generating ${questionCount} questions (large set, using extended timeout)`);
+       
+       // Use regular API but with longer timeout for 40 questions
+       const controller = new AbortController();
+       const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
+       
+       try {
+         const response = await fetch(`${BACKEND_URL}/api/assessments/generate-questions`, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+             'x-dev-auth': 'true',
+             ...(token ? { Authorization: `Bearer ${token}` } : {}),
+           },
+           body: JSON.stringify({
+             assessmentId,
+             title,
+             category,
+             difficulty,
+             questionCount,
+             topic,
+             includeTypes: ['multiple_choice'],
+           }),
+           signal: controller.signal,
+         });
 
-    const data = await response.json().catch(() => null);
-    if (!response.ok || !data?.success) {
-      const message = (data && (data.error || data.message)) || 'Failed to generate questions';
-      throw new Error(message);
+         clearTimeout(timeoutId);
+
+         const data = await response.json().catch(() => null);
+         if (!response.ok || !data?.success) {
+           const message = (data && (data.error || data.message)) || 'Failed to generate questions';
+           throw new Error(message);
+         }
+         
+         const questions = Array.isArray(data?.data?.questions) ? data.data.questions : [];
+         console.log(`✅ Generated ${questions.length} questions successfully`);
+         return questions;
+       } catch (error) {
+         clearTimeout(timeoutId);
+         if (error instanceof Error && error.name === 'AbortError') {
+           throw new Error('Question generation timed out after 5 minutes');
+         }
+         console.error('Question generation error:', error);
+         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+         throw new Error(`Failed to generate questions: ${errorMessage}`);
+       }
+    } else {
+      // For smaller question sets, use regular API
+      const response = await fetch(`${BACKEND_URL}/api/assessments/generate-questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-dev-auth': 'true',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          assessmentId,
+          title,
+          category,
+          difficulty,
+          questionCount,
+          topic,
+          includeTypes: ['multiple_choice'],
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data?.success) {
+        const message = (data && (data.error || data.message)) || 'Failed to generate questions';
+        throw new Error(message);
+      }
+      return Array.isArray(data?.data?.questions) ? data.data.questions : [];
     }
-    return Array.isArray(data?.data?.questions) ? data.data.questions : [];
   }
 );
 

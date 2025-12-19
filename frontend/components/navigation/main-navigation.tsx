@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -49,6 +48,7 @@ import {
   CheckCircle,
   Clock,
   TrendingUp,
+  Video,
 } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
@@ -63,117 +63,83 @@ export function MainNavigation() {
 
   if (!user) return null
 
-  // Role-based navigation items
-  const getNavigationItems = () => {
-    const baseItems = [
-      {
-        label: "AI Assistant",
-        href: "/ai-assistant",
-        icon: Brain,
-        description: "AI Learning Assistant",
-      },
-      {
-        label: t("navigation.dashboard"),
-        href: user.role === "admin" ? "/admin" : user.role === "enterprise" ? "/enterprise" : "/dashboard",
-        icon: Layout,
-        description: t("navigation.dashboard"),
-      },
-    ]
+  // Navigation items
+  const mainNavigationItems = [
+    {
+      label: "AI Assistant",
+      href: "/ai-assistant",
+      icon: Brain,
+      description: "AI Learning Assistant",
+    },
+    {
+      label: t("navigation.dashboard"),
+      href: "/dashboard",
+      icon: Layout,
+      description: t("navigation.dashboard"),
+    },
+    {
+      label: t("navigation.learning"),
+      href: "/learning",
+      icon: BookOpen,
+      description: "Parcours d'apprentissage",
+    },
+  ]
 
-    if (user.role === "admin") {
-      return [
-        ...baseItems,
-        { label: t("navigation.users"), href: "/admin/users", icon: Users, description: "Gestion des utilisateurs" },
+  // Secondary navigation in dropdown
+  const secondaryNavigationItems = [
+    {
+      section: "Évaluation & Portfolio",
+      items: [
+        {
+          label: t("navigation.portfolio"),
+          href: "/portfolio",
+          icon: Code,
+          description: "GitHub, Behance, LinkedIn",
+        },
+        {
+          label: t("navigation.assessments"),
+          href: "/assessments",
+          icon: FileCheck,
+          description: t("assessments.title"),
+        },
         {
           label: t("navigation.analytics"),
-          href: "/admin/analytics",
+          href: "/analytics",
           icon: BarChart3,
-          description: "Analytics système",
+          description: "Statistiques détaillées",
         },
-      ]
-    }
-
-    if (user.role === "enterprise") {
-      return [
-        ...baseItems,
+      ],
+    },
+    {
+      section: "Compétences & Certifications",
+      items: [
         {
-          label: t("navigation.employees"),
-          href: "/enterprise/employees",
-          icon: Users,
-          description: "Gestion des employés",
-        },
-        {
-          label: t("navigation.departments"),
-          href: "/enterprise/departments",
-          icon: Building,
-          description: "Départements",
+          label: t("navigation.skills"),
+          href: "/skills",
+          icon: Target,
+          description: t("skills.title"),
         },
         {
-          label: t("navigation.learning"),
-          href: "/enterprise/learning",
-          icon: BookOpen,
-          description: "Parcours d'apprentissage",
+          label: t("navigation.certificates"),
+          href: "/certificates",
+          icon: Award,
+          description: t("certificates.title"),
         },
-      ]
-    }
+      ],
+    },
+    {
+      section: "Découverte",
+      items: [
+        {
+          label: t("navigation.marketplace"),
+          href: "/marketplace",
+          icon: Store,
+          description: "Talents et opportunités",
+        },
+      ],
+    },
+  ]
 
-    // Regular user navigation
-    return [
-      ...baseItems,
-      { label: t("navigation.skills"), href: "/skills", icon: Target, description: t("skills.title") },
-{
-                label: t("navigation.learning"),
-                href: "/learning",
-                icon: BookOpen,
-                description: "Parcours d'apprentissage",
-              },
-      { label: t("navigation.certificates"), href: "/certificates", icon: Award, description: t("certificates.title") },
-    ]
-  }
-
-  // Secondary navigation in dropdown for regular users
-  const secondaryNavigationItems =
-    user.role === "user"
-      ? [
-          {
-            section: "Évaluation & Portfolio",
-            items: [
-              {
-                label: t("navigation.portfolio"),
-                href: "/portfolio",
-                icon: Code,
-                description: "GitHub, Behance, LinkedIn",
-              },
-                    {
-        label: t("navigation.assessments"),
-        href: "/assessments",
-        icon: FileCheck,
-        description: t("assessments.title"),
-      },
-
-              {
-                label: t("navigation.analytics"),
-                href: "/analytics",
-                icon: BarChart3,
-                description: "Statistiques détaillées",
-              },
-            ],
-          },
-          {
-            section: "Découverte",
-            items: [
-              {
-                label: t("navigation.marketplace"),
-                href: "/marketplace",
-                icon: Store,
-                description: "Talents et opportunités",
-              },
-            ],
-          },
-        ]
-      : []
-
-  const mainNavigationItems = getNavigationItems()
 
   const subscriptionColors = {
     free: "from-gray-500 to-gray-600",
@@ -208,7 +174,7 @@ export function MainNavigation() {
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center space-x-3"
           >
-            <Link href="/main" className="flex items-center">
+            <a href="/main" className="flex items-center">
               <Image 
                 src="/logo.png" 
                 alt="Corp1o1" 
@@ -216,7 +182,7 @@ export function MainNavigation() {
                 height={40} 
                 className="h-8"
               />
-            </Link>
+            </a>
           </motion.div>
 {/* User Profile with Hover Sidebar + Click Dropdown */}
 <div className="relative">
@@ -252,7 +218,7 @@ export function MainNavigation() {
           <p className="text-sm font-medium text-white truncate">{user.name}</p>
           <div className="flex items-center justify-between mt-1">
             <p className="text-xs text-gray-400 capitalize">
-              {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+              {user.role}
             </p>
             <Badge
               className={`text-xs px-1.5 py-0.5 bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}
@@ -267,30 +233,30 @@ export function MainNavigation() {
           <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
             Mon Compte
           </DropdownMenuLabel>
-          <Link href="/profile">
+          <a href="/profile">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <User className="mr-3 h-8 w-8" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.profile")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
-          <Link href="/settings">
+          </a>
+          <a href="/settings">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <Settings className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.settings")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
-          <Link href="/subscription">
+          </a>
+          <a href="/subscription">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <CreditCard className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.subscription")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
+          </a>
         </div>
 
         <DropdownMenuSeparator className="bg-slate-700" />
@@ -299,14 +265,14 @@ export function MainNavigation() {
           <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-1">
             Aide & Sécurité
           </DropdownMenuLabel>
-          <Link href="/help">
+          <a href="/help">
             <DropdownMenuItem className="text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer">
               <HelpCircle className="mr-3 h-4 w-4" />
               <div>
                 <p className="text-sm font-medium">{t("navigation.support")}</p>
               </div>
             </DropdownMenuItem>
-          </Link>
+          </a>
         </div>
 
         <DropdownMenuSeparator className="bg-slate-700" />
@@ -347,7 +313,7 @@ export function MainNavigation() {
               </Avatar>
               <h3 className="text-lg font-bold text-white mb-1">{user.name}</h3>
               <p className="text-gray-400 text-sm mb-3 capitalize">
-                {user.role === "enterprise" ? `${user.role} • ${user.company}` : user.role}
+                {user.role}
               </p>
               <Badge className={`bg-gradient-to-r ${subscriptionColors[user.subscription]} text-white border-0`}>
                 <Zap className="w-3 h-3 mr-1" />
@@ -423,18 +389,18 @@ export function MainNavigation() {
 
             {/* Quick Actions */}
             <div className="space-y-2">
-              <Link href="/profile">
+              <a href="/profile">
                 <Button className="w-full bg-slate-700 hover:bg-slate-600 text-white">
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Profile
                 </Button>
-              </Link>
-              <Link href="/settings">
+              </a>
+              <a href="/settings">
                 <Button variant="outline" className="w-full border-slate-600 text-gray-300 hover:bg-slate-700">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </Button>
-              </Link>
+              </a>
             </div>
           </CardContent>
         </Card>
@@ -454,7 +420,7 @@ export function MainNavigation() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Link href={item.href}>
+                  <a href={item.href}>
                     <Button
                       variant={isActive ? "default" : "ghost"}
                       className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
@@ -466,13 +432,26 @@ export function MainNavigation() {
                       <item.icon className="h-4 w-4 mr-2" />
                       {item.label}
                     </Button>
-                  </Link>
+                  </a>
                 </motion.div>
               )
             })}
-
-            {/* "Plus" Dropdown for Secondary Items (only for regular users) */}
-            {user.role === "user" && secondaryNavigationItems.length > 0 && (
+            {/* Conference Button */}
+            <a href="/conference">
+              <Button
+                variant={isActiveRoute("/conference") ? "default" : "ghost"}
+                className={`relative px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                  isActiveRoute("/conference")
+                    ? "bg-gradient-to-r from-revolutionary-cyan/25 to-revolutionary-blue/25 text-white border border-revolutionary-cyan/40 shadow-lg shadow-revolutionary-cyan/10"
+                    : "text-gray-300 hover:text-white hover:bg-slate-800/50"
+                }`}
+              >
+                <Video className="h-4 w-4 mr-2" />
+                {t("navigation.conference")}
+              </Button>
+            </a>
+            {/* "Plus" Dropdown for Secondary Items */}
+            {secondaryNavigationItems.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -496,7 +475,7 @@ export function MainNavigation() {
                         {section.section}
                       </DropdownMenuLabel>
                       {section.items.map((item) => (
-                        <Link key={item.href} href={item.href}>
+                        <a key={item.href} href={item.href}>
                           <DropdownMenuItem
                             className={`text-gray-300 hover:text-white hover:bg-slate-700 px-3 py-2 cursor-pointer ${
                               isActiveRoute(item.href) ? "bg-gradient-to-r from-revolutionary-cyan/20 to-revolutionary-blue/20 text-revolutionary-cyan border-l-2 border-revolutionary-cyan" : ""
@@ -508,13 +487,15 @@ export function MainNavigation() {
                               <p className="text-xs text-gray-500">{item.description}</p>
                             </div>
                           </DropdownMenuItem>
-                        </Link>
+                        </a>
                       ))}
                     </div>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+
+ 
           </div>
 
           {/* Right Side Controls */}
@@ -552,7 +533,7 @@ export function MainNavigation() {
             </Button>
 
             {/* Notifications */}
-            <Link href="/notifications">
+            <a href="/notifications">
               <Button
                 variant="ghost"
                 size="sm"
@@ -565,7 +546,7 @@ export function MainNavigation() {
                   </Badge>
                 )}
               </Button>
-            </Link>
+            </a>
 
              
           </div>
@@ -615,7 +596,7 @@ export function MainNavigation() {
             {mainNavigationItems.slice(0, 4).map((item) => {
               const isActive = isActiveRoute(item.href)
               return (
-                <Link key={item.href} href={item.href}>
+                <a key={item.href} href={item.href}>
                   <Button
                     variant={isActive ? "default" : "ghost"}
                     size="sm"
@@ -626,7 +607,7 @@ export function MainNavigation() {
                     <item.icon className="h-4 w-4" />
                     <span className="text-xs">{item.label}</span>
                   </Button>
-                </Link>
+                </a>
               )
             })}
           </div>

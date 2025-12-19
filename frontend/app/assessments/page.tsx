@@ -136,7 +136,7 @@ export default function AssessmentsPage() {
         {/* Floating Chat Bar */}
       <FloatingChatBar
         onSendMessage={handleSendMessage}
-        placeholder="Ask me about assessments, skill evaluation, and results..."
+        placeholder="Ask me about assessments, type / for commands."
         enableVoice={true}
         enableMinimize={true}
       />

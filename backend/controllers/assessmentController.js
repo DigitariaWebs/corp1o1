@@ -1135,6 +1135,16 @@ const generateQuestions = async (req, res, next) => {
       topic,
       subtopics: _subtopics = [],
     } = req.body;
+
+    console.log('🎯 Question generation request received:', {
+      assessmentId,
+      title,
+      category,
+      difficulty: rawDifficulty,
+      questionCount,
+      topic,
+      includeTypes
+    });
     const wantStream = req.query.stream === '1' || req.headers.accept === 'text/event-stream';
 
     // Normalize difficulty to easy/medium/hard for consistent scoring/prompts
@@ -1201,7 +1211,7 @@ const generateQuestions = async (req, res, next) => {
 
     // Streaming mode: send first 5, then stream the rest in batches
     const totalCount = Math.min(parseInt(questionCount, 10) || 10, 40);
-    const chunkSize = Math.max(1, Math.min(parseInt(req.query.chunkSize, 10) || 5, 10));
+    const chunkSize = Math.max(1, Math.min(parseInt(req.query.chunkSize, 10) || 5, 8)); // Reduced chunk size for better UX
     const topicText = topic || title;
 
     res.setHeader('Content-Type', 'text/event-stream');
@@ -1228,6 +1238,7 @@ const generateQuestions = async (req, res, next) => {
       const avoid = Array.from(seenQuestions);
       let batch = [];
       try {
+        console.log(`🔄 Generating batch of ${batchCount} questions...`);
         batch = await aiServiceManager.generateQuestions(
           title,
           category,
@@ -1237,12 +1248,14 @@ const generateQuestions = async (req, res, next) => {
           includeTypes,
           { avoidQuestions: avoid, subtopics: _subtopics },
         );
+        console.log(`✅ Generated ${batch.length} questions in batch`);
       } catch (err) {
         console.error('❌ Batch generation failed:', err.message);
         return [];
       }
 
       if (!batch || batch.length === 0) {
+        console.log('⚠️ No questions generated, using fallback');
         // try fallback for this batch
         batch = generateFallbackQuestions(title, category, difficulty, batchCount);
       }
@@ -1267,28 +1280,44 @@ const generateQuestions = async (req, res, next) => {
     }
 
     try {
-      // First chunk
+      // First chunk - send immediately for better UX
       const firstCount = Math.min(chunkSize, totalCount);
       const firstBatch = await generateBatch(firstCount);
       allQuestions.push(...firstBatch);
       generated += firstBatch.length;
-      sse({ type: 'batch', payload: { startIndex: 0, questions: firstBatch } });
+      
+      // Send first batch immediately
+      sse({ type: 'batch', payload: { startIndex: 0, questions: firstBatch, progress: { generated, total: totalCount } } });
 
-      // Remaining chunks
+      // Remaining chunks with progress updates
       while (generated < totalCount) {
         const remaining = totalCount - generated;
         const nextCount = Math.min(chunkSize, remaining);
+        
+        // Send progress update
+        sse({ type: 'progress', payload: { generated, total: totalCount, message: `Generating ${nextCount} more questions...` } });
+        
         const nextBatch = await generateBatch(nextCount);
         const startIndex = generated;
         allQuestions.push(...nextBatch);
         generated += nextBatch.length;
-        sse({ type: 'batch', payload: { startIndex, questions: nextBatch } });
+        
+        // Send batch with progress
+        sse({ type: 'batch', payload: { startIndex, questions: nextBatch, progress: { generated, total: totalCount } } });
+        
+        // Small delay to prevent overwhelming the client
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
 
       // Summary event
       const totalPoints = allQuestions.reduce((sum, q) => sum + (q.points || 0), 0);
       const estimatedDuration = Math.ceil(allQuestions.reduce((sum, q) => sum + (q.timeLimit || 300), 0) / 60);
-      sse({ type: 'complete', payload: { totalQuestions: allQuestions.length, totalPoints, estimatedDuration } });
+      sse({ type: 'complete', payload: { 
+        totalQuestions: allQuestions.length, 
+        totalPoints, 
+        estimatedDuration,
+        message: 'All questions generated successfully!' 
+      } });
     } catch (streamErr) {
       console.error('❌ Streaming generation error:', streamErr);
       sse({ type: 'error', payload: { message: streamErr.message || 'Unknown error' } });

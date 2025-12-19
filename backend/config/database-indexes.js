@@ -740,3 +740,28 @@ async function dropLegacyAssessmentQuestionIdIndex() {
 }
 
 module.exports.dropLegacyAssessmentQuestionIdIndex = dropLegacyAssessmentQuestionIdIndex;
+
+/**
+ * Drop problematic unique index on messages.messageId in aisessions collection
+ * MongoDB doesn't support unique constraints on subdocument arrays properly
+ */
+async function dropLegacyAISessionMessageIdIndex() {
+  try {
+    const db = mongoose.connection.db;
+    const coll = db.collection('aisessions');
+    const indexes = await coll.listIndexes().toArray();
+    const legacy = indexes.find((i) => i.key && i.key['messages.messageId'] === 1);
+    if (legacy) {
+      try {
+        await coll.dropIndex(legacy.name);
+        console.log(`🗑️  Dropped legacy index on aisessions: ${legacy.name}`);
+      } catch (e) {
+        console.log(`⚠️  Could not drop legacy index ${legacy.name}: ${e.message}`);
+      }
+    }
+  } catch (e) {
+    console.log(`⚠️  Legacy aisession index check failed: ${e.message}`);
+  }
+}
+
+module.exports.dropLegacyAISessionMessageIdIndex = dropLegacyAISessionMessageIdIndex;

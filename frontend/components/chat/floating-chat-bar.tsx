@@ -16,7 +16,7 @@ import {
   Minimize2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useChat } from '@/hooks/use-chat'
+import { useFastChat } from '@/hooks/use-fast-chat'
 import { SimpleCommandMenu as CommandMenu } from "@/components/ai/simple-command-menu"
 
 interface FloatingChatBarProps {
@@ -49,7 +49,7 @@ export function FloatingChatBar({
   const [showCommandMenu, setShowCommandMenu] = useState(false)
   const [commandSearchQuery, setCommandSearchQuery] = useState("")
 
-  const { messages, sendMessage, loading } = useChat()
+  const { messages, sendMessage, loading } = useFastChat()
 
   // Command menu handlers
   const handleCommandSelect = (command: any) => {

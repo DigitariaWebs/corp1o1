@@ -186,14 +186,15 @@ export function useConversationContext(options: ConversationContextOptions = {})
   }, [])
 
   // Create new conversation
-  const createConversation = useCallback(async (title?: string, personality?: string) => {
+  const createConversation = useCallback(async (title?: string, personality?: string, conversationType?: 'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL') => {
     setLoading(true)
     setError(null)
     
     try {
       const response = await conversationApi.createConversation({
         title,
-        personality
+        personality,
+        conversationType
       })
       const newConversation = response?.data?.conversation
       

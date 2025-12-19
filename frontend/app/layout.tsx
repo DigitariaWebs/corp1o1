@@ -10,7 +10,7 @@ import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
 import { ReduxProvider } from "@/components/providers/redux-provider"
 import SnowDots from "@/components/effects/snow-dots"
-
+import { StreamVideoProvider } from "@/app/providers/StreamVideoProvider";
 const montserrat = Montserrat({ 
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
@@ -91,7 +91,9 @@ export default function RootLayout({
                     opacity={{ min: 0.2, max: 0.8 }}
                     wind={0.3}
                   />
+                  <StreamVideoProvider>
                   {children}
+                  </StreamVideoProvider>
                   <Toaster />
                 </AuthProvider>
               </TranslationProvider>

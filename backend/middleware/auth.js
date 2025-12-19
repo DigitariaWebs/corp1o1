@@ -256,7 +256,51 @@ const authenticateWithClerk = async (req, res, next) => {
     }
   } catch (_) {}
 
-  // First require Clerk authentication
+  // Check if this is an API request (JSON content-type or /api/ path)
+  const isApiRequest = req.path.startsWith('/api/') || 
+                      req.headers['content-type']?.includes('application/json') ||
+                      req.headers.accept?.includes('application/json');
+
+  // For API requests, use getAuth directly instead of requireAuth to avoid redirects
+  if (isApiRequest) {
+    try {
+      const auth = getAuth(req);
+      
+      if (!auth || !auth.userId) {
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication required',
+          message: 'Please sign in to access this resource.',
+        });
+      }
+
+      // If DB not connected yet, fall back to lightweight identity
+      try {
+        if (mongoose.connection.readyState !== 1) {
+          req.userId = auth.userId;
+          req.clerkUserId = auth.userId;
+          req.userRole = req.userRole || 'user';
+          req.user = req.user || { _id: auth.userId, isActive: true };
+          return next();
+        }
+      } catch (_) {
+        // ignore and attempt full attach below
+      }
+
+      // Attach user data via database if available
+      await attachClerkUser(req, res, next);
+      return;
+    } catch (error) {
+      console.error('Clerk API authentication error:', error);
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication failed',
+        message: 'Please sign in to access this resource.',
+      });
+    }
+  }
+
+  // For web requests, use requireAuth (which may redirect)
   const clerkMiddleware = requireAuth();
 
   clerkMiddleware(req, res, async (error) => {

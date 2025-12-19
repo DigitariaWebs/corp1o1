@@ -5,7 +5,6 @@ const router = express.Router();
 const Joi = require('joi');
 
 // Import middleware
-const { authenticateWithClerk } = require('../middleware/auth');
 const { validate } = require('../middleware/validation');
 
 // Import controller
@@ -30,13 +29,10 @@ const feedbackSchema = Joi.object({
   }),
 });
 
-// Require authentication for all AI routes
-router.use(authenticateWithClerk);
-
 /**
  * @route   POST /api/ai/feedback
  * @desc    Provide feedback on AI response
- * @access  Private
+ * @access  Public (no auth required - uses anonymous user if not authenticated)
  */
 router.post('/feedback', validate(feedbackSchema), provideFeedback);
 

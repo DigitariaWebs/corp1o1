@@ -252,3 +252,21 @@
   background: hsl(var(--revolutionary-cyan));
   color: hsl(var(--primary-foreground));
 }
+
+/* Mirror local participant video in conference calls using Tailwind */
+@layer utilities {
+  .mirror-local-video video {
+    @apply scale-x-[-1];
+  }
+}
+
+/* Mirror local participant video in Stream.io layouts (Grid, Speaker, etc.) */
+@layer components {
+  /* Target Stream.io video elements for local participants */
+  [data-participant-is-local="true"] video,
+  [data-testid*="local"] video,
+  .str-video__participant[data-participant-is-local="true"] video,
+  .str-video__participant-details:has([data-participant-is-local="true"]) video {
+    @apply scale-x-[-1];
+  }
+}

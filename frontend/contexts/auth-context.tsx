@@ -79,6 +79,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.warn("🔄 User not found in database - backend should auto-create. Using Clerk data as fallback.")
           return null // Use Clerk data instead of "USER_DELETED"
         }
+        // Handle 401 (Unauthorized) - token might be invalid or expired, use Clerk data
+        if (response.status === 401) {
+          console.warn("⚠️ Authentication failed for user profile - using Clerk data as fallback")
+          return null
+        }
         // If backend is not available, just return null and use Clerk data
         if (response.status >= 500 || !response.status) {
           console.warn("Backend not available, using Clerk data only")
@@ -137,7 +142,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncUserData = async () => {
       try {
-        if (!clerkLoaded) return
+        // Add timeout to prevent infinite loading
+        const timeoutId = setTimeout(() => {
+          console.warn("⚠️ [AUTH] Auth sync timeout - setting loading to false")
+          setIsLoading(false)
+        }, 10000) // 10 second timeout
+
+        if (!clerkLoaded) {
+          clearTimeout(timeoutId)
+          return
+        }
 
         // Check if account deletion is in progress
         const isDeletionInProgress = sessionStorage.getItem('account-deletion-in-progress')
@@ -147,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setIsLoading(false)
           sessionStorage.removeItem('account-deletion-in-progress')
           window.location.href = '/'
+          clearTimeout(timeoutId)
           return
         }
 
@@ -164,6 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log("📊 [AUTH] Using Clerk fallback data:", mappedUser)
               setUser(mappedUser)
               setIsLoading(false)
+              clearTimeout(timeoutId)
               return
             }
             
@@ -183,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         setIsLoading(false)
+        clearTimeout(timeoutId)
       } catch (outerError) {
         console.error("Critical error in syncUserData:", outerError)
         setUser(null)

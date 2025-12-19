@@ -5,7 +5,8 @@ const messageSchema = new mongoose.Schema({
   messageId: {
     type: String,
     required: true,
-    unique: true,
+    // Note: unique constraint removed - cannot use unique on subdocument arrays
+    // Uniqueness is enforced at application level in addMessage method
   },
   role: {
     type: String,
@@ -229,6 +230,13 @@ const aiSessionSchema = new mongoose.Schema({
   aiPersonality: {
     type: String,
     default: 'ASSISTANT',
+  },
+  
+  // Conversation type for prompt selection
+  conversationType: {
+    type: String,
+    enum: ['LEARNING', 'EDUCATION', 'PROBLEM_SOLVING', 'PROGRAMMING', 'MATHEMATICS', 'GENERAL'],
+    default: 'GENERAL',
   },
   
   // Conversation title

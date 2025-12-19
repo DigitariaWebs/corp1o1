@@ -85,6 +85,17 @@ class ConversationApiClient {
       return data
     } catch (error) {
       console.error('API request error:', error)
+      // Provide more helpful error messages
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        const helpfulError = new Error(
+          `Failed to connect to API at ${url}. Please check:\n` +
+          `1. Is the backend server running on ${this.baseUrl}?\n` +
+          `2. Are there any CORS issues?\n` +
+          `3. Check the browser console for network errors.`
+        )
+        helpfulError.name = 'NetworkError'
+        throw helpfulError
+      }
       throw error
     }
   }
@@ -111,6 +122,7 @@ class ConversationApiClient {
   async createConversation(data?: {
     title?: string
     personality?: string
+    conversationType?: 'LEARNING' | 'EDUCATION' | 'PROBLEM_SOLVING' | 'PROGRAMMING' | 'MATHEMATICS' | 'GENERAL'
   }): Promise<ApiResponse<{ conversation: Conversation }>> {
     return this.request('/api/conversations/public', {
       method: 'POST',
@@ -227,6 +239,3 @@ class ConversationApiClient {
 
 // Export singleton instance
 export const conversationApi = new ConversationApiClient()
-
-// Export types for convenience
-export type { Conversation, Message, ApiResponse, PaginationInfo }
